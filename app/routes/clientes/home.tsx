@@ -8,7 +8,6 @@ import { EntityTable } from "~/components/EntityTable";
 import type { ClientesBD } from "~/types/clientes";
 import type { TableColumn } from "react-data-table-component";
 import { useNavigate } from "react-router";
-import { Link } from "react-router";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Clientes" },
@@ -41,12 +40,13 @@ export default function ClientesHome() {
   const { getClientes, clientes, setCliente } = useData();
   const navigate = useNavigate();
   useEffect(() => {
-    getClientes();
+    setCliente(null);
+    if (!clientes) getClientes();
   }, []);
   const handleRowClick = (row: ClientesBD) => {
     setCliente(row);
     navigate(`/clientes/${row.id}`);
-  }
+  };
   if (!clientes) {
     return (
       <div className="min-h-screen flex items-center justify-center">

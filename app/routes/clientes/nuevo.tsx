@@ -16,6 +16,10 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 export default function ClientesNuevo() {
+  const { setCliente } = useData();
+  useEffect(() => {
+    setCliente(null);
+  }, []);
   return (
     <div className="flex flex-col items-center w-full max-w-6xl mx-auto">
       <Subheader title="Nuevo Cliente" icon={<UserRoundPlus className="w-6 h-6 text-purple" />} />
