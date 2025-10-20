@@ -2,15 +2,10 @@
   publish = "build/client"
   command = "npm run build"
 
-[functions]
-  directory = "build/server"
-  node_bundler = "esbuild"
-
 [[redirects]]
   from = "/*"
-  to = "/.netlify/functions/index"
+  to = "/index.html"
   status = 200
-  force = true
 
 [build.environment]
   NODE_VERSION = "20"
