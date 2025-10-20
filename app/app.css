@@ -1,15 +1,79 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  /* Bases */
+  --color-background: var(--color-white);
+  --color-text-primary: var(--color-gray-800);
+  --color-text-secondary: var(--color-gray-600);
+  /* Primary */
+  --color-primary: var(--color-indigo-700);
+  --color-primary-100: var(--color-indigo-100);
+  --color-primary-hover: var(--color-indigo-800);
+  --color-primary-focus: var(--color-indigo-300);
+  --color-primary-text: var(--color-indigo-400);
+  /* Green */
+  --color-green: var(--color-green-700);
+  --color-green-hover: var(--color-green-800);
+  --color-green-focus: var(--color-green-300);
+  /* Red */
+  --color-red: var(--color-red-700);
+  --color-red-hover: var(--color-red-800);
+  --color-red-focus: var(--color-red-300);
+  /* Yellow */
+  --color-yellow: var(--color-yellow-400);
+  --color-yellow-hover: var(--color-yellow-500);
+  --color-yellow-focus: var(--color-yellow-300);
+  /* Purple */
+  --color-purple: var(--color-purple-700);
+  --color-purple-hover: var(--color-purple-800);
+  --color-purple-focus: var(--color-purple-300);
+  /* Blue */
+  --color-blue: var(--color-blue-700);
+  --color-blue-hover: var(--color-blue-800);
+  --color-blue-focus: var(--color-blue-300);
+  /* Light */
+  --color-light: var(--color-gray-200);
+  --color-light-hover: var(--color-gray-300);
+  --color-light-focus: var(--color-gray-400);
 }
 
-html,
-body {
-  @apply bg-white dark:bg-gray-950;
-
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
+@layer theme {
+  :root,
+  :host {
+    @variant dark {
+      /* Bases */
+      --color-background: var(--color-gray-900);
+      --color-text-primary: var(--color-gray-200);
+      --color-text-secondary: var(--color-gray-400);
+      /* Primary */
+      --color-primary: var(--color-indigo-600);
+      --color-primary-hover: var(--color-indigo-700);
+      --color-primary-focus: var(--color-indigo-800);
+      /* Green */
+      --color-green: var(--color-green-600);
+      --color-green-hover: var(--color-green-700);
+      --color-green-focus: var(--color-green-800);
+      /* Red */
+      --color-red: var(--color-red-400);
+      --color-red-hover: var(--color-red-500);
+      --color-red-focus: var(--color-red-600);
+      /* Yellow */
+      --color-yellow-focus: var(--color-yellow-900);
+      /* Purple */
+      --color-purple: var(--color-purple-600);
+      --color-purple-hover: var(--color-purple-700);
+      --color-purple-focus: var(--color-purple-800);
+      /* Blue */
+      --color-blue: var(--color-blue-600);
+      --color-blue-hover: var(--color-blue-700);
+      --color-blue-focus: var(--color-blue-800);
+      /* Light */
+      --color-light: var(--color-gray-600);
+      --color-light-hover: var(--color-gray-500);
+      --color-light-focus: var(--color-gray-400);
+    }
   }
 }
