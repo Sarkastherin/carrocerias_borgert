@@ -107,14 +107,21 @@ export const UIModalsProvider = ({
   ) => {
     const newModal = { type, props };
     
+    // Modales prioritarios que se muestran inmediatamente por encima de otros
+    const priorityModals: ModalType[] = ["LOADING", "SUCCESS", "ERROR"];
+    
     if (modal.type === null) {
       // No hay modal activo, mostrar inmediatamente
       setModal(newModal);
+    } else if (priorityModals.includes(type)) {
+      // Si es un modal prioritario, guardar el modal actual en la cola y mostrar el prioritario
+      setModalQueue(prev => [modal, ...prev]);
+      setModal(newModal);
     } else {
-      // Hay un modal activo, agregar a la cola
+      // Hay un modal activo y no es prioritario, agregar a la cola
       setModalQueue(prev => [...prev, newModal]);
     }
-  }, [modal.type]);
+  }, [modal]);
 
   const closeModal = useCallback(() => {
     // Si hay modales en cola, mostrar el siguiente

@@ -33,7 +33,7 @@ const basesClass =
   "w-full cursor-pointer font-medium focus:outline-none focus:ring-4 text-center rounded-lg disabled:cursor-not-allowed disabled:opacity-50 transition-all";
 const sizes = {
   sm: "px-3 py-2 text-xs",
-  md: "px-5 py-2.5 text-sm",
+  md: "px-5 p-2.5 text-sm",
 };
 
 type ButtonProps = {

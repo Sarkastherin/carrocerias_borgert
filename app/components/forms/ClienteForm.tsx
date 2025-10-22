@@ -4,7 +4,7 @@ import { AddressFields } from "../AddressFields";
 import { useClienteForm } from "~/hooks/useClienteForm";
 import { CardToggle } from "../CardToggle";
 
-export default function ClienteForm() {
+export default function ClienteForm({modal}: {modal?: boolean}) {
   const {
     register,
     handleSubmit,
@@ -14,7 +14,7 @@ export default function ClienteForm() {
     submitButtonText,
     handleDireccionChange,
     initialAddress,
-  } = useClienteForm();
+  } = useClienteForm({modal: modal});
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <CardToggle title="Información del Cliente">
@@ -26,6 +26,7 @@ export default function ClienteForm() {
                 required: "La razón social es obligatoria",
               })}
               error={errors.razon_social?.message}
+              requiredField={true}
             />
           </div>
           <div className="md:col-span-2 lg:col-span-3">
@@ -58,6 +59,7 @@ export default function ClienteForm() {
             label="CUIT/CUIL"
             {...register("cuit_cuil", {required: "El CUIT/CUIL es obligatorio"})}
             error={errors.cuit_cuil?.message}
+            requiredField={true}
           />
         </fieldset>
       </CardToggle>

@@ -205,6 +205,7 @@ export function EntityTable<T>({
         pointerOnHover
         highlightOnHover
         paginationComponentOptions={options}
+        noDataComponent={<div className="py-6 text-text-secondary">No se encontraron registros</div>}
       />
     </>
   );

@@ -52,7 +52,7 @@ export function ModalLoading({
   message?: string;
 }) {
   return (
-    <ModalBase title={title} open zIndex={100}>
+    <ModalBase title={title} open zIndex={200}>
       <div className="flex flex-col items-center justify-center py-6 gap-4">
         <Spinning />
         <p className="text-sm text-zinc-700 dark:text-zinc-300 text-center max-w-xs">
@@ -87,7 +87,7 @@ export function ModalInformation({
     btnSecondary,
   };
   return (
-    <ModalBase title={title} open zIndex={100} onClose={onClose} footer={footer}>
+    <ModalBase title={title} open zIndex={200} onClose={onClose} footer={footer}>
       <Container message={message} />
     </ModalBase>
   );
@@ -118,7 +118,7 @@ export function ModalSuccess({
     btnSecondary,
   };
   return (
-    <ModalBase title={title} open zIndex={100} onClose={onClose} footer={footer}>
+    <ModalBase title={title} open zIndex={200} onClose={onClose} footer={footer}>
       <Container message={message} />
     </ModalBase>
   );
@@ -147,7 +147,7 @@ export function ModalError({
     btnSecondary,
   };
   return (
-    <ModalBase title={title} open zIndex={100} onClose={onClose} footer={footer}>
+    <ModalBase title={title} open zIndex={200} onClose={onClose} footer={footer}>
       <Container message={message} />
     </ModalBase>
   );

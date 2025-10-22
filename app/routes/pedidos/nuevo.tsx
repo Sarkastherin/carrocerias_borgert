@@ -2,24 +2,24 @@ import { useEffect } from "react";
 import type { Route } from "../+types/home";
 import { useData } from "~/context/DataContext";
 import { Subheader } from "~/components/Headers";
-import { UserRoundPlus } from "lucide-react";
-import ClienteForm from "~/components/forms/ClienteForm";
+import { FilePlus2 } from "lucide-react";
+import PedidosForm from "~/components/forms/PedidosForm";
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Agregar Cliente" },
-    { name: "description", content: "Agregar cliente" },
+    { title: "Agregar Pedido" },
+    { name: "description", content: "Agregar pedido" },
   ];
 }
-export default function ClientesNuevo() {
-  const { setCliente } = useData();
+export default function PedidosNuevo() {
+  const { setPedido } = useData();
   useEffect(() => {
-    setCliente(null);
+    setPedido(null);
   }, []);
   return (
     <div className="flex flex-col items-center w-full max-w-6xl mx-auto">
-      <Subheader title="Nuevo Cliente" icon={<UserRoundPlus className="w-6 h-6 text-purple" />} />
+      <Subheader title="Nuevo Pedido" icon={<FilePlus2 className="w-6 h-6 text-green" />} />
       <main className="w-full max-w-5xl p-6">
-        <ClienteForm />
+        <PedidosForm />
       </main>
     </div>
   )

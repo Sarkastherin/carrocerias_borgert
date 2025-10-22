@@ -40,7 +40,7 @@ export default function ModalBase({
       aria-labelledby="modalTitle"
     >
       <div
-        className={`w-full ${width} max-h-[90vh] rounded-lg bg-white p-6 shadow-lg dark:bg-slate-900 transform transition-all duration-300 ease-out ${
+        className={`w-full ${width} max-h-[90vh] overflow-y-auto rounded-lg bg-white p-6 shadow-lg dark:bg-slate-900 transform transition-all duration-300 ease-out ${
           open
             ? "scale-100 translate-y-0 opacity-100"
             : "scale-95 -translate-y-4 opacity-0"

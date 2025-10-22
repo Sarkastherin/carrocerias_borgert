@@ -14,5 +14,13 @@ export default [
       route("nuevo", "routes/clientes/nuevo.tsx"),
       route(":clienteId", "routes/clientes/cliente.tsx"),
     ]),
+    ...prefix("pedidos", [
+      route("/", "routes/pedidos/home.tsx"),
+      route("nuevo", "routes/pedidos/nuevo.tsx"),
+      layout("layouts/layoutPedidos.tsx", [
+        route("info/:pedidoId", "routes/pedidos/info.tsx"),
+        route("fabricacion/:pedidoId", "routes/pedidos/fabricacion.tsx"),
+      ]),
+    ]),
   ]),
 ] satisfies RouteConfig;

@@ -1,6 +1,6 @@
 import { useAuth } from "~/context/Auth";
 import { useUI } from "~/context/UIContext";
-import { useNavigate } from "react-router";
+import { useNavigate, NavLink } from "react-router";
 
 export function Header() {
   const { toggleTheme, theme } = useUI();
@@ -13,8 +13,8 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 w-full flex justify-between items-center p-6 dark:bg-gray-800 bg-white shadow-md">
-      <h1 className="text-2xl font-semibold ">Carrocerías Borgert</h1>
+    <header className="sticky top-0 w-full flex justify-between items-center p-6 dark:bg-gray-800 bg-indigo-50 shadow-md">
+      <NavLink to={"/"} className="text-2xl font-semibold font-mono border-2 border-gray-300 px-2">Syst<span className="text-indigo-600 dark:text-indigo-400">BORGERT</span></NavLink>
       <div className="flex items-center gap-4">
         <button
           onClick={handleLogout}

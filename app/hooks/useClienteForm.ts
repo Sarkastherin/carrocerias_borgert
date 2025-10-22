@@ -11,7 +11,7 @@ import { clientesAPI } from "~/backend/sheetServices";
 import { useNavigate } from "react-router";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
 
-export function useClienteForm() {
+export function useClienteForm({modal = false}: {modal?: boolean}) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [direccionData, setDireccionData] = useState<DireccionCompleta | null>(
@@ -19,7 +19,7 @@ export function useClienteForm() {
   );
   const [hasAddressChanged, setHasAddressChanged] = useState(false);
 
-  const { showLoading, showSuccess, showError, showInfo } = useUIModals();
+  const { showLoading, showSuccess, showError, showInfo, closeModal } = useUIModals();
   const { cliente, getClientes } = useData();
   const isEditMode = Boolean(cliente);
   const existingCliente = cliente as ClientesBD | null;
@@ -54,14 +54,12 @@ export function useClienteForm() {
         },
   });
   useEffect(() => {
-    //console.log(form.formState.dirtyFields)
   }, [form.formState.dirtyFields]);
   const handleSubmit = async (formData: ClienteFormData) => {
     try {
       showLoading(
         isEditMode ? "Actualizando cliente..." : "Creando nuevo cliente..."
       );
-
       // Preparar datos finales mezclando form data con dirección estructurada
       const finalData: ClientesBD = {
         ...(isEditMode && { id: existingCliente?.id || "" }),
@@ -101,8 +99,6 @@ export function useClienteForm() {
           showInfo("No se realizaron cambios en el formulario.");
           return;
         }
-
-        console.log("✅ Cambios detectados, procediendo con actualización");
         
         // Si hay cambios de dirección, forzar la inclusión de campos de dirección
         let effectiveDirtyFields = { ...form.formState.dirtyFields };
@@ -133,7 +129,6 @@ export function useClienteForm() {
         }
         getClientes();
         navigate("/clientes");
-        console.log("Actualizando cliente:", updatePayload);
         showSuccess("Cliente actualizado exitosamente");
       } else {
         const response = await clientesAPI.create(finalData);
@@ -143,6 +138,13 @@ export function useClienteForm() {
           );
         }
         getClientes();
+        if(modal) {
+          showSuccess("Cliente creado exitosamente", () => {
+            // Cerrar el modal después de mostrar el éxito
+            closeModal();
+          });
+          return;
+        }
         navigate("/clientes");
         showSuccess("Cliente creado exitosamente");
       }

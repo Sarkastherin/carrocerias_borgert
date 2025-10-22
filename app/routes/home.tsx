@@ -17,7 +17,7 @@ export default function HomePage() {
       name: "Pedidos",
       description: "Gestiona tus pedidos y controla tus avances.",
       icon: <ReceiptText className="w-6 h-6 text-blue-600 dark:text-blue-400" />,
-      path: "/projects",
+      path: "/pedidos",
       color:
         "bg-blue-100/80 hover:bg-blue-200/60 dark:bg-blue-950 dark:hover:bg-blue-900",
     },
@@ -37,7 +37,7 @@ export default function HomePage() {
       icon: (
         <FileCog className="w-6 h-6 text-purple-600 dark:text-purple-400" />
       ),
-      path: "/reports",
+      path: "/parametros",
       color:
         "bg-purple-100/80 hover:bg-purple-200/60 dark:bg-purple-950 dark:hover:bg-purple-900",
     },

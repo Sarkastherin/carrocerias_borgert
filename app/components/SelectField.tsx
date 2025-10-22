@@ -123,6 +123,7 @@ export function SelectField({
     <div className="relative">
       <label className={`block mb-2 text-sm ${label ? "" : "sr-only"}`}>
         {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       
       <div className="relative" ref={dropdownRef}>

@@ -9,8 +9,9 @@ import { ChevronDown } from "lucide-react";
 type CommonInputsProps = {
   id?: string;
   label?: string;
-  register?: UseFormRegisterReturn;
   error?: string;
+  hidden?: boolean;
+  requiredField?: boolean;
 };
 type InputProps = CommonInputsProps &
   InputHTMLAttributes<HTMLInputElement> & { ref?: React.Ref<HTMLInputElement> };
@@ -23,32 +24,42 @@ type SelectProps = CommonInputsProps &
     ref?: React.Ref<HTMLSelectElement>;
   };
 const basesClass = (error: string) => {
-  return `bg-gray-50 border border-gray-300 dark:bg-gray-700 dark:border-gray-600 text-text-primary text-sm rounded-lg focus:ring focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-500 block w-full p-2.5 placeholder:text-gray-400 ${
+  return `bg-gray-50 border border-gray-300 dark:bg-gray-700 dark:border-gray-600 text-text-primary text-sm rounded-lg focus:ring focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-500 block w-full p-2.5 placeholder:text-gray-400 disabled:opacity-70 disabled:cursor-not-allowed ${
     error ? "focus:border-red-500 focus:ring-red-500 border-red-500" : ""
   }`;
 };
 function SpanError({ error }: { error: string }) {
   return <span className="block mt-0.5 text-red-500 text-xs">{error}</span>;
 }
+function Label({ label, requiredField }: { label: string; requiredField?: boolean }) {
+  return (
+    <span className={`block mb-2 text-sm  ${label ? "" : "sr-only"}`}>
+      {label}
+      <span className="text-red-500">{requiredField ? " *" : ""}</span>
+    </span>
+  );
+}
 export function Input({
   id,
   label,
   type,
-  register,
   error,
+  hidden,
+  requiredField,
   ...props
 }: InputProps) {
+  const { ref } = props;
+  if (label === "Razón Social") {
+  }
   return (
-    <label htmlFor={id}>
-      <span className={`block mb-2 text-sm  ${label ? "" : "sr-only"}`}>
-        {label}
-      </span>
+    <label htmlFor={id} className={hidden ? "sr-only" : ""}>
+      <Label label={label ?? ""} requiredField={requiredField} />
       <input
         type={type ? type : "text"}
-        {...register}
         {...props}
         autoComplete="off"
-        className={basesClass(error || "")}
+        className={`dark:[&::-webkit-calendar-picker-indicator]:invert
+ ${basesClass(error ?? "")}`}
       />
       {error && <SpanError error={error} />}
     </label>
@@ -58,19 +69,17 @@ export function Textarea({
   id,
   label,
   rows,
-  register,
   error,
+  requiredField,
+  hidden,
   ...props
 }: TextareaProps) {
   return (
-    <label htmlFor={id}>
-      <span className={`block mb-2 text-sm  ${label ? "" : "sr-only"}`}>
-        {label}
-      </span>
+    <label htmlFor={id} className={hidden ? "sr-only" : ""}>
+      <Label label={label ?? ""} requiredField={requiredField} />
       <textarea
         id={id}
         rows={rows ? rows : 2}
-        {...register}
         {...props}
         className={`${basesClass(error || "")} field-sizing-content`}
       />
@@ -81,19 +90,17 @@ export function Textarea({
 export function Select({
   id,
   label,
-  register,
   error,
   children,
+  requiredField,
+  hidden,
   ...props
 }: SelectProps) {
   return (
-    <label htmlFor={id}>
-      <span className={`block mb-2 text-sm ${label ? "" : "sr-only"}`}>
-        {label}
-      </span>
+    <label htmlFor={id} className={hidden ? "sr-only" : ""}>
+      <Label label={label ?? ""} requiredField={requiredField} />
       <div className="relative">
         <select
-          {...register}
           {...props}
           className={`${basesClass(error || "")} appearance-none pr-8`}
         >
