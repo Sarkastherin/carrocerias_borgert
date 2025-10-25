@@ -1,13 +1,14 @@
-import { Input, Textarea, Select } from "../Inputs";
+import { Input, Textarea, Select, InputWithIIcon, CurrencyInput } from "../Inputs";
 import { Button } from "../Buttons";
 import { usePedidosForm } from "~/hooks/usePedidosForm";
 import { CardToggle } from "../CardToggle";
 import ClienteField from "../ClienteField";
 import { useData } from "~/context/DataContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { PlusIcon, UserRoundPlus } from "lucide-react";
 import { useUIModals } from "~/context/ModalsContext";
 import ClienteNuevoModal from "../modals/customs/ClienteNuevoModal";
+import { FooterForm } from "./Footer";
 
 export default function PedidosForm() {
   const { clientes, getClientes } = useData();
@@ -45,8 +46,8 @@ export default function PedidosForm() {
                   <Input
                     label="Fecha de pedido"
                     type="date"
-                    {...register("fecha_fabricacion")}
-                    error={errors.fecha_fabricacion?.message}
+                    {...register("fecha_pedido")}
+                    error={errors.fecha_pedido?.message}
                   />
                   <div className="flex-1">
                     <div className="flex gap-1 items-end">
@@ -119,12 +120,17 @@ export default function PedidosForm() {
                   {...register("fecha_entrega_estimada")}
                   error={errors.fecha_entrega_estimada?.message}
                 />
-                <Input
+                <CurrencyInput
                   label="Precio total"
-                  type="number"
-                  step="0.01"
+                  value={watch("precio_total")}
+                  onChange={(value) => setValue("precio_total", value === '' ? 0 : value, { shouldDirty: true })}
+                  error={errors.precio_total?.message}
+                />
+                <input
+                  type="hidden"
                   {...register("precio_total", {
                     required: "Este campo es requerido",
+                    valueAsNumber: true,
                   })}
                 />
                 <div className="md:col-span-2">
@@ -149,11 +155,11 @@ export default function PedidosForm() {
                 </div>
               </fieldset>
             </CardToggle>
-            <div className="w-fit pt-4">
+            <FooterForm>
               <Button type="submit" variant="blue" disabled={isLoading}>
                 {isLoading ? "Guardando..." : submitButtonText}
               </Button>
-            </div>
+            </FooterForm>
           </form>
         </>
       )}

@@ -10,6 +10,7 @@ import type { TableColumn } from "react-data-table-component";
 import { useNavigate } from "react-router";
 import { formatDateUStoES } from "~/utils/formatDate";
 import { BadgeStatus } from "~/components/Badge";
+import LoadingComponent from "~/components/LoadingComponent";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Pedidos" },
@@ -31,6 +32,12 @@ const pedidoColumns: TableColumn<PedidosTable>[] = [
     selector: (row) => formatDateUStoES(row.fecha_entrega_estimada),
     width: "150px",
   },
+  {
+    name: "Fecha de pedido",
+    selector: (row) => formatDateUStoES(row.fecha_pedido),
+    width: "150px",
+  },
+
   {
     name: "Precio Total",
     selector: (row) => row.precio_total.toLocaleString("es-AR", { style: "currency", currency: "ARS" }),
@@ -55,15 +62,13 @@ export default function PedidosHome() {
     if (!pedidos) getPedidos();
   }, []);
   const handleRowClick = (row: PedidosBD) => {
-    setPedido(row);
     navigate(`/pedidos/info/${row.id}`);
   };
   if (!pedidos) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Spinning />
-          <p className="text-gray-500">Cargando pedidos...</p>
+          <LoadingComponent content="Cargando pedidos..." />
         </div>
       </div>
     );

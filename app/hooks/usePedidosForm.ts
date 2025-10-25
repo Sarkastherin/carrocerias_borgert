@@ -68,7 +68,7 @@ export function usePedidosForm() {
           );
         }
         getPedidos();
-        navigate("/pedidos");
+        form.reset(formData); // Resetea el formulario con los datos actuales
         showSuccess("Pedido actualizado exitosamente");
       } else {
         const numeroPedido = await getNextPedidoNumber();
@@ -79,8 +79,13 @@ export function usePedidosForm() {
             response.message || "Error desconocido al crear el pedido"
           );
         }
+        const createdId = response.data?.id;
         getPedidos();
-        navigate("/pedidos");
+        if (!createdId) {
+          navigate("/pedidos");
+          throw new Error("No se obtuvo el ID del pedido creado");
+        }
+        navigate(`/pedidos/info/${createdId}`);
         showSuccess("Pedido creado exitosamente");
       }
     } catch (error) {

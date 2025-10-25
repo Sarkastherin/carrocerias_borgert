@@ -5,9 +5,10 @@ import {
   useOutletContext,
   href,
 } from "react-router";
-import { FolderOpenDotIcon, ClipboardList, Drill, Wrench } from "lucide-react";
+import { FolderOpenDotIcon, Truck, Drill, Wrench, LayoutPanelTop } from "lucide-react";
 import { useEffect } from "react";
 import { useData } from "~/context/DataContext";
+import LoadingComponent from "~/components/LoadingComponent";
 
 type MenuLinkProps = {
   to: string;
@@ -29,15 +30,21 @@ export default function PedidosLayout() {
         icon: <FolderOpenDotIcon className="size-4" />,
       },
       {
-        title: "Fabricación",
-        href: `/pedidos/fabricacion/${id}`,
-        icon: <Drill className="size-4" />,
+        title: "Camión",
+        href: `/pedidos/camion/${id}`,
+        icon: <Truck className="size-4" />,
       },
       {
-        title: "Servicios",
-        href: `/pedidos/servicios/${id}`,
-        icon: <Wrench className="size-4" />,
+        title: "Carrocería",
+        href: `/pedidos/carroceria/${id}`,
+        icon: <LayoutPanelTop className="size-4" />,
       },
+      {
+        title: "Trabajo en Chasis",
+        href: `/pedidos/trabajo-chasis/${id}`,
+        icon: <Drill className="size-4" />,
+      }
+      
     ];
   };
   const menu = menuItems(pedidoId);
@@ -59,10 +66,10 @@ export default function PedidosLayout() {
     getPedidoById(pedidoId || "");
   }, []);
   return (
-    <div className="flex h-screen">
+    <div className="flex" style={{ minHeight: "calc(100vh - 67px)" }}>
       {pedido ? (
         <>
-          <div className="flex h-screen flex-col justify-between border-e border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700/20">
+          <div className="flex flex-col justify-between border-e border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700/20">
             <div className="px-4">
               <div className="text-center mt-4">
                 <span className="text-text-secondary text-sm font-bold">
@@ -87,7 +94,7 @@ export default function PedidosLayout() {
         </>
       ) : (
         <div className="flex flex-1 items-center justify-center">
-          <p className="text-gray-500">Cargando proyecto...</p>
+          <LoadingComponent content="Cargando proyecto..." />
         </div>
       )}
     </div>

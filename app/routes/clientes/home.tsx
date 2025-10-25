@@ -8,6 +8,7 @@ import { EntityTable } from "~/components/EntityTable";
 import type { ClientesBD } from "~/types/clientes";
 import type { TableColumn } from "react-data-table-component";
 import { useNavigate } from "react-router";
+import LoadingComponent from "~/components/LoadingComponent";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Clientes" },
@@ -51,8 +52,7 @@ export default function ClientesHome() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Spinning />
-          <p className="text-gray-500">Cargando clientes...</p>
+          <LoadingComponent content="Cargando clientes..." />
         </div>
       </div>
     );

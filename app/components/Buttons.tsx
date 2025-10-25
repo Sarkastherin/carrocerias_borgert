@@ -90,3 +90,36 @@ export const ButtonLinkAdd = ({
     </NavLink>
   );
 };
+export const ButtonAdd = ({
+  variant = "primary",
+  children,
+  onClick,
+}: Props) => {
+  return (
+    <button
+      onClick={onClick}
+      className={`fixed bottom-8 right-8 ${variants[variant]} rounded-full flex items-center transition-all duration-400 ease-in-out hover:gap-2 group shadow-md shadow-blue-600/30 px-2 py-1.5 hover:px-4`}
+    >
+      <PlusIcon className="w-5 h-5 flex-shrink-0" />
+      <span className="overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out w-0 group-hover:w-auto group-hover:opacity-100 opacity-0">
+        {children}
+      </span>
+    </button>
+  );
+};
+export const IconButton = ({
+  variant = "primary",
+  size = "md",
+  children,
+  className,
+  ...buttonProps
+}: Props): JSX.Element => {
+  return (
+    <button
+      className={`${basesClass} ${variants[variant]} ${className} p-3`}
+      {...buttonProps}
+    >
+      {children}
+    </button>
+  );
+};

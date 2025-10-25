@@ -47,6 +47,7 @@ type EntityTableProps<T> = {
   filterFields?: FilterField[];
   onRowClick?: (row: T) => void;
   onFilteredChange?: (filtered: T[]) => void;
+  noDataComponent?: JSX.Element;
 };
 const options = {
   rowsPerPageText: "Filas por página",
@@ -58,6 +59,7 @@ export function EntityTable<T>({
   filterFields = [],
   onRowClick,
   onFilteredChange,
+  noDataComponent,
 }: EntityTableProps<T>) {
   const { theme } = useUI();
   const location = useLocation();
@@ -205,7 +207,7 @@ export function EntityTable<T>({
         pointerOnHover
         highlightOnHover
         paginationComponentOptions={options}
-        noDataComponent={<div className="py-6 text-text-secondary">No se encontraron registros</div>}
+        noDataComponent={noDataComponent || <div className="py-6 text-text-secondary">No se encontraron registros</div>}
       />
     </>
   );

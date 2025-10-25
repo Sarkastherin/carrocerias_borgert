@@ -13,8 +13,8 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 w-full flex justify-between items-center p-6 dark:bg-gray-800 bg-indigo-50 shadow-md">
-      <NavLink to={"/"} className="text-2xl font-semibold font-mono border-2 border-gray-300 px-2">Syst<span className="text-indigo-600 dark:text-indigo-400">BORGERT</span></NavLink>
+    <header className="w-full flex justify-between items-center px-6 py-4 dark:bg-gray-800 bg-indigo-50 shadow-md">
+      <NavLink to={"/"} className="font-logo-primary text-2xl font-bold px-2">Truck<span className="font-logo-secondary font-semibold italic text-indigo-600 dark:text-indigo-400">Flow</span></NavLink>
       <div className="flex items-center gap-4">
         <button
           onClick={handleLogout}
@@ -45,7 +45,7 @@ export function Subheader({
   color?: string;
 }) {
   return (
-    <header className="w-full flex justify-between items-center p-6">
+    <header className="w-full flex justify-between items-center py-8">
       <h2 className="text-2xl font-semibold flex items-center gap-2">
         {icon}
         {title}

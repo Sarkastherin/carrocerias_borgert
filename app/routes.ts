@@ -19,8 +19,17 @@ export default [
       route("nuevo", "routes/pedidos/nuevo.tsx"),
       layout("layouts/layoutPedidos.tsx", [
         route("info/:pedidoId", "routes/pedidos/info.tsx"),
-        route("fabricacion/:pedidoId", "routes/pedidos/fabricacion.tsx"),
+        route("carroceria/:pedidoId", "routes/pedidos/carroceria.tsx"),
+        route("camion/:pedidoId", "routes/pedidos/camion.tsx"),
+        route("trabajo-chasis/:pedidoId", "routes/pedidos/trabajo-chasis.tsx"),
       ]),
+    ]),
+    ...prefix("settings", [
+      index("routes/settings/home.tsx"),
+      route("generales", "routes/settings/generales.tsx"),
+      /* layout("layouts/layoutSettings.tsx", [
+        route("/", "routes/settings/home.tsx"),
+      ]), */
     ]),
   ]),
 ] satisfies RouteConfig;

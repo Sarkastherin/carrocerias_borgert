@@ -4,6 +4,9 @@
 @theme {
   --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  /* Fuentes personalizadas para el logo */
+  --font-logo-primary: "Oswald", sans-serif;
+  --font-logo-secondary: "Montserrat", sans-serif;
   /* Bases */
   --color-background: var(--color-white);
   --color-text-primary: var(--color-gray-800);
@@ -38,6 +41,7 @@
   --color-light: var(--color-gray-200);
   --color-light-hover: var(--color-gray-300);
   --color-light-focus: var(--color-gray-400);
+  
 }
 
 @layer theme {
