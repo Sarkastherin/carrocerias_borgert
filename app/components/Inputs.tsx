@@ -5,7 +5,7 @@ import type {
   TextareaHTMLAttributes,
   SelectHTMLAttributes,
 } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, IdCard, Phone, Banknote } from "lucide-react";
 type CommonInputsProps = {
   id?: string;
   label?: string;
@@ -28,6 +28,22 @@ type CurrencyInputProps = {
   value?: number;
   onChange: (value: number | "") => void;
   error?: string;
+  [key: string]: any;
+};
+type CuitInputProps = {
+  label: string;
+  value?: string;
+  onChange: (value: string) => void;
+  error?: string;
+  requiredField?: boolean;
+  [key: string]: any;
+};
+type PhoneInputProps = {
+  label: string;
+  value?: string;
+  onChange: (value: string) => void;
+  error?: string;
+  requiredField?: boolean;
   [key: string]: any;
 };
 const basesClass = (error: string) => {
@@ -78,7 +94,7 @@ export function Input({
     </label>
   );
 }
-export function InputWithIIcon({
+export function InputWithIcon({
   id,
   label,
   type,
@@ -285,7 +301,7 @@ export function CurrencyInput({
   };
 
   return (
-    <InputWithIIcon
+    <InputWithIcon
       {...props}
       label={label}
       type="text"
@@ -293,8 +309,262 @@ export function CurrencyInput({
       onChange={handleChange}
       onFocus={handleFocus}
       onBlur={handleBlur}
-      icon={<span className="text-gray-500">$</span>}
+      icon={<Banknote className="text-gray-500" />}
       error={error}
+    />
+  );
+}
+
+export function CuitInput({
+  label,
+  value,
+  onChange,
+  error,
+  requiredField,
+  ...props
+}: CuitInputProps) {
+  const [displayValue, setDisplayValue] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
+
+  // Función para formatear CUIT: "12345678901" -> "12-34567890-1"
+  const formatCuit = (value: string): string => {
+    if (!value) return "";
+    const cleaned = value.replace(/\D/g, ""); // Solo números
+    if (cleaned.length <= 2) return cleaned;
+    if (cleaned.length <= 10) {
+      return `${cleaned.slice(0, 2)}-${cleaned.slice(2)}`;
+    }
+    return `${cleaned.slice(0, 2)}-${cleaned.slice(2, 10)}-${cleaned.slice(10, 11)}`;
+  };
+
+  // Función para extraer solo números del CUIT formateado
+  const parseCuit = (formattedValue: string): string => {
+    return formattedValue.replace(/\D/g, "");
+  };
+
+  // Función para validar CUIT/CUIL
+  const validateCuit = (cuit: string): boolean => {
+    const cleaned = cuit.replace(/\D/g, "");
+    if (cleaned.length !== 11) return false;
+    
+    // Algoritmo de validación de CUIT/CUIL
+    const sequence = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+    const digits = cleaned.split("").map(Number);
+    const checkDigit = digits[10];
+    
+    let sum = 0;
+    for (let i = 0; i < 10; i++) {
+      sum += digits[i] * sequence[i];
+    }
+    
+    const remainder = sum % 11;
+    const calculatedDigit = remainder < 2 ? remainder : 11 - remainder;
+    
+    return calculatedDigit === checkDigit;
+  };
+
+  useEffect(() => {
+    if (value !== undefined && !isFocused) {
+      setDisplayValue(formatCuit(value));
+    }
+  }, [value, isFocused]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    
+    // Permitir solo números y guiones
+    if (/^[\d-]*$/.test(inputValue) || inputValue === "") {
+      const cleanedValue = parseCuit(inputValue);
+      
+      // Limitar a máximo 11 dígitos
+      if (cleanedValue.length <= 11) {
+        // Aplicar formato automático mientras escribe
+        const formattedValue = formatCuit(cleanedValue);
+        setDisplayValue(formattedValue);
+        onChange(cleanedValue);
+      }
+    }
+  };
+
+  const handleFocus = () => {
+    setIsFocused(true);
+    // Mantener el valor actual formateado para facilitar la edición
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    if (displayValue) {
+      const cleanedValue = parseCuit(displayValue);
+      setDisplayValue(formatCuit(cleanedValue));
+      onChange(cleanedValue);
+    } else {
+      setDisplayValue("");
+      onChange("");
+    }
+  };
+
+  const cleanedValue = parseCuit(displayValue);
+  const isValidLength = cleanedValue.length === 11;
+  const isValidCuit = isValidLength && validateCuit(cleanedValue);
+  
+  // Determinar el error a mostrar (solo mostrar errores si hay contenido)
+  let errorMessage = error;
+  if (cleanedValue && cleanedValue.length > 0) {
+    if (cleanedValue.length < 11) {
+      errorMessage = "El CUIT/CUIL debe tener 11 dígitos";
+    } else if (cleanedValue.length === 11 && !isValidCuit) {
+      errorMessage = "El CUIT/CUIL no es válido";
+    }
+  }
+
+  return (
+    <InputWithIcon
+      {...props}
+      label={label}
+      type="text"
+      value={displayValue}
+      onChange={handleChange}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      error={errorMessage}
+      requiredField={requiredField}
+      placeholder="Ej: 20-22173992-3"
+      icon={<IdCard className="text-gray-500" />}
+    />
+  );
+}
+
+export function PhoneInput({
+  label,
+  value,
+  onChange,
+  error,
+  requiredField,
+  ...props
+}: PhoneInputProps) {
+  const [displayValue, setDisplayValue] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
+
+  // Función para formatear teléfono argentino de manera simple
+  const formatPhone = (phone: string): string => {
+    if (!phone) return "";
+    const cleaned = phone.replace(/\D/g, "");
+    
+    // Remover código de país si está presente
+    let workingNumber = cleaned;
+    if (cleaned.startsWith("54") && cleaned.length > 11) {
+      workingNumber = cleaned.substring(2);
+    }
+    
+    // Formatear según la longitud
+    if (workingNumber.length <= 4) {
+      return workingNumber;
+    } else if (workingNumber.length <= 8) {
+      return `${workingNumber.slice(0, 4)}-${workingNumber.slice(4)}`;
+    } else if (workingNumber.length <= 10) {
+      // Formato: XXX XXXX-XXXX o XX XXXX-XXXX
+      const areaLength = workingNumber.length === 10 && workingNumber.startsWith("0") ? 3 : 2;
+      return `${workingNumber.slice(0, areaLength)} ${workingNumber.slice(areaLength, areaLength + 4)}-${workingNumber.slice(areaLength + 4)}`;
+    } else {
+      // Para números más largos (celulares con 15)
+      return `${workingNumber.slice(0, 3)} ${workingNumber.slice(3, 5)} ${workingNumber.slice(5, 9)}-${workingNumber.slice(9)}`;
+    }
+  };
+
+  // Función para extraer solo números del teléfono formateado
+  const parsePhone = (formattedValue: string): string => {
+    return formattedValue.replace(/\D/g, "");
+  };
+
+  // Función para validar teléfono argentino (más flexible)
+  const validatePhone = (phone: string): boolean => {
+    const cleaned = phone.replace(/\D/g, "");
+    
+    // Permitir vacío (campo opcional)
+    if (cleaned.length === 0) return true;
+    
+    // Muy corto (menos de 7 dígitos local)
+    if (cleaned.length < 7) return false;
+    
+    // Muy largo (más de 15 dígitos total)
+    if (cleaned.length > 15) return false;
+    
+    // Si tiene código de país, debe empezar con 54
+    if (cleaned.length > 11 && !cleaned.startsWith("54")) return false;
+    
+    // Validaciones básicas: no puede empezar con 0 después del código de área
+    const phoneWithoutCountry = cleaned.startsWith("54") ? cleaned.substring(2) : cleaned;
+    
+    // Si es un número de 8-13 dígitos, es probablemente válido
+    return phoneWithoutCountry.length >= 7 && phoneWithoutCountry.length <= 13;
+  };
+
+  useEffect(() => {
+    if (value !== undefined && !isFocused) {
+      setDisplayValue(formatPhone(value));
+    }
+  }, [value, isFocused]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    
+    // Permitir solo números, espacios, guiones, paréntesis y +
+    if (/^[\d\s\-\(\)\+]*$/.test(inputValue) || inputValue === "") {
+      const cleanedValue = parsePhone(inputValue);
+      
+      // Limitar a máximo 15 dígitos
+      if (cleanedValue.length <= 15) {
+        const formattedValue = formatPhone(cleanedValue);
+        setDisplayValue(formattedValue);
+        onChange(cleanedValue);
+      }
+    }
+  };
+
+  const handleFocus = () => {
+    setIsFocused(true);
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    if (displayValue) {
+      const cleanedValue = parsePhone(displayValue);
+      setDisplayValue(formatPhone(cleanedValue));
+      onChange(cleanedValue);
+    } else {
+      setDisplayValue("");
+      onChange("");
+    }
+  };
+
+  const cleanedValue = parsePhone(displayValue);
+  const isValidPhone = validatePhone(cleanedValue);
+  
+  // Determinar el error a mostrar
+  let errorMessage = error;
+  if (cleanedValue && cleanedValue.length > 0 && !isValidPhone) {
+    if (cleanedValue.length < 7) {
+      errorMessage = "El teléfono debe tener al menos 7 dígitos";
+    } else if (cleanedValue.length > 15) {
+      errorMessage = "El teléfono no puede tener más de 15 dígitos";
+    } else {
+      errorMessage = "Formato de teléfono no válido";
+    }
+  }
+
+  return (
+    <InputWithIcon
+      {...props}
+      label={label}
+      type="text"
+      value={displayValue}
+      onChange={handleChange}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      error={errorMessage}
+      requiredField={requiredField}
+      placeholder="Ej: 011 1234-5678"
+      icon={<Phone className="text-gray-500" />}
     />
   );
 }

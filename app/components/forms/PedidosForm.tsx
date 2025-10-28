@@ -1,29 +1,38 @@
-import { Input, Textarea, Select, InputWithIIcon, CurrencyInput } from "../Inputs";
+import {
+  Input,
+  Textarea,
+  Select,
+  InputWithIcon,
+  CurrencyInput,
+} from "../Inputs";
 import { Button } from "../Buttons";
 import { usePedidosForm } from "~/hooks/usePedidosForm";
 import { CardToggle } from "../CardToggle";
 import ClienteField from "../ClienteField";
 import { useData } from "~/context/DataContext";
 import { useEffect, useState } from "react";
-import { PlusIcon, UserRoundPlus } from "lucide-react";
+import { UserRoundPlus } from "lucide-react";
 import { useUIModals } from "~/context/ModalsContext";
 import ClienteNuevoModal from "../modals/customs/ClienteNuevoModal";
 import { FooterForm } from "./Footer";
 
 export default function PedidosForm() {
-  const { clientes, getClientes } = useData();
-  const { openModal, closeModal } = useUIModals();
+  const { clientes, getClientes, vendedores, getVendedores } = useData();
+  const { openModal } = useUIModals();
+  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
-    if (!clientes) {
-      getClientes();
-    }
+    const loadData = async () => {
+      await getClientes();
+      await getVendedores();
+      setIsLoading(false);
+    };
+    loadData();
   }, []);
   const {
     register,
     handleSubmit,
     formState: { errors },
     onSubmit,
-    isLoading,
     submitButtonText,
     watch,
     setValue,
@@ -32,12 +41,12 @@ export default function PedidosForm() {
   const handleOpenClienteModal = () => {
     openModal("CUSTOM", {
       component: ClienteNuevoModal,
-      props: {}
+      props: {},
     });
   };
   return (
     <>
-      {clientes && (
+      {!isLoading && (
         <>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <CardToggle title="Información del Pedido">
@@ -83,6 +92,7 @@ export default function PedidosForm() {
                     </div>
                   </div>
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Select
                   label="Vendedor"
                   {...register("vendedor_asignado", {
@@ -91,9 +101,11 @@ export default function PedidosForm() {
                   error={errors.vendedor_asignado?.message}
                 >
                   <option value="">Seleccione un vendedor</option>
-                  <option value="Juan Perez">Juan Perez</option>
-                  <option value="Maria Gomez">Maria Gomez</option>
-                  <option value="Carlos Rodriguez">Carlos Rodriguez</option>
+                  {vendedores?.map((vendedor) => (
+                    <option key={vendedor.id} value={vendedor.id}>
+                      {`${vendedor.nombre} ${vendedor.apellido}`}
+                    </option>
+                  ))}
                 </Select>
                 <Select
                   label={!isEditMode ? "🔒 Status" : "Status"}
@@ -110,6 +122,7 @@ export default function PedidosForm() {
                   <option value="entregado">📦 Entregado</option>
                   <option value="cancelado">🚫 Cancelado</option>
                 </Select>
+                </div>
               </fieldset>
             </CardToggle>
             <CardToggle title="Condiciones de Pago">
@@ -123,7 +136,11 @@ export default function PedidosForm() {
                 <CurrencyInput
                   label="Precio total"
                   value={watch("precio_total")}
-                  onChange={(value) => setValue("precio_total", value === '' ? 0 : value, { shouldDirty: true })}
+                  onChange={(value) =>
+                    setValue("precio_total", value === "" ? 0 : value, {
+                      shouldDirty: true,
+                    })
+                  }
                   error={errors.precio_total?.message}
                 />
                 <input

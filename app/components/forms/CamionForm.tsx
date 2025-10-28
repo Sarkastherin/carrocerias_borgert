@@ -2,7 +2,7 @@ import {
   Input,
   Textarea,
   Select,
-  InputWithIIcon,
+  InputWithIcon,
 } from "../Inputs";
 import { Button } from "../Buttons";
 import { useCamionForm } from "~/hooks/useCamionForm";
@@ -57,7 +57,7 @@ export default function CamionForm() {
             <option value="recto">Recto</option>
             <option value="curvo">Curvo</option>
           </Select>
-          <InputWithIIcon
+          <InputWithIcon
             type="number"
             label="Medida Larguero (mm)"
             {...register("med_larguero", {

@@ -6,7 +6,7 @@ import { Button, ButtonAdd } from "~/components/Buttons";
 import NoDataComponent from "~/components/NoDataComponent";
 import SettingsFormModal from "~/components/modals/customs/SettingsFormModal";
 import { useUIModals } from "~/context/ModalsContext";
-import { coloresAPI, carrozadoAPI, zocaloAPI, puertasTraserasAPI } from "~/backend/sheetServices";
+import { coloresAPI, carrozadoAPI,puertasTraserasAPI, vendedoresAPI } from "~/backend/sheetServices";
 import { settingsConfig, capitalize } from "~/config/settingsConfig";
 import { getIcon } from "~/config/settingsIcons";
 import LoadingComponent from "~/components/LoadingComponent";
@@ -20,9 +20,8 @@ export function meta({}: Route.MetaArgs) {
 const apiMap = {
   coloresAPI: coloresAPI,
   carrozadoAPI: carrozadoAPI,
-  zocaloAPI: zocaloAPI,
   puertasTraserasAPI: puertasTraserasAPI,
-  // Aquí puedes agregar más APIs cuando las necesites
+  vendedoresAPI: vendedoresAPI,
 } as const;
 
 type MenuOpenProps = {
@@ -31,7 +30,7 @@ type MenuOpenProps = {
 };
 
 export default function SettingsLayout() {
-  const { colores, getColores, carrozados, getCarrozados, zocalos, getZocalos, puertasTraseras, getPuertasTraseras } = useData();
+  const { colores, getColores, carrozados, getCarrozados, puertasTraseras, getPuertasTraseras, vendedores, getVendedores } = useData();
   const [isLoading, setIsLoading] = useState(true);
   const { openModal } = useUIModals();
 
@@ -40,8 +39,8 @@ export default function SettingsLayout() {
     const loadData = async () => {
       await getColores();
       await getCarrozados();
-      await getZocalos();
       await getPuertasTraseras();
+      await getVendedores();
       setIsLoading(false);
     };
     loadData();
@@ -62,11 +61,11 @@ export default function SettingsLayout() {
         case "carrozado":
           data = carrozados || [];
           break;
-        case "zocalos":
-          data = zocalos || [];
-          break;
         case "puertasTraseras":
           data = puertasTraseras || [];
+          break;
+        case "vendedores":
+          data = vendedores || [];
           break;
         default:
           data = [];
@@ -79,7 +78,7 @@ export default function SettingsLayout() {
         api: apiMap[config.api as keyof typeof apiMap],
       };
     });
-  }, [isLoading, colores, carrozados, zocalos, puertasTraseras]);
+  }, [isLoading, colores, carrozados, puertasTraseras, vendedores]);
   const MenuOpen = ({ title, icon }: MenuOpenProps) => {
     return (
       <button
@@ -103,11 +102,11 @@ export default function SettingsLayout() {
       case "carrozado":
         await getCarrozados();
         break;
-      case "zocalos":
-        await getZocalos();
-        break;
       case "puertasTraseras":
         await getPuertasTraseras();
+        break;
+      case "vendedores":
+        await getVendedores();
         break;
     }
   };

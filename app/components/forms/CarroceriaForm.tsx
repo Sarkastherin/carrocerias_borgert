@@ -1,54 +1,60 @@
 import {
-  Input,
   Textarea,
   Select,
   ToggleCheckbox,
-  InputWithIIcon,
+  InputWithIcon,
 } from "../Inputs";
 import { Button } from "../Buttons";
 import { useCarroceriaForm } from "~/hooks/useCarroceriaForm";
 import { CardToggle } from "../CardToggle";
 import { useData } from "~/context/DataContext";
-import { useEffect } from "react";
-import { useUIModals } from "~/context/ModalsContext";
+import { useEffect, useState } from "react";
 import { RulerDimensionLine } from "lucide-react";
 import { FooterForm } from "./Footer";
 
 export default function CarroceriaForm() {
-  const { clientes, getClientes } = useData();
-  const { openModal, closeModal } = useUIModals();
+  const { colores, getColores, carrozados, getCarrozados, puertasTraseras, getPuertasTraseras } = useData();
+  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
-    if (!clientes) {
-      getClientes();
-    }
+    const loadData = async () => {
+      await getColores();
+      await getCarrozados();
+      await getPuertasTraseras();
+      setIsLoading(false);
+    };
+    loadData();
   }, []);
   const {
     register,
     handleSubmit,
     formState: { errors },
     onSubmit,
-    isLoading,
     submitButtonText,
     watch,
     setValue,
-    isEditMode,
   } = useCarroceriaForm();
   return (
     <>
-      {clientes && (
+      {!isLoading && (
         <>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <CardToggle title="Detalle de carrocería">
               <fieldset className="grid grid-cols-5 gap-4 items-end">
                 <div className="col-span-3">
                   <Select
+                    requiredField
                     label="Carrozado"
                     {...register("tipo_carrozado", {
                       required: "Este campo es obligatorio",
                     })}
+                    error={errors.tipo_carrozado?.message}
                   >
                     <option value="">Tipo de Carrozado</option>
-                    <option value="furgon">Furgón</option>
+                    {carrozados?.map((carrozado) => (
+                      <option key={carrozado.id} value={carrozado.nombre}>
+                        {carrozado.nombre}
+                      </option>
+                    ))}
                   </Select>
                 </div>
                 <Select
@@ -56,6 +62,8 @@ export default function CarroceriaForm() {
                   {...register("material", {
                     required: "Este campo es obligatorio",
                   })}
+                  requiredField
+                  error={errors.material?.message}
                 >
                   <option value="">Tipo de material</option>
                   <option value="chapa">Chapa</option>
@@ -66,6 +74,8 @@ export default function CarroceriaForm() {
                   {...register("espesor_chapa", {
                     required: "Este campo es obligatorio",
                   })}
+                  requiredField
+                  error={errors.espesor_chapa?.message}
                 >
                   <option value="">Seleccione una opción</option>
                   <option value="3.2">3.2 mm</option>
@@ -74,21 +84,25 @@ export default function CarroceriaForm() {
                   <option value="2.2">2.2 mm</option>
                 </Select>
 
-                <InputWithIIcon
+                <InputWithIcon
                   type="number"
                   label="Largo int"
                   {...register("largo_int", {
                     required: "Este campo es obligatorio",
                   })}
                   icon={<RulerDimensionLine className="w-4 h-4" />}
+                  error={errors.largo_int?.message}
+                  requiredField
                 />
-                <InputWithIIcon
+                <InputWithIcon
                   type="number"
                   label="Largo ext"
                   {...register("largo_ext", {
                     required: "Este campo es obligatorio",
                   })}
                   icon={<RulerDimensionLine className="w-4 h-4" />}
+                  requiredField
+                  error={errors.largo_ext?.message}
                 />
 
                 <Select
@@ -96,6 +110,8 @@ export default function CarroceriaForm() {
                   {...register("ancho_ext", {
                     required: "Este campo es obligatorio",
                   })}
+                  requiredField
+                  error={errors.ancho_ext?.message}
                 >
                   <option value="">Ancho ext</option>
                   <option value="2000">2000 mm</option>
@@ -104,37 +120,45 @@ export default function CarroceriaForm() {
                   <option value="2400">2400 mm</option>
                   <option value="2600">2600 mm</option>
                 </Select>
-                <InputWithIIcon
+                <InputWithIcon
                   type="number"
                   label="Alto"
                   {...register("alto", {
                     required: "Este campo es obligatorio",
                   })}
                   icon={<RulerDimensionLine className="w-4 h-4" />}
+                  requiredField
+                  error={errors.alto?.message}
                 />
-                <InputWithIIcon
+                <InputWithIcon
                   type="number"
                   label="Alt. baranda"
                   {...register("alt_baranda", {
                     required: "Este campo es obligatorio",
                   })}
                   icon={<RulerDimensionLine className="w-4 h-4" />}
+                  requiredField
+                  error={errors.alt_baranda?.message}
                 />
-                <InputWithIIcon
+                <InputWithIcon
                   type="number"
                   label="Ptas. por lado"
                   {...register("ptas_por_lado", {
                     required: "Este campo es obligatorio",
                   })}
                   icon={<RulerDimensionLine className="w-4 h-4" />}
+                  requiredField
+                  error={errors.ptas_por_lado?.message}
                 />
-                <InputWithIIcon
+                <InputWithIcon
                   type="number"
                   label="Arcos por puerta"
                   {...register("arcos_por_puerta", {
                     required: "Este campo es obligatorio",
                   })}
                   icon={<RulerDimensionLine className="w-4 h-4" />}
+                  requiredField
+                  error={errors.arcos_por_puerta?.message}
                 />
                 <div className="col-span-3">
                   <Select
@@ -142,9 +166,15 @@ export default function CarroceriaForm() {
                     {...register("puerta_trasera", {
                       required: "Este campo es obligatorio",
                     })}
+                    requiredField
+                    error={errors.puerta_trasera?.message}
                   >
                     <option value="">Seleccione una opción</option>
-                    <option value="batiente">Batiente</option>
+                    {puertasTraseras?.map((puerta) => (
+                      <option key={puerta.id} value={puerta.nombre}>
+                        {puerta.nombre}
+                      </option>
+                    ))}
                   </Select>
                 </div>
                 <ToggleCheckbox
@@ -154,12 +184,16 @@ export default function CarroceriaForm() {
                   onChange={(checked) =>
                     setValue("corte_guardabarros", checked)
                   }
+                  requiredField
+                  error={errors.corte_guardabarros?.message}
                 />
                 <ToggleCheckbox
                   id="Cumbreras"
                   label="Cumbreras"
                   checked={watch("cumbreras")}
                   onChange={(checked) => setValue("cumbreras", checked)}
+                  requiredField
+                  error={errors.cumbreras?.message}
                 />
                 <Select
                   label="Líneas de refuerzo"
@@ -167,6 +201,8 @@ export default function CarroceriaForm() {
                     required: "Este campo es obligatorio",
                     valueAsNumber: true,
                   })}
+                  requiredField
+                  error={errors.lineas_refuerzo?.message}
                 >
                   <option value="">Tipo de refuerzo</option>
                   <option value="0">0</option>
@@ -178,6 +214,8 @@ export default function CarroceriaForm() {
                   {...register("tipo_zocalo", {
                     required: "Este campo es obligatorio",
                   })}
+                  requiredField
+                  error={errors.tipo_zocalo?.message}
                 >
                   <option value="">Tipo de zócalo</option>
                   <option value="recto">Recto</option>
@@ -188,6 +226,8 @@ export default function CarroceriaForm() {
                   {...register("tipo_piso", {
                     required: "Este campo es obligatorio",
                   })}
+                  requiredField
+                  error={errors.tipo_piso?.message}
                 >
                   <option value="">Tipo de piso</option>
                   <option value="liso">Liso</option>
@@ -202,33 +242,45 @@ export default function CarroceriaForm() {
                   {...register("color_lona", {
                     required: "Este campo es obligatorio",
                   })}
+                  requiredField
+                  error={errors.color_lona?.message}
                 >
                   <option value="">Seleccione una opción</option>
-                  <option value="color1">Color 1</option>
-                  <option value="color2">Color 2</option>
-                  <option value="color3">Color 3</option>
+                  {colores?.map((color) => (
+                    <option key={color.id} value={color.nombre}>
+                      {color.nombre}
+                    </option>
+                  ))}
                 </Select>
                 <Select
                   label="Color carrozado"
                   {...register("color_carrozado", {
                     required: "Este campo es obligatorio",
                   })}
+                  requiredField
+                  error={errors.color_carrozado?.message}
                 >
                   <option value="">Seleccione una opción</option>
-                  <option value="color1">Color 1</option>
-                  <option value="color2">Color 2</option>
-                  <option value="color3">Color 3</option>
+                  {colores?.map((color) => (
+                    <option key={color.id} value={color.nombre}>
+                      {color.nombre}
+                    </option>
+                  ))}
                 </Select>
                 <Select
                   label="Color zócalo"
                   {...register("color_zocalo", {
                     required: "Este campo es obligatorio",
                   })}
+                  requiredField
+                  error={errors.color_zocalo?.message}
                 >
                   <option value="">Seleccione una opción</option>
-                  <option value="color1">Color 1</option>
-                  <option value="color2">Color 2</option>
-                  <option value="color3">Color 3</option>
+                  {colores?.map((color) => (
+                    <option key={color.id} value={color.nombre}>
+                      {color.nombre}
+                    </option>
+                  ))}
                 </Select>
                 <div className="col-span-3">
                   <Textarea
@@ -246,7 +298,7 @@ export default function CarroceriaForm() {
                   checked={watch("cuchetin")}
                   onChange={(checked) => setValue("cuchetin", checked)}
                 />
-                <InputWithIIcon
+                <InputWithIcon
                   disabled={!watch("cuchetin")}
                   type="number"
                   label="Medida cuchetín (mm)"
@@ -254,8 +306,10 @@ export default function CarroceriaForm() {
                     required: "Este campo es obligatorio",
                   })}
                   icon={<RulerDimensionLine className="w-4 h-4" />}
+                  requiredField
+                  error={errors.lineas_refuerzo?.message}
                 />
-                <InputWithIIcon
+                <InputWithIcon
                   disabled={!watch("cuchetin")}
                   type="number"
                   label="Altura puerta cuchetín (mm)"
@@ -263,8 +317,10 @@ export default function CarroceriaForm() {
                     required: "Este campo es obligatorio",
                   })}
                   icon={<RulerDimensionLine className="w-4 h-4" />}
+                  requiredField
+                  error={errors.lineas_refuerzo?.message}
                 />
-                <InputWithIIcon
+                <InputWithIcon
                   disabled={!watch("cuchetin")}
                   type="number"
                   label="Altura techo cuchetín (mm)"
@@ -272,40 +328,50 @@ export default function CarroceriaForm() {
                     required: "Este campo es obligatorio",
                   })}
                   icon={<RulerDimensionLine className="w-4 h-4" />}
+                  requiredField
+                  error={errors.lineas_refuerzo?.message}
                 />
               </fieldset>
             </CardToggle>
             <CardToggle title="Accessorios">
               <fieldset className="grid grid-cols-4 gap-4 items-end">
-                <InputWithIIcon
+                <InputWithIcon
                   type="number"
                   label="Cantidad de boquillas"
                   {...register("boquillas", {
                     required: "Este campo es obligatorio",
                   })}
                   icon={<RulerDimensionLine className="w-4 h-4" />}
+                  requiredField
+                  error={errors.boquillas?.message}
                 />
-                <InputWithIIcon
+                <InputWithIcon
                   type="number"
                   label="Medida cajón de herramientas"
                   {...register("med_cajon_herramientas", {
                     required: "Este campo es obligatorio",
                   })}
                   icon={<RulerDimensionLine className="w-4 h-4" />}
+                  requiredField
+                  error={errors.med_cajon_herramientas?.message}
                 />
-                <InputWithIIcon
+                <InputWithIcon
                   type="number"
                   label="Cantidad de luces"
                   {...register("luces", {
                     required: "Este campo es obligatorio",
                   })}
                   icon={<RulerDimensionLine className="w-4 h-4" />}
+                  requiredField
+                  error={errors.luces?.message}
                 />
                 <Select
                   label="Cintas reflectivas"
                   {...register("cintas_reflectivas", {
                     required: "Este campo es obligatorio",
                   })}
+                  requiredField
+                  error={errors.cintas_reflectivas?.message}
                 >
                   <option value="">Seleccione una opción</option>
                   <option value="nacionales">Nacionales</option>
@@ -324,13 +390,15 @@ export default function CarroceriaForm() {
                   onChange={(checked) => setValue("dep_agua", checked)}
                 />
 
-                <InputWithIIcon
+                <InputWithIcon
                   type="number"
                   label="Medida alargue (mm)"
                   {...register("med_alargue", {
                     required: "Este campo es obligatorio",
                   })}
                   icon={<RulerDimensionLine className="w-4 h-4" />}
+                  requiredField
+                  error={errors.med_alargue?.message}
                 />
                 <ToggleCheckbox
                   id="quiebre_alargue"

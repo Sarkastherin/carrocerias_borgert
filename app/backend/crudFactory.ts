@@ -5,7 +5,7 @@ export type ApiResponse<T = any> = {
   success: boolean;
   data?: T;
   message?: string;
-  error?: string;
+  error?: string | object;
   status: number;
 };
 
@@ -80,7 +80,7 @@ export const createCrud = <T extends { id: string }>({
         if (!response.success) {
           return {
             success: false,
-            error: response.error?.toString() || "Unknown error",
+            error: response.error || "Unknown error",
             status: response.status,
           };
         }
@@ -103,11 +103,11 @@ export const createCrud = <T extends { id: string }>({
     read: async (options?: ReadOptions): Promise<ApiResponse<T | T[]>> => {
       try {
         const response = await apiEndpoint.getData(options);
-
+        console.log("Read response:", response);
         if (!response.success) {
           return {
             success: false,
-            error: response.error?.toString() || "Unknown error",
+            error: response.error || "Unknown error",
             status: response.status,
           };
         }
@@ -134,7 +134,7 @@ export const createCrud = <T extends { id: string }>({
         if (!response.success) {
           return {
             success: false,
-            error: response.error?.toString() || "Unknown error",
+            error: response.error || "Unknown error",
             status: response.status,
           };
         }
@@ -165,7 +165,7 @@ export const createCrud = <T extends { id: string }>({
         if (!response.success) {
           return {
             success: false,
-            error: response.error?.toString() || "Unknown error",
+            error: response.error || "Unknown error",
             status: response.status,
           };
         }

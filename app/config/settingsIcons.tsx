@@ -1,4 +1,4 @@
-import { PaintBucket, Truck, Package, DoorOpen } from "lucide-react";
+import { PaintBucket, Truck, Package, DoorOpen, ContactRound } from "lucide-react";
 
 // Mapeo de iconos disponibles
 export const iconMap = {
@@ -6,6 +6,7 @@ export const iconMap = {
   Truck: Truck,
   Package: Package,
   DoorOpen: DoorOpen,
+  ContactRound: ContactRound,
 } as const;
 
 // Función para obtener el componente de icono

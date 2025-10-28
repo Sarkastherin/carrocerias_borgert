@@ -9,6 +9,17 @@ import type { ClientesBD } from "~/types/clientes";
 import type { TableColumn } from "react-data-table-component";
 import { useNavigate } from "react-router";
 import LoadingComponent from "~/components/LoadingComponent";
+
+// Función para formatear CUIT: "12345678901" -> "12-34567890-1"
+const formatCuit = (cuit: string): string => {
+  if (!cuit) return "";
+  const cleaned = cuit.replace(/\D/g, ""); // Solo números
+  if (cleaned.length <= 2) return cleaned;
+  if (cleaned.length <= 10) {
+    return `${cleaned.slice(0, 2)}-${cleaned.slice(2)}`;
+  }
+  return `${cleaned.slice(0, 2)}-${cleaned.slice(2, 10)}-${cleaned.slice(10, 11)}`;
+};
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Clientes" },
@@ -34,7 +45,7 @@ const clienteColumns: TableColumn<ClientesBD>[] = [
   },
   {
     name: "CUIT/CUIL",
-    selector: (row) => row.cuit_cuil,
+    selector: (row) => formatCuit(row.cuit_cuil || ""),
   },
 ];
 export default function ClientesHome() {

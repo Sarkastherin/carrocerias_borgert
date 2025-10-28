@@ -3,7 +3,7 @@ import {
   Textarea,
   Select,
   ToggleCheckbox,
-  InputWithIIcon,
+  InputWithIcon,
 } from "../Inputs";
 import { Button, IconButton } from "../Buttons";
 import { useTrabajoChasisForm } from "~/hooks/useTrabajoChasisForm";

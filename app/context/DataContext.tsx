@@ -7,8 +7,8 @@ import {
   camionAPI,
   coloresAPI,
   carrozadoAPI,
-  zocaloAPI,
   puertasTraserasAPI,
+  vendedoresAPI,
 } from "~/backend/sheetServices";
 import type { ClientesBD } from "~/types/clientes";
 import { useUIModals } from "./ModalsContext";
@@ -17,8 +17,8 @@ import type { PedidosBD, PedidosTable, PedidosUI } from "~/types/pedidos";
 import type {
   ColoresBD,
   CarrozadosBD,
-  ZocalosBD,
   PuertasTraserasBD,
+  VendedoresBD,
 } from "~/types/settings";
 
 type DataContextType = {
@@ -38,10 +38,10 @@ type DataContextType = {
   getColores: () => Promise<ColoresBD[]>;
   carrozados: CarrozadosBD[] | null;
   getCarrozados: () => Promise<CarrozadosBD[]>;
-  zocalos: ZocalosBD[] | null;
-  getZocalos: () => Promise<ZocalosBD[]>;
   puertasTraseras: PuertasTraserasBD[] | null;
   getPuertasTraseras: () => Promise<PuertasTraserasBD[]>;
+  vendedores: VendedoresBD[] | null;
+  getVendedores: () => Promise<VendedoresBD[]>;
 };
 const DataContext = createContext<DataContextType | undefined>(undefined);
 export const DataProvider = ({ children }: { children: React.ReactNode }) => {
@@ -52,10 +52,10 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const [pedido, setPedido] = useState<PedidosUI | null>(null);
   const [colores, setColores] = useState<ColoresBD[] | null>(null);
   const [carrozados, setCarrozados] = useState<CarrozadosBD[] | null>(null);
-  const [zocalos, setZocalos] = useState<ZocalosBD[] | null>(null);
   const [puertasTraseras, setPuertasTraseras] = useState<
     PuertasTraserasBD[] | null
   >(null);
+  const [vendedores, setVendedores] = useState<VendedoresBD[] | null>(null);
   const getClientes = async () => {
     const response = await clientesAPI.read();
     if (!response.success) {
@@ -185,17 +185,6 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     return response.data as CarrozadosBD[];
   };
 
-  const getZocalos = async () => {
-    const response = await zocaloAPI.read();
-    if (!response.success) {
-      logDetailedError(response.error);
-      const formattedError = getFormattedError(response.error);
-      showError(formattedError);
-      throw new Error(formattedError);
-    }
-    setZocalos((response.data as ZocalosBD[]) || []);
-    return response.data as ZocalosBD[];
-  };
 
   const getPuertasTraseras = async () => {
     const response = await puertasTraserasAPI.read();
@@ -208,7 +197,17 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     setPuertasTraseras((response.data as PuertasTraserasBD[]) || []);
     return response.data as PuertasTraserasBD[];
   };
-
+  const getVendedores = async () => {
+    const response = await vendedoresAPI.read();
+    if (!response.success) {
+      logDetailedError(response.error);
+      const formattedError = getFormattedError(response.error);
+      showError(formattedError);
+      throw new Error(formattedError);
+    }
+    setVendedores((response.data as VendedoresBD[]) || []);
+    return response.data as VendedoresBD[];
+  };
   return (
     <DataContext.Provider
       value={{
@@ -228,10 +227,10 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         colores,
         getCarrozados,
         carrozados,
-        getZocalos,
-        zocalos,
         getPuertasTraseras,
         puertasTraseras,
+        getVendedores,
+        vendedores,
       }}
     >
       {children}

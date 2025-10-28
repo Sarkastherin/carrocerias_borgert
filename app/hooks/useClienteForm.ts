@@ -11,6 +11,28 @@ import { clientesAPI } from "~/backend/sheetServices";
 import { useNavigate } from "react-router";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
 
+// Función para validar CUIT/CUIL
+const validateCuit = (cuit: string): boolean => {
+  if (!cuit) return false;
+  const cleaned = cuit.replace(/\D/g, "");
+  if (cleaned.length !== 11) return false;
+  
+  // Algoritmo de validación de CUIT/CUIL
+  const sequence = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+  const digits = cleaned.split("").map(Number);
+  const checkDigit = digits[10];
+  
+  let sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += digits[i] * sequence[i];
+  }
+  
+  const remainder = sum % 11;
+  const calculatedDigit = remainder < 2 ? remainder : 11 - remainder;
+  
+  return calculatedDigit === checkDigit;
+};
+
 export function useClienteForm({modal = false}: {modal?: boolean}) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -52,11 +74,57 @@ export function useClienteForm({modal = false}: {modal?: boolean}) {
           activo: true,
           observaciones: "",
         },
+    mode: "onChange", // Para validar en tiempo real
   });
+  
+  // Efecto para resetear el estado de cambios de dirección cuando se carga un cliente existente
+  useEffect(() => {
+    if (isEditMode && existingCliente) {
+      setHasAddressChanged(false);
+      // También resetear los dirty fields después de un pequeño delay
+      // para permitir que la inicialización complete
+      setTimeout(() => {
+        form.reset({
+          ...existingCliente,
+          provincia_id: existingCliente.provincia_id || "",
+          provincia_nombre: existingCliente.provincia,
+          localidad_id: existingCliente.localidad_id || "",
+          localidad_nombre: existingCliente.localidad,
+        });
+      }, 100);
+    }
+  }, [isEditMode, existingCliente?.id, form]);
+  
   useEffect(() => {
   }, [form.formState.dirtyFields]);
   const handleSubmit = async (formData: ClienteFormData) => {
     try {
+      // Validar CUIT antes de enviar
+      if (formData.cuit_cuil && !validateCuit(formData.cuit_cuil)) {
+        showError("El CUIT/CUIL ingresado no es válido");
+        return;
+      }
+
+      // Validar dirección obligatoria
+      const direccionFinal = direccionData?.direccion || formData.direccion;
+      const provinciaFinal = direccionData?.provinciaNombre || formData.provincia_nombre;
+      const localidadFinal = direccionData?.localidadNombre || formData.localidad_nombre;
+
+      if (!direccionFinal || direccionFinal.trim() === "") {
+        showError("La dirección es obligatoria");
+        return;
+      }
+
+      if (!provinciaFinal || provinciaFinal.trim() === "") {
+        showError("La provincia es obligatoria");
+        return;
+      }
+
+      if (!localidadFinal || localidadFinal.trim() === "") {
+        showError("La localidad es obligatoria");
+        return;
+      }
+
       showLoading(
         isEditMode ? "Actualizando cliente..." : "Creando nuevo cliente..."
       );
@@ -93,6 +161,15 @@ export function useClienteForm({modal = false}: {modal?: boolean}) {
         // Verificar si hay cambios en el formulario
         const hasDirtyFields = form.formState.dirtyFields && 
           Object.keys(form.formState.dirtyFields).length > 0;
+        
+        console.log("Submit check:", {
+          hasDirtyFields,
+          hasAddressChanged,
+          dirtyFieldsCount: Object.keys(form.formState.dirtyFields || {}).length,
+          direccionFinal,
+          provinciaFinal,
+          localidadFinal
+        });
         
         // Si no hay campos dirty y no hay cambios de dirección, no actualizar
         if (!hasDirtyFields && !hasAddressChanged) {
@@ -164,39 +241,78 @@ export function useClienteForm({modal = false}: {modal?: boolean}) {
     (direccion: DireccionCompleta | null) => {
       setDireccionData(direccion);
 
-      // Mejorar la detección de inicialización vs cambio de usuario
-      // Es inicialización solo si:
-      // 1. Está en modo edición
-      // 2. Aún no se han registrado cambios de dirección 
-      // 3. Los datos coinciden con los datos originales del cliente
+      // Función auxiliar para comparar valores que pueden ser null, undefined o string vacío
+      const isEmptyOrNull = (value: any) => !value || value === "" || value === null || value === undefined;
+      const isSameValue = (val1: any, val2: any) => {
+        // Si ambos son "vacíos" (null, undefined, ""), considerarlos iguales
+        if (isEmptyOrNull(val1) && isEmptyOrNull(val2)) return true;
+        // Si uno es vacío y el otro no, son diferentes
+        if (isEmptyOrNull(val1) || isEmptyOrNull(val2)) return false;
+        // Comparación normal
+        return val1 === val2;
+      };
+
+      // Detección más precisa de inicialización vs cambio de usuario
       const isLikelyInitialization = isEditMode && 
         !hasAddressChanged && 
-        existingCliente && 
-        direccion &&
+        existingCliente &&
         (
-          direccion.direccion === existingCliente.direccion ||
-          direccion.localidadNombre === existingCliente.localidad ||
-          direccion.provinciaNombre === existingCliente.provincia
+          // Caso 1: Ambas direcciones son nulas/vacías
+          (isEmptyOrNull(direccion) && 
+           isEmptyOrNull(existingCliente.direccion) && 
+           isEmptyOrNull(existingCliente.localidad) && 
+           isEmptyOrNull(existingCliente.provincia)) ||
+          
+          // Caso 2: Las direcciones coinciden exactamente
+          (direccion && 
+           isSameValue(direccion.direccion, existingCliente.direccion) &&
+           isSameValue(direccion.localidadNombre, existingCliente.localidad) &&
+           isSameValue(direccion.provinciaNombre, existingCliente.provincia) &&
+           isSameValue(direccion.provinciaId, existingCliente.provincia_id) &&
+           isSameValue(direccion.localidadId, existingCliente.localidad_id))
         );
       
+      // Solo marcar como cambio si definitivamente NO es inicialización
       if (!isLikelyInitialization) {
         setHasAddressChanged(true);
       }
 
       // Actualizar los campos del formulario con los datos de la dirección
       if (direccion) {
-        // Solo marcar como dirty si no es inicialización
-        const options = !isLikelyInitialization ? { shouldDirty: true } : {};
-        
-        form.setValue("direccion", direccion.direccion, options);
-        form.setValue("provincia_id", direccion.provinciaId, options);
-        form.setValue("provincia_nombre", direccion.provinciaNombre, options);
-        form.setValue("localidad_id", direccion.localidadId, options);
-        form.setValue("localidad_nombre", direccion.localidadNombre, options);
+        // Durante la inicialización, no marcar como dirty
+        if (isLikelyInitialization) {
+          form.setValue("direccion", direccion.direccion, { shouldDirty: false });
+          form.setValue("provincia_id", direccion.provinciaId, { shouldDirty: false });
+          form.setValue("provincia_nombre", direccion.provinciaNombre, { shouldDirty: false });
+          form.setValue("localidad_id", direccion.localidadId, { shouldDirty: false });
+          form.setValue("localidad_nombre", direccion.localidadNombre, { shouldDirty: false });
+        } else {
+          // Marcar como dirty solo cuando es un cambio real del usuario
+          form.setValue("direccion", direccion.direccion, { shouldDirty: true });
+          form.setValue("provincia_id", direccion.provinciaId, { shouldDirty: true });
+          form.setValue("provincia_nombre", direccion.provinciaNombre, { shouldDirty: true });
+          form.setValue("localidad_id", direccion.localidadId, { shouldDirty: true });
+          form.setValue("localidad_nombre", direccion.localidadNombre, { shouldDirty: true });
+        }
       }
     },
     [form, isEditMode, hasAddressChanged, existingCliente]
   );
+
+  // Función para validar dirección en tiempo real
+  const validateAddress = useCallback(() => {
+    const direccionFinal = direccionData?.direccion || form.getValues("direccion");
+    const provinciaFinal = direccionData?.provinciaNombre || form.getValues("provincia_nombre");
+    const localidadFinal = direccionData?.localidadNombre || form.getValues("localidad_nombre");
+
+    const errors = {
+      direccion: !direccionFinal || direccionFinal.trim() === "" ? "La dirección es obligatoria" : "",
+      provincia: !provinciaFinal || provinciaFinal.trim() === "" ? "La provincia es obligatoria" : "",
+      localidad: !localidadFinal || localidadFinal.trim() === "" ? "La localidad es obligatoria" : ""
+    };
+
+    return errors;
+  }, [direccionData, form]);
 
   return {
     // Form methods
@@ -215,6 +331,7 @@ export function useClienteForm({modal = false}: {modal?: boolean}) {
     // Dirección handling
     direccionData,
     handleDireccionChange,
+    validateAddress,
 
     // Helper texts
     submitButtonText: isEditMode ? "Actualizar Cliente" : "Crear Cliente",

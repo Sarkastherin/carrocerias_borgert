@@ -8,7 +8,7 @@ export type ConfigField = {
 
 export type ConfigItem = {
   title: string;
-  icon: "PaintBucket" | "Truck" | "Package" | "DoorOpen";
+  icon: "PaintBucket" | "Truck" | "Package" | "DoorOpen" | "ContactRound";
   columns: Array<{
     name: string;
     selector: (row: any) => any;
@@ -56,9 +56,7 @@ export const settingsConfig: ConfigItem[] = [
       },
     ],
     api: "coloresAPI", // Nombre de la API para evitar imports circulares
-    filterFields: [
-      { key: "nombre", label: "Nombre", autoFilter: true },
-    ],
+    filterFields: [{ key: "nombre", label: "Nombre", autoFilter: true }],
   },
   {
     title: "carrozado",
@@ -91,9 +89,7 @@ export const settingsConfig: ConfigItem[] = [
       },
     ],
     api: "carrozadoAPI", // Nombre de la API para evitar imports circulares
-    filterFields: [
-      { key: "nombre", label: "Nombre", autoFilter: true },
-    ],
+    filterFields: [{ key: "nombre", label: "Nombre", autoFilter: true }],
   },
   {
     title: "puertasTraseras",
@@ -126,8 +122,42 @@ export const settingsConfig: ConfigItem[] = [
       },
     ],
     api: "puertasTraserasAPI",
+    filterFields: [{ key: "nombre", label: "Nombre", autoFilter: true }],
+  },
+  {
+    title: "vendedores",
+    icon: "ContactRound",
+    columns: [
+      {
+        name: "ID",
+        selector: (row: any) => row.id,
+        sortable: true,
+        width: "80px",
+      },
+      {
+        name: "Nombre",
+        selector: (row: any) => row.nombre,
+        sortable: true,
+      },
+      {
+        name: "Apellido",
+        selector: (row: any) => row.apellido || "-",
+        sortable: false,
+      },
+    ],
+    formFields: [
+      { name: "nombre", label: "Nombre", type: "text", required: true },
+      {
+        name: "apellido",
+        label: "Apellido",
+        type: "text",
+        required: false,
+      },
+    ],
+    api: "vendedoresAPI",
     filterFields: [
       { key: "nombre", label: "Nombre", autoFilter: true },
+      { key: "apellido", label: "Apellido", autoFilter: true },
     ],
   },
 ];
