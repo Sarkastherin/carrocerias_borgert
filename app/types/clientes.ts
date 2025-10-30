@@ -17,7 +17,7 @@ export type ClientesBD = {
   // Resto de campos
   condicion_iva: string;
   medio_contacto: string;
-  vendedor_asignado: string;
+  vendedor_id: string;
   activo: boolean;
   observaciones: string;
 }
@@ -41,7 +41,7 @@ export type ClienteFormData = {
   pais?: string;
   condicion_iva?: string;
   medio_contacto?: string;
-  vendedor_asignado?: string;
+  vendedor_id?: string;
   activo?: boolean;
   observaciones?: string;
 }

@@ -22,6 +22,11 @@ export const customStyles = {
       fontSize: "14px",
     },
   },
+  rows: {
+    style: {
+      // Estilos base para las filas
+    },
+  },
 };
 createTheme("dark", {
   background: {
@@ -48,6 +53,7 @@ type EntityTableProps<T> = {
   onRowClick?: (row: T) => void;
   onFilteredChange?: (filtered: T[]) => void;
   noDataComponent?: JSX.Element;
+  inactiveField?: string; // Campo para identificar elementos inactivos (ej: "activo")
 };
 const options = {
   rowsPerPageText: "Filas por página",
@@ -60,10 +66,40 @@ export function EntityTable<T>({
   onRowClick,
   onFilteredChange,
   noDataComponent,
+  inactiveField,
 }: EntityTableProps<T>) {
   const { theme } = useUI();
   const location = useLocation();
   const storageKey = `entityTableFilters_${location.pathname}`;
+  
+  // Función para crear un componente de estado con colores
+  const StatusCell = ({ row, originalSelector }: { row: T; originalSelector: (row: T) => any }) => {
+    const status = originalSelector(row);
+    const isActive = status === "Activo" || status === "Sí" || status === true;
+    
+    return (
+      <span className={`font-medium text-xs px-2 py-1 rounded-full ${
+        isActive 
+          ? 'text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/30' 
+          : 'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/30'
+      }`}>
+        {typeof status === 'boolean' ? (status ? 'Activo' : 'Inactivo') : status}
+      </span>
+    );
+  };
+
+  // Procesar columnas para aplicar formato especial a columnas de estado
+  const processedColumns = columns.map(column => {
+    // Detectar si es una columna de estado por el nombre
+    if ((column.name === "Activo" || column.name === "Estado" || column.name === "Status") && column.selector) {
+      return {
+        ...column,
+        cell: (row: T) => <StatusCell row={row} originalSelector={column.selector!} />
+      };
+    }
+    return column;
+  });
+
   const [filters, setFilters] = useState<Record<string, string>>(() => {
     // Recupera filtros guardados
     const saved = localStorage.getItem(storageKey);
@@ -71,6 +107,24 @@ export function EntityTable<T>({
   });
   const [filteredData, setFilteredData] = useState<T[]>(data);
   const [showFilterInfo, setShowFilterInfo] = useState(false);
+
+  // Función para determinar si una fila está inactiva
+  const isRowInactive = (row: T): boolean => {
+    if (!inactiveField) return false;
+    const value = getNestedValue(row, inactiveField);
+    // Si el campo es booleano, verificamos que sea false
+    // Si es string, verificamos valores como "No", "Inactivo", etc.
+    return value === false || value === "No" || value === "Inactivo" || value === "no" || value === "false";
+  };
+
+  // Función para obtener estilos condicionales de fila
+  const getInactiveRowStyles = () => {
+    return {
+      opacity: '0.6',
+      backgroundColor: theme === 'dark' ? 'rgba(107, 114, 128, 0.1)' : 'rgba(156, 163, 175, 0.1)',
+      borderLeft: theme === 'dark' ? '3px solid rgb(107, 114, 128)' : '3px solid rgb(156, 163, 175)',
+    };
+  };
   function removeAccents(str: string) {
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   }
@@ -197,7 +251,7 @@ export function EntityTable<T>({
         </form>
       )}
       <DataTable
-        columns={columns}
+        columns={processedColumns}
         data={filteredData}
         customStyles={customStyles}
         theme={theme}
@@ -208,6 +262,12 @@ export function EntityTable<T>({
         highlightOnHover
         paginationComponentOptions={options}
         noDataComponent={noDataComponent || <div className="py-6 text-text-secondary">No se encontraron registros</div>}
+        conditionalRowStyles={inactiveField ? [
+          {
+            when: (row: T) => isRowInactive(row),
+            style: getInactiveRowStyles(),
+          }
+        ] : undefined}
       />
     </>
   );

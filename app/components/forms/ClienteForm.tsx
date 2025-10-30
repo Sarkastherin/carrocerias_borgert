@@ -4,10 +4,15 @@ import { AddressFields } from "../AddressFields";
 import { useClienteForm } from "~/hooks/useClienteForm";
 import { CardToggle } from "../CardToggle";
 import { useData } from "~/context/DataContext";
-import { useEffect } from "react";
+import { useUIModals } from "~/context/ModalsContext";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 
 export default function ClienteForm({ modal }: { modal?: boolean }) {
-  const { getVendedores, vendedores } = useData();
+  const navigate = useNavigate();
+  const { showConfirmation } = useUIModals();
+  const { getVendedores, vendedores, deleteClienteById, cliente } = useData();
+  const [isDeleting, setIsDeleting] = useState(false);
   const {
     register,
     handleSubmit,
@@ -21,6 +26,40 @@ export default function ClienteForm({ modal }: { modal?: boolean }) {
     watch,
     validateAddress,
   } = useClienteForm({ modal: modal });
+
+  // Determinar si estamos en modo edición
+  const isEditMode = Boolean(cliente);
+  const existingCliente = cliente;
+
+  const handleDeleteCliente = async () => {
+    if (!existingCliente) return;
+
+    showConfirmation(
+      `¿Estás seguro de que deseas eliminar el cliente "${existingCliente.razon_social}"? Esta acción no se puede deshacer. Si el cliente tiene pedidos asociados, no podrá ser eliminado.`,
+      async () => {
+        try {
+          setIsDeleting(true);
+          await deleteClienteById(existingCliente.id);
+          if (modal) {
+            // Si estamos en modal, cerrar el modal
+            // Necesitarás importar closeModal del useUIModals si existe
+          } else {
+            // Si no estamos en modal, navegar a la lista de clientes
+            navigate("/clientes");
+          }
+        } catch (error) {
+          console.error("Error eliminando cliente:", error);
+        } finally {
+          setIsDeleting(false);
+        }
+      },
+      {
+        title: "Eliminar Cliente",
+        confirmText: "Eliminar",
+        cancelText: "Cancelar",
+      }
+    );
+  };
   useEffect(() => {
     const loadVendedores = async () => {
       await getVendedores();
@@ -137,8 +176,8 @@ export default function ClienteForm({ modal }: { modal?: boolean }) {
               </Select>
               <Select
                 label="Vendedor Asignado"
-                {...register("vendedor_asignado")}
-                error={errors.vendedor_asignado?.message}
+                {...register("vendedor_id")}
+                error={errors.vendedor_id?.message}
               >
                 <option value="">Seleccione un vendedor</option>
                 {vendedores?.map((vendedor) => (
@@ -162,6 +201,37 @@ export default function ClienteForm({ modal }: { modal?: boolean }) {
               </div>
             </fieldset>
           </CardToggle>
+
+          {/* Zona de Peligro - Solo mostrar en modo edición */}
+          {isEditMode && existingCliente && (
+            <CardToggle title="Zona de Peligro">
+              <div className="p-4 border border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-900/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  <h4 className="text-sm font-semibold text-red-700 dark:text-red-400">
+                    Eliminar Cliente
+                  </h4>
+                </div>
+                <p className="text-sm text-red-600 dark:text-red-300 mb-4 leading-relaxed">
+                  Una vez eliminado, este cliente y todos sus datos se perderán
+                  permanentemente. Si el cliente tiene pedidos asociados, no
+                  podrá ser eliminado hasta que se eliminen primero los pedidos.
+                </p>
+                <div className="w-fit">
+                  <Button
+                    type="button"
+                    variant="red"
+                    size="sm"
+                    onClick={handleDeleteCliente}
+                    disabled={isDeleting}
+                    className="text-sm"
+                  >
+                    {isDeleting ? "Eliminando..." : "Eliminar Cliente"}
+                  </Button>
+                </div>
+              </div>
+            </CardToggle>
+          )}
 
           <div className="w-fit pt-4">
             <Button type="submit" variant="blue" disabled={isLoading}>

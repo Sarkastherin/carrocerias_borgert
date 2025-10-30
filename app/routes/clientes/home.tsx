@@ -98,6 +98,7 @@ export default function ClientesHome() {
             data={clientes}
             columns={clienteColumns}
             onRowClick={(row) => handleRowClick(row)}
+            inactiveField="activo" // Campo para identificar clientes inactivos
             filterFields={[
               {
                 key: "razon_social",

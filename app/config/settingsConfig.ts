@@ -8,12 +8,13 @@ export type ConfigField = {
 
 export type ConfigItem = {
   title: string;
-  icon: "PaintBucket" | "Truck" | "Package" | "DoorOpen" | "ContactRound";
+  icon: "PaintBucket" | "Truck" | "Package" | "DoorOpen" | "ContactRound" | "Drill";
   columns: Array<{
     name: string;
     selector: (row: any) => any;
     sortable?: boolean;
     width?: string;
+    cell?: (row: any) => React.ReactNode;
   }>;
   formFields: ConfigField[];
   api: string; // Nombre de la API para evitar imports circulares
@@ -30,28 +31,23 @@ export const settingsConfig: ConfigItem[] = [
     icon: "PaintBucket",
     columns: [
       {
-        name: "ID",
-        selector: (row: any) => row.id,
-        sortable: true,
-        width: "80px",
-      },
-      {
         name: "Nombre",
         selector: (row: any) => row.nombre,
         sortable: true,
       },
       {
-        name: "Observaciones",
-        selector: (row: any) => row.observaciones || "-",
+        name: "Activo",
+        selector: (row: any) => row.activo ? "Activo" : "Inactivo",
         sortable: false,
+        width: "100px",
       },
     ],
     formFields: [
       { name: "nombre", label: "Nombre", type: "text", required: true },
       {
-        name: "observaciones",
-        label: "Observaciones",
-        type: "textarea",
+        name: "activo",
+        label: "Activo",
+        type: "boolean",
         required: false,
       },
     ],
@@ -63,28 +59,23 @@ export const settingsConfig: ConfigItem[] = [
     icon: "Truck",
     columns: [
       {
-        name: "ID",
-        selector: (row: any) => row.id,
-        sortable: true,
-        width: "80px",
-      },
-      {
         name: "Nombre",
         selector: (row: any) => row.nombre,
         sortable: true,
       },
       {
-        name: "Observaciones",
-        selector: (row: any) => row.observaciones || "-",
+        name: "Activo",
+        selector: (row: any) => row.activo ? "Activo" : "Inactivo",
         sortable: false,
+        width: "100px",
       },
     ],
     formFields: [
       { name: "nombre", label: "Nombre", type: "text", required: true },
       {
-        name: "observaciones",
-        label: "Observaciones",
-        type: "textarea",
+        name: "activo",
+        label: "Activo",
+        type: "boolean",
         required: false,
       },
     ],
@@ -92,32 +83,27 @@ export const settingsConfig: ConfigItem[] = [
     filterFields: [{ key: "nombre", label: "Nombre", autoFilter: true }],
   },
   {
-    title: "puertasTraseras",
+    title: "puertas traseras",
     icon: "DoorOpen",
     columns: [
-      {
-        name: "ID",
-        selector: (row: any) => row.id,
-        sortable: true,
-        width: "80px",
-      },
       {
         name: "Nombre",
         selector: (row: any) => row.nombre,
         sortable: true,
       },
       {
-        name: "Observaciones",
-        selector: (row: any) => row.observaciones || "-",
+        name: "Activo",
+        selector: (row: any) => row.activo ? "Activo" : "Inactivo",
         sortable: false,
+        width: "100px",
       },
     ],
     formFields: [
       { name: "nombre", label: "Nombre", type: "text", required: true },
       {
-        name: "observaciones",
-        label: "Observaciones",
-        type: "textarea",
+        name: "activo",
+        label: "Activo",
+        type: "boolean",
         required: false,
       },
     ],
@@ -129,12 +115,6 @@ export const settingsConfig: ConfigItem[] = [
     icon: "ContactRound",
     columns: [
       {
-        name: "ID",
-        selector: (row: any) => row.id,
-        sortable: true,
-        width: "80px",
-      },
-      {
         name: "Nombre",
         selector: (row: any) => row.nombre,
         sortable: true,
@@ -143,6 +123,12 @@ export const settingsConfig: ConfigItem[] = [
         name: "Apellido",
         selector: (row: any) => row.apellido || "-",
         sortable: false,
+      },
+      {
+        name: "Activo",
+        selector: (row: any) => row.activo ? "Activo" : "Inactivo",
+        sortable: false,
+        width: "100px",
       },
     ],
     formFields: [
@@ -153,11 +139,48 @@ export const settingsConfig: ConfigItem[] = [
         type: "text",
         required: false,
       },
+      {
+        name: "activo",
+        label: "Activo",
+        type: "boolean",
+        required: false,
+      },
     ],
     api: "vendedoresAPI",
     filterFields: [
       { key: "nombre", label: "Nombre", autoFilter: true },
       { key: "apellido", label: "Apellido", autoFilter: true },
+    ],
+  },
+   {
+    title: "tipos de trabajos",
+    icon: "Drill",
+    columns: [
+      {
+        name: "Descripción del trabajo",
+        selector: (row: any) => row.nombre,
+        sortable: true,
+      },
+      {
+        name: "Activo",
+        selector: (row: any) => row.activo ? "Activo" : "Inactivo",
+        sortable: false,
+        width: "100px",
+      },
+    ],
+    formFields: [
+      { name: "nombre", label: "Descripción del trabajo", type: "text", required: true },
+      {
+        name: "activo",
+        label: "Activo",
+        type: "boolean",
+        required: false,
+      },
+    ],
+    api: "configTrabajoChasisAPI",
+    filterFields: [
+      { key: "nombre", label: "Nombre", autoFilter: true },
+      
     ],
   },
 ];

@@ -45,7 +45,7 @@ const pedidoColumns: TableColumn<PedidosTable>[] = [
   },
   {
     name: "Vendedor",
-    selector: (row) => row.vendedor_asignado || "",
+    selector: (row) => row.vendedor_nombre || "",
     width: "200px",
   },
   {
@@ -109,7 +109,7 @@ export default function PedidosHome() {
                 label: "Número de Pedido",
                 autoFilter: true,
               },
-              { key: "vendedor_asignado", label: "Vendedor", autoFilter: true },
+              { key: "vendedor_id", label: "Vendedor", autoFilter: true },
               {
                 key: "status",
                 label: "Estado",

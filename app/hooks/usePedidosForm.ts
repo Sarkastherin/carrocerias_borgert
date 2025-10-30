@@ -31,7 +31,7 @@ export function usePedidosForm() {
           status: "nuevo",
           fecha_entrega: "",
           notas_entrega: "",
-          vendedor_asignado: "",
+          vendedor_id: "",
         },
   });
   useEffect(() => {

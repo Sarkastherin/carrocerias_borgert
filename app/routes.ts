@@ -31,5 +31,11 @@ export default [
         route("/", "routes/settings/home.tsx"),
       ]), */
     ]),
+    ...prefix("ayuda", [
+      index("routes/ayuda/home.tsx"),
+      route("clientes", "routes/ayuda/clientes.tsx"),
+      route("pedidos", "routes/ayuda/pedidos.tsx"),
+      route("configuracion", "routes/ayuda/configuracion.tsx"),
+    ]),
   ]),
 ] satisfies RouteConfig;

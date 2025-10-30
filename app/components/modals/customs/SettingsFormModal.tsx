@@ -3,7 +3,7 @@ import { Input, Select, Textarea } from "~/components/Inputs";
 import { Button } from "~/components/Buttons";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, AlertCircle } from "lucide-react";
 
 type Field = {
   name: string;
@@ -25,7 +25,11 @@ export default function SettingsFormModal({
   onClose: () => void;
   onSubmit: (
     data: any, 
-    helpers: { reset: () => void; setSuccessMessage: (msg: string) => void }
+    helpers: { 
+      reset: () => void; 
+      setSuccessMessage: (msg: string) => void;
+      setErrorMessage: (msg: string) => void;
+    }
   ) => Promise<{ success: boolean; keepOpen?: boolean; autoClose?: number } | void>;
   data?: any;
 }) {
@@ -33,19 +37,28 @@ export default function SettingsFormModal({
     defaultValues: data || {},
   });
   const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFormSubmit = async (data: any) => {
     try {
       setIsLoading(true);
       setSuccessMessage(""); // Limpiar mensaje anterior
+      setErrorMessage(""); // Limpiar mensaje de error anterior
       
       const result = await onSubmit(data, { 
         reset, 
         setSuccessMessage: (msg: string) => {
           setSuccessMessage(msg);
+          setErrorMessage(""); // Limpiar errores cuando hay éxito
           // Limpiar el mensaje después de 3 segundos
           setTimeout(() => setSuccessMessage(""), 3000);
+        },
+        setErrorMessage: (msg: string) => {
+          setErrorMessage(msg);
+          setSuccessMessage(""); // Limpiar éxitos cuando hay error
+          // Limpiar el mensaje después de 5 segundos
+          setTimeout(() => setErrorMessage(""), 5000);
         }
       });
       
@@ -63,7 +76,9 @@ export default function SettingsFormModal({
       }
     } catch (error) {
       console.error("Error en el formulario:", error);
-      // Aquí podrías manejar errores si es necesario
+      // Mostrar el error al usuario
+      setErrorMessage(error instanceof Error ? error.message : "Error desconocido al procesar el formulario");
+      setSuccessMessage(""); // Limpiar mensajes de éxito
     } finally {
       setIsLoading(false);
     }
@@ -83,6 +98,14 @@ export default function SettingsFormModal({
           <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center gap-2">
             <CheckCircle className="w-5 h-5" />
             <span className="text-sm font-medium">{successMessage}</span>
+          </div>
+        )}
+
+        {/* Mensaje de error */}
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center gap-2">
+            <AlertCircle className="w-5 h-5" />
+            <span className="text-sm font-medium">{errorMessage}</span>
           </div>
         )}
         

@@ -9,7 +9,7 @@ export function meta({}: Route.MetaArgs) {
     { name: "description", content: "Gestión de la fabricación del pedido" },
   ];
 }
-export default function PedidosFabricacion() {
+export default function PedidosCarroceria() {
   return (
     <ContainerToForms>
       <Subheader

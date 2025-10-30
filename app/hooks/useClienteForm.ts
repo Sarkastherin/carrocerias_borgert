@@ -42,7 +42,7 @@ export function useClienteForm({modal = false}: {modal?: boolean}) {
   const [hasAddressChanged, setHasAddressChanged] = useState(false);
 
   const { showLoading, showSuccess, showError, showInfo, closeModal } = useUIModals();
-  const { cliente, getClientes } = useData();
+  const { cliente, getClientes, checkCuitExists } = useData();
   const isEditMode = Boolean(cliente);
   const existingCliente = cliente as ClientesBD | null;
 
@@ -70,7 +70,7 @@ export function useClienteForm({modal = false}: {modal?: boolean}) {
           pais: "Argentina",
           condicion_iva: "",
           medio_contacto: "",
-          vendedor_asignado: "",
+          vendedor_id: "",
           activo: true,
           observaciones: "",
         },
@@ -103,6 +103,19 @@ export function useClienteForm({modal = false}: {modal?: boolean}) {
       if (formData.cuit_cuil && !validateCuit(formData.cuit_cuil)) {
         showError("El CUIT/CUIL ingresado no es válido");
         return;
+      }
+
+      // Verificar CUIT duplicado
+      if (formData.cuit_cuil) {
+        const cuitExists = await checkCuitExists(
+          formData.cuit_cuil, 
+          isEditMode ? existingCliente?.id : undefined
+        );
+        
+        if (cuitExists) {
+          showError("Ya existe un cliente registrado con este CUIT/CUIL");
+          return;
+        }
       }
 
       // Validar dirección obligatoria
@@ -152,7 +165,7 @@ export function useClienteForm({modal = false}: {modal?: boolean}) {
         pais: formData.pais || "Argentina",
         condicion_iva: formData.condicion_iva || "",
         medio_contacto: formData.medio_contacto || "",
-        vendedor_asignado: formData.vendedor_asignado || "",
+        vendedor_id: formData.vendedor_id || "",
         activo: formData.activo ?? true,
         observaciones: formData.observaciones || "",
       } as ClientesBD;
@@ -161,15 +174,6 @@ export function useClienteForm({modal = false}: {modal?: boolean}) {
         // Verificar si hay cambios en el formulario
         const hasDirtyFields = form.formState.dirtyFields && 
           Object.keys(form.formState.dirtyFields).length > 0;
-        
-        console.log("Submit check:", {
-          hasDirtyFields,
-          hasAddressChanged,
-          dirtyFieldsCount: Object.keys(form.formState.dirtyFields || {}).length,
-          direccionFinal,
-          provinciaFinal,
-          localidadFinal
-        });
         
         // Si no hay campos dirty y no hay cambios de dirección, no actualizar
         if (!hasDirtyFields && !hasAddressChanged) {

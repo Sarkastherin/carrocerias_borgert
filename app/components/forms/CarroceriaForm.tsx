@@ -1,57 +1,66 @@
-import {
-  Textarea,
-  Select,
-  ToggleCheckbox,
-  InputWithIcon,
-} from "../Inputs";
+import { Textarea, Select, ToggleCheckbox, InputWithIcon } from "../Inputs";
 import { Button } from "../Buttons";
 import { useCarroceriaForm } from "~/hooks/useCarroceriaForm";
 import { CardToggle } from "../CardToggle";
 import { useData } from "~/context/DataContext";
-import { useEffect, useState } from "react";
 import { RulerDimensionLine } from "lucide-react";
+import { useDataLoader } from "~/hooks/useDataLoader";
 import { FooterForm } from "./Footer";
+import LoadingComponent from "../LoadingComponent";
 
 export default function CarroceriaForm() {
-  const { colores, getColores, carrozados, getCarrozados, puertasTraseras, getPuertasTraseras } = useData();
-  const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    const loadData = async () => {
-      await getColores();
-      await getCarrozados();
-      await getPuertasTraseras();
-      setIsLoading(false);
-    };
-    loadData();
-  }, []);
+  const {
+    colores,
+    getColores,
+    carrozados,
+    getCarrozados,
+    puertasTraseras,
+    getPuertasTraseras,
+  } = useData();
+  
+  const { isLoading: isLoadingData } = useDataLoader({
+    loaders: [getColores, getCarrozados, getPuertasTraseras],
+    forceLoad: true,
+    errorMessage: "Error loading carroceria data"
+  });
   const {
     register,
     handleSubmit,
     formState: { errors },
     onSubmit,
     submitButtonText,
+    isLoading,
     watch,
     setValue,
   } = useCarroceriaForm();
+  if (isLoadingData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <LoadingComponent content="Cargando parametros..." />
+        </div>
+      </div>
+    );
+  }
   return (
     <>
-      {!isLoading && (
+      {!isLoadingData && (
         <>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <CardToggle title="Detalle de carrocería">
-              <fieldset className="grid grid-cols-5 gap-4 items-end">
-                <div className="col-span-3">
+              <fieldset className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-end">
+                <div className="col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-2">
                   <Select
                     requiredField
                     label="Carrozado"
-                    {...register("tipo_carrozado", {
+                    {...register("tipo_carrozado_id", {
                       required: "Este campo es obligatorio",
                     })}
-                    error={errors.tipo_carrozado?.message}
+                    error={errors.tipo_carrozado_id?.message}
                   >
                     <option value="">Tipo de Carrozado</option>
-                    {carrozados?.map((carrozado) => (
-                      <option key={carrozado.id} value={carrozado.nombre}>
+                    {carrozados?.filter(item=> item.activo).map((carrozado) => (
+                      <option key={carrozado.id} value={carrozado.id}>
                         {carrozado.nombre}
                       </option>
                     ))}
@@ -83,7 +92,6 @@ export default function CarroceriaForm() {
                   <option value="2.6">2.6 mm</option>
                   <option value="2.2">2.2 mm</option>
                 </Select>
-
                 <InputWithIcon
                   type="number"
                   label="Largo int"
@@ -160,18 +168,18 @@ export default function CarroceriaForm() {
                   requiredField
                   error={errors.arcos_por_puerta?.message}
                 />
-                <div className="col-span-3">
+                <div className="col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-2">
                   <Select
                     label="Puerta trasera"
-                    {...register("puerta_trasera", {
+                    {...register("puerta_trasera_id", {
                       required: "Este campo es obligatorio",
                     })}
                     requiredField
-                    error={errors.puerta_trasera?.message}
+                    error={errors.puerta_trasera_id?.message}
                   >
                     <option value="">Seleccione una opción</option>
-                    {puertasTraseras?.map((puerta) => (
-                      <option key={puerta.id} value={puerta.nombre}>
+                    {puertasTraseras?.filter(item=> item.activo).map((puerta) => (
+                      <option key={puerta.id} value={puerta.id}>
                         {puerta.nombre}
                       </option>
                     ))}
@@ -236,7 +244,7 @@ export default function CarroceriaForm() {
               </fieldset>
             </CardToggle>
             <CardToggle title="Colores">
-              <fieldset className="grid grid-cols-3 gap-4">
+              <fieldset className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Select
                   label="Color lona"
                   {...register("color_lona", {
@@ -246,7 +254,7 @@ export default function CarroceriaForm() {
                   error={errors.color_lona?.message}
                 >
                   <option value="">Seleccione una opción</option>
-                  {colores?.map((color) => (
+                  {colores?.filter(item => item.activo).map((color) => (
                     <option key={color.id} value={color.nombre}>
                       {color.nombre}
                     </option>
@@ -254,35 +262,35 @@ export default function CarroceriaForm() {
                 </Select>
                 <Select
                   label="Color carrozado"
-                  {...register("color_carrozado", {
+                  {...register("color_carrozado_id", {
                     required: "Este campo es obligatorio",
                   })}
                   requiredField
-                  error={errors.color_carrozado?.message}
+                  error={errors.color_carrozado_id?.message}
                 >
                   <option value="">Seleccione una opción</option>
-                  {colores?.map((color) => (
-                    <option key={color.id} value={color.nombre}>
+                  {colores?.filter(item => item.activo).map((color) => (
+                    <option key={color.id} value={color.id}>
                       {color.nombre}
                     </option>
                   ))}
                 </Select>
                 <Select
                   label="Color zócalo"
-                  {...register("color_zocalo", {
+                  {...register("color_zocalo_id", {
                     required: "Este campo es obligatorio",
                   })}
                   requiredField
-                  error={errors.color_zocalo?.message}
+                  error={errors.color_zocalo_id?.message}
                 >
                   <option value="">Seleccione una opción</option>
-                  {colores?.map((color) => (
-                    <option key={color.id} value={color.nombre}>
+                  {colores?.filter(item => item.activo).map((color) => (
+                    <option key={color.id} value={color.id}>
                       {color.nombre}
                     </option>
                   ))}
                 </Select>
-                <div className="col-span-3">
+                <div className="col-span-1 md:col-span-2 lg:col-span-3">
                   <Textarea
                     label="Observaciones del color"
                     {...register("notas_color")}
@@ -291,7 +299,7 @@ export default function CarroceriaForm() {
               </fieldset>
             </CardToggle>
             <CardToggle title="Cuchetín">
-              <fieldset className="grid grid-cols-4 gap-4 items-end">
+              <fieldset className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                 <ToggleCheckbox
                   id="cuchetin"
                   label="Cuchetín"
@@ -307,7 +315,7 @@ export default function CarroceriaForm() {
                   })}
                   icon={<RulerDimensionLine className="w-4 h-4" />}
                   requiredField
-                  error={errors.lineas_refuerzo?.message}
+                  error={errors.med_cuchetin?.message}
                 />
                 <InputWithIcon
                   disabled={!watch("cuchetin")}
@@ -318,7 +326,7 @@ export default function CarroceriaForm() {
                   })}
                   icon={<RulerDimensionLine className="w-4 h-4" />}
                   requiredField
-                  error={errors.lineas_refuerzo?.message}
+                  error={errors.alt_pta_cuchetin?.message}
                 />
                 <InputWithIcon
                   disabled={!watch("cuchetin")}
@@ -329,12 +337,12 @@ export default function CarroceriaForm() {
                   })}
                   icon={<RulerDimensionLine className="w-4 h-4" />}
                   requiredField
-                  error={errors.lineas_refuerzo?.message}
+                  error={errors.alt_techo_cuchetin?.message}
                 />
               </fieldset>
             </CardToggle>
             <CardToggle title="Accessorios">
-              <fieldset className="grid grid-cols-4 gap-4 items-end">
+              <fieldset className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-end">
                 <InputWithIcon
                   type="number"
                   label="Cantidad de boquillas"
@@ -410,7 +418,7 @@ export default function CarroceriaForm() {
             </CardToggle>
             <Textarea label="Observaciones" {...register("observaciones")} />
             <FooterForm>
-              <Button type="submit" variant="blue" disabled={isLoading}>
+              <Button type="submit" variant="blue" disabled={isLoading || isLoadingData}>
                 {isLoading ? "Guardando..." : submitButtonText}
               </Button>
             </FooterForm>

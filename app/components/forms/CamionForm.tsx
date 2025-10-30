@@ -22,7 +22,7 @@ export default function CamionForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <CardToggle title="Datos del camión">
-        <fieldset className="grid grid-cols-3 gap-4">
+        <fieldset className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Select
             label="Marca"
             {...register("marca", {

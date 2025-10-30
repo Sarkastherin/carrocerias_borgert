@@ -1,9 +1,9 @@
 import { useForm } from "react-hook-form";
-import type { PedidosBD, FabricacionBD } from "~/types/pedidos";
+import type { PedidosBD, CarroceriaBD } from "~/types/pedidos";
 import { useUIModals } from "~/context/ModalsContext";
 import { useData } from "~/context/DataContext";
 import { useState, useEffect } from "react";
-import { fabricacionAPI, pedidosAPI } from "~/backend/sheetServices";
+import { carroceriaAPI, pedidosAPI } from "~/backend/sheetServices";
 import { useNavigate } from "react-router";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
 
@@ -14,10 +14,10 @@ export function useCarroceriaForm() {
   const { showLoading, showSuccess, showError, showInfo } = useUIModals();
   const { pedido, getPedidos } = useData();
   const isEditMode = Boolean(pedido);
-  const { fabricacion } = pedido || {};
-  const existingPedido = fabricacion || null;
+  const { carroceria } = pedido || {};
+  const existingPedido = carroceria || null;
 
-  const form = useForm<FabricacionBD>({
+  const form = useForm<CarroceriaBD>({
     defaultValues: existingPedido
       ? {
           ...existingPedido,
@@ -25,7 +25,7 @@ export function useCarroceriaForm() {
         }
       : {
           pedido_id: pedido?.id,
-          tipo_carrozado: "",
+          tipo_carrozado_id: "",
           largo_int: 0,
           largo_ext: 0,
           material: "",
@@ -33,7 +33,7 @@ export function useCarroceriaForm() {
           alto: 0,
           alt_baranda: 0,
           ptas_por_lado: 0,
-          puerta_trasera: "",
+          puerta_trasera_id: "",
           arcos_por_puerta: 0,
           corte_guardabarros: false,
           cumbreras: false,
@@ -46,8 +46,8 @@ export function useCarroceriaForm() {
           alt_techo_cuchetin: 0,
           color_lona: "",
           tipo_piso: "",
-          color_carrozado: "",
-          color_zocalo: "",
+          color_carrozado_id: "",
+          color_zocalo_id: "",
           notas_color: "",
           boquillas: 0,
           med_cajon_herramientas: 0,
@@ -60,7 +60,7 @@ export function useCarroceriaForm() {
   useEffect(() => {
     //console.log(form.formState.dirtyFields)
   }, [form.formState.dirtyFields]);
-  const handleSubmit = async (formData: FabricacionBD) => {
+  const handleSubmit = async (formData: CarroceriaBD) => {
     try {
       showLoading();
       if (existingPedido) {
@@ -75,11 +75,11 @@ export function useCarroceriaForm() {
           return;
         }
 
-        const updatePayload = prepareUpdatePayload<FabricacionBD>({
+        const updatePayload = prepareUpdatePayload<CarroceriaBD>({
           dirtyFields: form.formState.dirtyFields,
           formData: formData,
         });
-        const response = await fabricacionAPI.update(
+        const response = await carroceriaAPI.update(
           existingPedido?.id || "",
           updatePayload
         );
@@ -89,7 +89,7 @@ export function useCarroceriaForm() {
           );
         }
       } else {
-        const response = await fabricacionAPI.create(formData);
+        const response = await carroceriaAPI.create(formData);
         if (!response.success) {
           throw new Error(
             response.message || "Error desconocido al crear carrocería"

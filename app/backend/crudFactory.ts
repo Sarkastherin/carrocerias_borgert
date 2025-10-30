@@ -103,7 +103,6 @@ export const createCrud = <T extends { id: string }>({
     read: async (options?: ReadOptions): Promise<ApiResponse<T | T[]>> => {
       try {
         const response = await apiEndpoint.getData(options);
-        console.log("Read response:", response);
         if (!response.success) {
           return {
             success: false,

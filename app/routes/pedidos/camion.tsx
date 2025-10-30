@@ -9,7 +9,7 @@ export function meta({}: Route.MetaArgs) {
     { name: "description", content: "Gestión de la fabricación del pedido" },
   ];
 }
-export default function CamionFabricacion() {
+export default function CamionPedidos() {
   return (
     <ContainerToForms>
       <Subheader title="Camión" icon={<Truck className="w-6 h-6 text-red" />} />

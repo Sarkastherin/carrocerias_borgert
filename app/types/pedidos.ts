@@ -18,17 +18,18 @@ export type PedidosBD = {
   status: StatusPedidos;
   fecha_entrega: string;
   notas_entrega: string;
-  vendedor_asignado: string;
+  vendedor_id: string;
 };
 export type PedidosTable = PedidosBD & {
   cliente_nombre: string;
+  vendedor_nombre: string;
 };
-export type FabricacionBD = {
+export type CarroceriaBD = {
   id: string;
   fecha_creacion: string;
   pedido_id: string;
   /* datos generales */
-  tipo_carrozado: string;
+  tipo_carrozado_id: string;
   largo_int: number;
   largo_ext: number;
   material: string;
@@ -36,7 +37,7 @@ export type FabricacionBD = {
   alto: number;
   alt_baranda: number;
   ptas_por_lado: number;
-  puerta_trasera: string;
+  puerta_trasera_id: string;
   arcos_por_puerta: number;
   corte_guardabarros: boolean;
   cumbreras: boolean;
@@ -50,8 +51,8 @@ export type FabricacionBD = {
   alt_techo_cuchetin: number;
   /* color */
   color_lona: string;
-  color_carrozado: string;
-  color_zocalo: string;
+  color_carrozado_id: string;
+  color_zocalo_id: string;
   notas_color: string;
   tipo_piso: "liso" | "semillado" | "";
   boquillas: number;
@@ -79,10 +80,9 @@ export type TrabajoChasisBD = {
   id: string;
   fecha_creacion: string;
   pedido_id: string;
-  tipo_trabajo: string;
+  tipo_trabajo_id: string;
   descripcion: string;
-  observaciones: string;
 };
-export type PedidosUI = PedidosTable & { fabricacion: FabricacionBD | null } & {
+export type PedidosUI = PedidosTable & { carroceria: CarroceriaBD | null } & {
   trabajo_chasis: TrabajoChasisBD[];
 } & { camion: CamionBD | null };

@@ -10,29 +10,28 @@ import { usePedidosForm } from "~/hooks/usePedidosForm";
 import { CardToggle } from "../CardToggle";
 import ClienteField from "../ClienteField";
 import { useData } from "~/context/DataContext";
-import { useEffect, useState } from "react";
 import { UserRoundPlus } from "lucide-react";
+import { useDataLoader } from "~/hooks/useDataLoader";
 import { useUIModals } from "~/context/ModalsContext";
 import ClienteNuevoModal from "../modals/customs/ClienteNuevoModal";
 import { FooterForm } from "./Footer";
+import LoadingComponent from "../LoadingComponent";
 
 export default function PedidosForm() {
-  const { clientes, getClientes, vendedores, getVendedores } = useData();
+  const { vendedores, getVendedores } = useData();
   const { openModal } = useUIModals();
-  const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    const loadData = async () => {
-      await getClientes();
-      await getVendedores();
-      setIsLoading(false);
-    };
-    loadData();
-  }, []);
+  
+  const { isLoading: isLoadingData } = useDataLoader({
+    loaders: getVendedores,
+    dependencies: [vendedores],
+    errorMessage: "Error loading vendedores"
+  });
   const {
     register,
     handleSubmit,
     formState: { errors },
     onSubmit,
+    isLoading,
     submitButtonText,
     watch,
     setValue,
@@ -44,9 +43,18 @@ export default function PedidosForm() {
       props: {},
     });
   };
+  if (isLoadingData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <LoadingComponent content="Cargando parametros..." />
+        </div>
+      </div>
+    );
+  }
   return (
     <>
-      {!isLoading && (
+      {!isLoadingData && (
         <>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <CardToggle title="Información del Pedido">
@@ -93,35 +101,35 @@ export default function PedidosForm() {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Select
-                  label="Vendedor"
-                  {...register("vendedor_asignado", {
-                    required: "Este campo es requerido",
-                  })}
-                  error={errors.vendedor_asignado?.message}
-                >
-                  <option value="">Seleccione un vendedor</option>
-                  {vendedores?.map((vendedor) => (
-                    <option key={vendedor.id} value={vendedor.id}>
-                      {`${vendedor.nombre} ${vendedor.apellido}`}
-                    </option>
-                  ))}
-                </Select>
-                <Select
-                  label={!isEditMode ? "🔒 Status" : "Status"}
-                  {...register("status", {
-                    required: "Este campo es requerido",
-                  })}
-                  disabled={!isEditMode}
-                  error={errors.status?.message}
-                >
-                  <option value="">Seleccione un status</option>
-                  <option value="nuevo">🆕 Nuevo</option>
-                  <option value="en_produccion">🛠️ En Producción</option>
-                  <option value="finalizado">✅ Finalizado</option>
-                  <option value="entregado">📦 Entregado</option>
-                  <option value="cancelado">🚫 Cancelado</option>
-                </Select>
+                  <Select
+                    label="Vendedor"
+                    {...register("vendedor_id", {
+                      required: "Este campo es requerido",
+                    })}
+                    error={errors.vendedor_id?.message}
+                  >
+                    <option value="">Seleccione un vendedor</option>
+                    {vendedores?.filter(item=> item.activo).map((vendedor) => (
+                      <option key={vendedor.id} value={vendedor.id}>
+                        {`${vendedor.nombre} ${vendedor.apellido}`}
+                      </option>
+                    ))}
+                  </Select>
+                  <Select
+                    label={!isEditMode ? "🔒 Status" : "Status"}
+                    {...register("status", {
+                      required: "Este campo es requerido",
+                    })}
+                    disabled={!isEditMode}
+                    error={errors.status?.message}
+                  >
+                    <option value="">Seleccione un status</option>
+                    <option value="nuevo">🆕 Nuevo</option>
+                    <option value="en_produccion">🛠️ En Producción</option>
+                    <option value="finalizado">✅ Finalizado</option>
+                    <option value="entregado">📦 Entregado</option>
+                    <option value="cancelado">🚫 Cancelado</option>
+                  </Select>
                 </div>
               </fieldset>
             </CardToggle>
@@ -173,7 +181,7 @@ export default function PedidosForm() {
               </fieldset>
             </CardToggle>
             <FooterForm>
-              <Button type="submit" variant="blue" disabled={isLoading}>
+              <Button type="submit" variant="blue" disabled={isLoading || isLoadingData}>
                 {isLoading ? "Guardando..." : submitButtonText}
               </Button>
             </FooterForm>

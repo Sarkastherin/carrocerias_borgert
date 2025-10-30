@@ -11,12 +11,12 @@ export function meta({}: Route.MetaArgs) {
 }
 export default function PedidosPedido() {
   return (
-    <ContainerToForms>
-      <Subheader
-        title="Pedido"
-        icon={<ScrollText className="w-6 h-6 text-blue" />}
-      />
-      <PedidosForm />
-    </ContainerToForms>
+      <ContainerToForms>
+        <Subheader
+          title="Pedido"
+          icon={<ScrollText className="w-6 h-6 text-blue" />}
+        />
+        <PedidosForm />
+      </ContainerToForms>
   );
 }

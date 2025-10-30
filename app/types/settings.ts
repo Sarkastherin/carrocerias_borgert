@@ -1,34 +1,27 @@
-
-export type ColoresBD = {
+type CommonSettingsBD = {
   id: string;
   fecha_creacion: string;
-  nombre: string;
-  observaciones: string;
+  activo: boolean;
 };
+export type ColoresBD = {
+  nombre: string;
+} & CommonSettingsBD;
 
 export type CarrozadosBD = {
-  id: string;
-  fecha_creacion: string;
   nombre: string;
-  observaciones: string;
-};
+} & CommonSettingsBD;
 
 export type ZocalosBD = {
-  id: string;
-  fecha_creacion: string;
   nombre: string;
-  observaciones: string;
-};
+} & CommonSettingsBD;
 
 export type PuertasTraserasBD = {
-  id: string;
-  fecha_creacion: string;
   nombre: string;
-  observaciones: string;
-};
+} & CommonSettingsBD;
 export type VendedoresBD = {
-  id: string;
-  fecha_creacion: string;
   nombre: string;
   apellido: string;
-};
+} & CommonSettingsBD;
+export type ConfigTrabajosChasisBD = {
+  nombre: string;
+} & CommonSettingsBD;

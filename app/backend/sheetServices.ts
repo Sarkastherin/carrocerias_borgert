@@ -1,7 +1,7 @@
 import { createCrud } from "./crudFactory";
 import type { ClientesBD } from "~/types/clientes";
-import type { FabricacionBD, PedidosBD, CamionBD, TrabajoChasisBD } from "~/types/pedidos";
-import type { ColoresBD, CarrozadosBD, PuertasTraserasBD, VendedoresBD } from "~/types/settings";
+import type { CarroceriaBD, PedidosBD, CamionBD, TrabajoChasisBD } from "~/types/pedidos";
+import type { ColoresBD, CarrozadosBD, PuertasTraserasBD, VendedoresBD, ConfigTrabajosChasisBD } from "~/types/settings";
 
 export const clientesAPI = createCrud<ClientesBD>({
   sheetId: import.meta.env.VITE_SHEET_ID_CLIENTES,
@@ -13,7 +13,7 @@ export const pedidosAPI = createCrud<PedidosBD>({
   nameSheet: "Pedidos",
   nameFile: "Pedidos",
 });
-export const fabricacionAPI = createCrud<FabricacionBD>({
+export const carroceriaAPI = createCrud<CarroceriaBD>({
   sheetId: import.meta.env.VITE_SHEET_ID_PEDIDOS,
   nameSheet: "Carrocerías",
   nameFile: "Pedidos",
@@ -46,5 +46,10 @@ export const puertasTraserasAPI = createCrud<PuertasTraserasBD>({
 export const vendedoresAPI = createCrud<VendedoresBD>({
   sheetId: import.meta.env.VITE_SHEET_ID_CONFIGURACIONES,
   nameSheet: "Vendedores",
+  nameFile: "Parámetros y Configuraciones",
+});
+export const configTrabajoChasisAPI = createCrud<ConfigTrabajosChasisBD>({
+  sheetId: import.meta.env.VITE_SHEET_ID_CONFIGURACIONES,
+  nameSheet: "Tipos trabajos",
   nameFile: "Parámetros y Configuraciones",
 });

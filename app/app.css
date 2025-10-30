@@ -5,39 +5,97 @@
   --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   /* Fuentes personalizadas para el logo */
-  --font-logo-primary: "Oswald", sans-serif;
-  --font-logo-secondary: "Montserrat", sans-serif;
-  /* Bases */
+  --font-logo-primary: "Sansation",sans-serif;
+  --font-logo-secondary: "Birthstone", sans-serif;
+  
+  /* ============================================
+     DESIGN TOKENS - BRAND COLORS
+     ============================================ */
+  /* Primary Brand Color - Purple Palette */
+  --brand-primary-50: var(--color-purple-50);
+  --brand-primary-100: var(--color-purple-100);
+  --brand-primary-200: var(--color-purple-200);
+  --brand-primary-300: var(--color-purple-300);
+  --brand-primary-400: var(--color-purple-400);
+  --brand-primary-500: var(--color-purple-500);
+  --brand-primary-600: var(--color-purple-600);
+  --brand-primary-700: var(--color-purple-700);
+  --brand-primary-800: var(--color-purple-800);
+  --brand-primary-900: var(--color-purple-900);
+  --brand-primary-950: var(--color-purple-950);
+
+  /* ============================================
+     SEMANTIC COLOR TOKENS
+     ============================================ */
+  /* Base colors */
   --color-background: var(--color-white);
   --color-text-primary: var(--color-gray-800);
   --color-text-secondary: var(--color-gray-600);
-  /* Primary */
-  --color-primary: var(--color-indigo-700);
-  --color-primary-100: var(--color-indigo-100);
-  --color-primary-hover: var(--color-indigo-800);
-  --color-primary-focus: var(--color-indigo-300);
-  --color-primary-text: var(--color-indigo-400);
-  /* Green */
+  --color-surface: var(--color-white);
+  --color-border: var(--color-gray-200);
+
+  /* Primary colors (semantic) */
+  --color-primary: var(--brand-primary-600);
+  --color-primary-foreground: var(--color-white);
+  --color-primary-muted: var(--brand-primary-100);
+  --color-primary-muted-foreground: var(--brand-primary-700);
+
+  /* Interactive states */
+  --color-primary-hover: var(--brand-primary-700);
+  --color-primary-active: var(--brand-primary-800);
+  --color-primary-focus: var(--brand-primary-300);
+  --color-primary-disabled: var(--brand-primary-300);
+
+  /* Component-specific tokens */
+  --color-button-primary: var(--color-primary);
+  --color-button-primary-hover: var(--color-primary-hover);
+  --color-button-primary-active: var(--color-primary-active);
+  --color-button-primary-disabled: var(--color-primary-disabled);
+  --color-button-primary-text: var(--color-primary-foreground);
+
+  --color-link-primary: var(--color-primary);
+  --color-link-primary-hover: var(--color-primary-hover);
+  --color-link-primary-visited: var(--brand-primary-800);
+
+  /* Status colors */
+  --color-success: var(--color-green-600);
+  --color-success-muted: var(--color-green-50);
+  --color-warning: var(--color-yellow-500);
+  --color-warning-muted: var(--color-yellow-50);
+  --color-error: var(--color-red-600);
+  --color-error-muted: var(--color-red-50);
+  --color-info: var(--brand-primary-600);
+  --color-info-muted: var(--brand-primary-50);
+
+  /* Legacy support (mantener por compatibilidad pero deprecar gradualmente) */
+  --color-primary-50: var(--brand-primary-50);
+  --color-primary-100: var(--brand-primary-100);
+  --color-primary-200: var(--brand-primary-200);
+  --color-primary-300: var(--brand-primary-300);
+  --color-primary-400: var(--brand-primary-400);
+  --color-primary-500: var(--brand-primary-500);
+  --color-primary-600: var(--brand-primary-600);
+  --color-primary-700: var(--brand-primary-700);
+  --color-primary-800: var(--brand-primary-800);
+  --color-primary-900: var(--brand-primary-900);
+  --color-primary-950: var(--brand-primary-950);
+  
+  /* Other brand colors */
   --color-green: var(--color-green-700);
   --color-green-hover: var(--color-green-800);
   --color-green-focus: var(--color-green-300);
-  /* Red */
   --color-red: var(--color-red-700);
   --color-red-hover: var(--color-red-800);
   --color-red-focus: var(--color-red-300);
-  /* Yellow */
   --color-yellow: var(--color-yellow-400);
   --color-yellow-hover: var(--color-yellow-500);
   --color-yellow-focus: var(--color-yellow-300);
-  /* Purple */
   --color-purple: var(--color-purple-700);
   --color-purple-hover: var(--color-purple-800);
   --color-purple-focus: var(--color-purple-300);
-  /* Blue */
   --color-blue: var(--color-blue-700);
   --color-blue-hover: var(--color-blue-800);
   --color-blue-focus: var(--color-blue-300);
-  /* Light */
   --color-light: var(--color-gray-200);
   --color-light-hover: var(--color-gray-300);
   --color-light-focus: var(--color-gray-400);
@@ -48,36 +106,101 @@
   :root,
   :host {
     @variant dark {
-      /* Bases */
+      /* ============================================
+         DARK THEME OVERRIDES
+         ============================================ */
+      /* Base colors */
       --color-background: var(--color-gray-900);
       --color-text-primary: var(--color-gray-200);
       --color-text-secondary: var(--color-gray-400);
-      /* Primary */
-      --color-primary: var(--color-indigo-600);
-      --color-primary-hover: var(--color-indigo-700);
-      --color-primary-focus: var(--color-indigo-800);
-      /* Green */
+      --color-surface: var(--color-gray-800);
+      --color-border: var(--color-gray-700);
+
+      /* Primary colors - adjusted for dark theme */
+      --color-primary: var(--brand-primary-500);
+      --color-primary-foreground: var(--color-white);
+      --color-primary-muted: color-mix(in srgb, var(--brand-primary-900) 50%, transparent);
+      --color-primary-muted-foreground: var(--brand-primary-300);
+
+      /* Interactive states - optimized for dark */
+      --color-primary-hover: var(--brand-primary-400);
+      --color-primary-active: var(--brand-primary-300);
+      --color-primary-focus: var(--brand-primary-700);
+      --color-primary-disabled: var(--brand-primary-800);
+
+      /* Component-specific tokens for dark theme */
+      --color-button-primary: var(--color-primary);
+      --color-button-primary-hover: var(--color-primary-hover);
+      --color-button-primary-active: var(--color-primary-active);
+      --color-button-primary-disabled: var(--color-primary-disabled);
+
+      --color-link-primary: var(--brand-primary-400);
+      --color-link-primary-hover: var(--brand-primary-300);
+      --color-link-primary-visited: var(--brand-primary-500);
+
+      /* Status colors for dark theme */
+      --color-success: var(--color-green-500);
+      --color-success-muted: var(--color-green-950);
+      --color-warning: var(--color-yellow-400);
+      --color-warning-muted: var(--color-yellow-950);
+      --color-error: var(--color-red-500);
+      --color-error-muted: var(--color-red-950);
+      --color-info: var(--brand-primary-500);
+      --color-info-muted: var(--brand-primary-950);
+
+      /* Legacy support for dark theme */
+      --color-primary-50: var(--brand-primary-50);
+      --color-primary-100: var(--brand-primary-100);
+      --color-primary-200: var(--brand-primary-200);
+      --color-primary-300: var(--brand-primary-300);
+      --color-primary-400: var(--brand-primary-400);
+      --color-primary-500: var(--brand-primary-500);
+      --color-primary-600: var(--brand-primary-600);
+      --color-primary-700: var(--brand-primary-700);
+      --color-primary-800: var(--brand-primary-800);
+      --color-primary-900: var(--brand-primary-900);
+      --color-primary-950: var(--brand-primary-950);
+
+      /* Other colors for dark theme */
       --color-green: var(--color-green-600);
       --color-green-hover: var(--color-green-700);
       --color-green-focus: var(--color-green-800);
-      /* Red */
       --color-red: var(--color-red-400);
       --color-red-hover: var(--color-red-500);
       --color-red-focus: var(--color-red-600);
-      /* Yellow */
       --color-yellow-focus: var(--color-yellow-900);
-      /* Purple */
       --color-purple: var(--color-purple-600);
       --color-purple-hover: var(--color-purple-700);
       --color-purple-focus: var(--color-purple-800);
-      /* Blue */
       --color-blue: var(--color-blue-600);
       --color-blue-hover: var(--color-blue-700);
       --color-blue-focus: var(--color-blue-800);
-      /* Light */
       --color-light: var(--color-gray-600);
       --color-light-hover: var(--color-gray-500);
       --color-light-focus: var(--color-gray-400);
     }
+  }
+}
+
+/* Clases personalizadas para el diseño moderno */
+@layer utilities {
+  .shadow-3xl {
+    box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
+  }
+  
+  .font-logo-primary {
+    font-family: var(--font-logo-primary);
+  }
+  
+  .font-logo-secondary {
+    font-family: var(--font-logo-secondary);
+  }
+  
+  .backdrop-blur-lg {
+    backdrop-filter: blur(16px);
+  }
+  
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
   }
 }

@@ -20,7 +20,7 @@ export function useTrabajoChasisForm() {
   const existingPedido = trabajo_chasis || null;
   const defaulValuesEmpty = {
     pedido_id: pedido?.id,
-    tipo_trabajo: "",
+    tipo_trabajo_id: "",
     descripcion: "",
     observaciones: "",
   } as TrabajoChasisBD;
