@@ -43,7 +43,7 @@ export default function AyudaClientes() {
     <TutorialLayout
       title="Tutorial: Gestión de Clientes"
       subtitle="Aprende a gestionar clientes: agregar, modificar, eliminar y mejores prácticas"
-      icon={<Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />}
+      icon={Users}
       sections={sections}
       completion={{
         message: "¡Has completado el tutorial de gestión de clientes! 🎉",
@@ -52,14 +52,14 @@ export default function AyudaClientes() {
         primaryAction: {
           label: "Crear tu primer cliente",
           to: "/clientes/nuevo",
-          icon: <Users className="w-4 h-4" />,
+          icon: Users,
         },
       }}
     >
       <TutorialSection
         title="Introducción"
         id="introduccion"
-        icon={<Info className="w-6 h-6 text-blue-600 dark:text-blue-400" />}
+        icon={{ component: Info, color: "text-blue-600 dark:text-blue-400" }}
       >
         <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
           El módulo de gestión de clientes te permite administrar toda la
@@ -80,7 +80,7 @@ export default function AyudaClientes() {
         title="Acceder al Módulo de Clientes"
         id="acceso"
         icon={
-          <ExternalLink className="w-6 h-6 text-green-600 dark:text-green-400" />
+          {component: ExternalLink, color: "text-green-600 dark:text-green-400"}
         }
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -110,9 +110,10 @@ export default function AyudaClientes() {
       <TutorialSection
         title="Visualizar Lista de Clientes"
         id="visualizar"
-        icon={
-          <BookOpen className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-        }
+        icon={{
+          component: BookOpen,
+          color: "text-purple-600 dark:text-purple-400"
+        }}
       >
         <div className="mb-6">
           <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
@@ -178,7 +179,10 @@ export default function AyudaClientes() {
       <TutorialSection
         title="Agregar Nuevo Cliente"
         id="agregar"
-        icon={<Users className="w-6 h-6 text-green-600 dark:text-green-400" />}
+        icon={{
+          component: Users,
+          color: "text-green-600 dark:text-green-400"
+        }}
       >
         <Step number={1} title="Acceder al Formulario de Creación">
           <ul className="space-y-2">
@@ -347,9 +351,10 @@ export default function AyudaClientes() {
       <TutorialSection
         title="Modificar Cliente Existente"
         id="modificar"
-        icon={
-          <Users className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-        }
+        icon={{
+          component: Users,
+          color: "text-yellow-600 dark:text-yellow-400"
+        }}
       >
         <div className="space-y-6">
           <Alert type="info">
@@ -419,9 +424,10 @@ export default function AyudaClientes() {
       <TutorialSection
         title="Eliminar Cliente"
         id="eliminar"
-        icon={
-          <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
-        }
+        icon={{
+          component: AlertTriangle,
+          color: "text-red-600 dark:text-red-400"
+        }}
       >
         <Alert type="warning">
           <strong>Importante:</strong> La eliminación solo está disponible en el
@@ -484,9 +490,10 @@ export default function AyudaClientes() {
       <TutorialSection
         title="Filtrar y Buscar Clientes"
         id="buscar"
-        icon={
-          <BookOpen className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-        }
+        icon={{
+          component: BookOpen,
+          color: "text-indigo-600 dark:text-indigo-400"
+        }}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -529,9 +536,10 @@ export default function AyudaClientes() {
       <TutorialSection
         title="Validaciones y Errores"
         id="validaciones"
-        icon={
-          <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
-        }
+        icon={{
+          component: CheckCircle,
+          color: "text-green-600 dark:text-green-400"
+        }}
       >
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -650,9 +658,10 @@ export default function AyudaClientes() {
       <TutorialSection
         title="Tips y Mejores Prácticas"
         id="tips"
-        icon={
-          <Lightbulb className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-        }
+        icon={{
+          component: Lightbulb,
+          color: "text-yellow-600 dark:text-yellow-400"
+        }}
       >
         <div className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -63,7 +63,7 @@ export default function CamionForm() {
             {...register("med_larguero", {
               required: "Este campo es obligatorio",
             })}
-            icon={<RulerDimensionLine className="w-4 h-4" />}
+            icon={RulerDimensionLine}
           />
         </fieldset>
       </CardToggle>

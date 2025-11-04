@@ -14,7 +14,7 @@ export default function PedidosTrabajoChasis() {
     <ContainerToForms>
       <Subheader
         title="Trabajos en Chasis"
-        icon={<Drill className="w-6 h-6 text-purple" />}
+        icon={{component: Drill, color: "text-purple-600 dark:text-purple-400"}}
       />
       <TrabajoChasisForm />
     </ContainerToForms>

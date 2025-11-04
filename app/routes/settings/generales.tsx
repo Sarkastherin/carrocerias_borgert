@@ -118,7 +118,7 @@ export default function SettingsLayout() {
         key={title}
         type="button"
         onClick={() => setActiveTab(title)}
-        className={`block rounded-lg px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 bg-[var(--color-primary-muted)] dark:hover:bg-slate-800 hover:text-primary-light ${activeTab === title ? "bg-[var(--color-primary-muted)] dark:bg-slate-800 text-primary-light" : ""}`}
+        className={`block rounded-lg px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-[var(--color-primary-muted)] dark:hover:bg-slate-800 hover:text-primary-light ${activeTab === title ? "bg-[var(--color-primary-muted)] dark:bg-slate-800 text-primary-light" : ""}`}
       >
         <div className="flex items-center gap-2">
           {icon}

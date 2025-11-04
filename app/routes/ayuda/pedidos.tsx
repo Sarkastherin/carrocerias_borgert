@@ -42,7 +42,7 @@ export default function AyudaPedidos() {
     <TutorialLayout
       title="Tutorial: Gestión de Pedidos"
       subtitle="Desde la creación hasta el seguimiento del estado del pedido"
-      icon={<FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />}
+      icon={FileText}
       sections={sections}
       completion={{
         message: "¡Has completado el tutorial de pedidos! 🎉",
@@ -51,14 +51,17 @@ export default function AyudaPedidos() {
         primaryAction: {
           label: "Ir a Pedidos",
           to: "/pedidos",
-          icon: <FileText className="w-4 h-4" />,
+          icon: FileText,
         },
       }}
     >
       <TutorialSection
         title="Introducción"
         id="introduccion"
-        icon={<Info className="w-6 h-6 text-blue-600 dark:text-blue-400" />}
+        icon={{
+          component: Info,
+          color: "text-blue-600 dark:text-blue-400"
+        }}
       >
         <p className="text-gray-700 dark:text-gray-300 mb-4">
           El módulo de <strong>Pedidos</strong> centraliza toda la operativa:
@@ -78,9 +81,10 @@ export default function AyudaPedidos() {
       <TutorialSection
         title="Acceder al Módulo de Pedidos"
         id="acceso"
-        icon={
-          <ExternalLink className="w-6 h-6 text-green-600 dark:text-green-400" />
-        }
+        icon={{
+          component: ExternalLink,
+          color: "text-green-600 dark:text-green-400"
+        }}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div className="bg-white/60 dark:bg-gray-800/60 rounded-lg p-4 border border-gray-200/50 dark:border-gray-700/50">
@@ -108,9 +112,10 @@ export default function AyudaPedidos() {
       <TutorialSection
         title="Visualizar Lista de Pedidos"
         id="visualizar"
-        icon={
-          <BookOpen className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-        }
+        icon={{
+          component: BookOpen,
+          color: "text-purple-600 dark:text-purple-400"
+        }}
       >
         <div className="mb-6">
           <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
@@ -181,9 +186,10 @@ export default function AyudaPedidos() {
       <TutorialSection
         title="Crear nuevo pedido (Inicializar pedido)"
         id="crear"
-        icon={
-          <FileText className="w-6 h-6 text-green-600 dark:text-green-400" />
-        }
+        icon={{
+          component: FileText,
+          color: "text-green-600 dark:text-green-400"
+        }}
       >
         <Step number={1} title="Acceso al formulario">
           <ul className="space-y-2">
@@ -255,9 +261,10 @@ export default function AyudaPedidos() {
       <TutorialSection
         title="Configurar carrocería"
         id="carroceria"
-        icon={
-          <LayoutPanelTop className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-        }
+        icon={{
+          component: LayoutPanelTop,
+          color: "text-yellow-600 dark:text-yellow-400"
+        }}
       >
         <p className="text-gray-700 dark:text-gray-300 mb-4">
           Configurá la fabricación en <code>/pedidos/carroceria</code> con datos
@@ -315,7 +322,10 @@ export default function AyudaPedidos() {
       <TutorialSection
         title="Configurar camión"
         id="camion"
-        icon={<Truck className="w-6 h-6 text-red-600 dark:text-red-400" />}
+        icon={{
+          component: Truck,
+          color: "text-red-600 dark:text-red-400"
+        }}
       >
         <p className="text-gray-700 dark:text-gray-300 mb-4">
           Carga los datos del vehículo en <code>/pedidos/camion</code>.
@@ -347,9 +357,10 @@ export default function AyudaPedidos() {
       <TutorialSection
         title="Configurar trabajos en chasis"
         id="trabajo-chasis"
-        icon={
-          <Drill className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-        }
+        icon={{
+          component: Drill,
+          color: "text-purple-600 dark:text-purple-400"
+        }}
       >
         <p className="text-gray-700 dark:text-gray-300 mb-4">
           Administrá los trabajos a realizar en{" "}
@@ -373,9 +384,10 @@ export default function AyudaPedidos() {
       <TutorialSection
         title="Visualizar información completa"
         id="info"
-        icon={
-          <ScrollText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-        }
+        icon={{
+          component: ScrollText,
+          color: "text-blue-600 dark:text-blue-400"
+        }}
       >
         <Step number={1} title="Acceso al detalle">
           Ingresa <code>/pedidos/info/{"{id}"}</code> desde la lista haciendo

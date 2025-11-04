@@ -1,11 +1,20 @@
 import { Outlet, NavLink, useParams, useNavigate } from "react-router";
-import { FolderOpenDotIcon, Truck, Drill, LayoutPanelTop, Menu, X } from "lucide-react";
+import {
+  FolderOpenDotIcon,
+  Truck,
+  Drill,
+  LayoutPanelTop,
+  Menu,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useData } from "~/context/DataContext";
 import LoadingComponent from "~/components/LoadingComponent";
 import { BadgeStatus } from "~/components/Badge";
 import { Button } from "~/components/Buttons";
 import { useUIModals } from "~/context/ModalsContext";
+import type { IconType } from "~/components/IconComponent";
+import { getIcon } from "~/components/IconComponent";
 
 export default function PedidosLayout() {
   const navigate = useNavigate();
@@ -17,7 +26,7 @@ export default function PedidosLayout() {
 
   const handleDeletePedido = async () => {
     if (!pedido || !pedidoId) return;
-    
+
     showConfirmation(
       `¿Estás seguro de que deseas eliminar el pedido ${pedido.numero_pedido}? Esta acción no se puede deshacer y eliminará todos los datos asociados.`,
       async () => {
@@ -34,7 +43,7 @@ export default function PedidosLayout() {
       {
         title: "Eliminar Pedido",
         confirmText: "Eliminar",
-        cancelText: "Cancelar"
+        cancelText: "Cancelar",
       }
     );
   };
@@ -52,39 +61,39 @@ export default function PedidosLayout() {
       {
         title: "Pedido",
         href: `/pedidos/info/${id}`,
-        icon: <FolderOpenDotIcon className="size-4" />,
+        icon: FolderOpenDotIcon,
       },
       {
         title: "Camión",
         href: `/pedidos/camion/${id}`,
-        icon: <Truck className="size-4" />,
+        icon: Truck,
       },
       {
         title: "Carrocería",
         href: `/pedidos/carroceria/${id}`,
-        icon: <LayoutPanelTop className="size-4" />,
+        icon: LayoutPanelTop,
       },
       {
         title: "Trabajo en Chasis",
         href: `/pedidos/trabajo-chasis/${id}`,
-        icon: <Drill className="size-4" />,
+        icon: Drill,
       },
     ];
   };
   const menu = menuItems(pedidoId);
-  
+
   useEffect(() => {
     getPedidoById(pedidoId || "");
   }, []);
-  
+
   return (
     <div className="flex" style={{ minHeight: "calc(100vh - 67px)" }}>
       {pedido ? (
         <>
           {/* Sidebar */}
-          <div 
+          <div
             className={`z-20 flex flex-col justify-between border-e border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 transition-all duration-300 ease-in-out relative ${
-              sidebarOpen ? 'w-64' : 'w-16'
+              sidebarOpen ? "w-64" : "w-16"
             }`}
           >
             {/* Botón toggle integrado en el sidebar */}
@@ -100,7 +109,7 @@ export default function PedidosLayout() {
               )}
             </button>
 
-            <div className={`${sidebarOpen ? 'px-4' : 'px-2'}`}>
+            <div className={`${sidebarOpen ? "px-4" : "px-2"}`}>
               {sidebarOpen && (
                 <div className="text-center mt-4">
                   <span className="text-text-secondary text-sm font-bold">
@@ -108,31 +117,38 @@ export default function PedidosLayout() {
                   </span>
                 </div>
               )}
-              <ul className={`${sidebarOpen ? 'mt-6 space-y-1' : 'mt-16 space-y-2'}`}>
-                {menu.map((item) => (
-                  <li key={item.title}>
-                    <NavLink
-                      className={({ isActive }) =>
-                        `block rounded-lg ${sidebarOpen ? 'px-4 py-2' : 'px-3 py-3'} text-sm font-medium text-slate-600 dark:text-slate-400 bg-[var(--color-primary-muted)] dark:hover:bg-slate-800 hover:text-primary-light ${
-                          isActive ? "bg-[var(--color-primary-muted)] dark:bg-slate-800 text-primary-light" : ""
-                        }`
-                      }
-                      to={item.href}
-                      title={!sidebarOpen ? item.title : undefined}
-                    >
-                      {sidebarOpen ? (
-                        <div className="flex items-center gap-2">
-                          {item.icon}
-                          {item.title}
-                        </div>
-                      ) : (
-                        <div className="flex justify-center">
-                          {item.icon}
-                        </div>
-                      )}
-                    </NavLink>
-                  </li>
-                ))}
+              <ul
+                className={`${sidebarOpen ? "mt-6 space-y-1" : "mt-16 space-y-2"}`}
+              >
+                {menu.map((item) => {
+                  const IconComponent = getIcon({icon: item.icon as IconType, size: 4});
+                  return (
+                    <li key={item.title}>
+                      <NavLink
+                        className={({ isActive }) =>
+                          `block rounded-lg ${sidebarOpen ? "px-4 py-2" : "px-3 py-3"} text-sm font-medium text-slate-600 dark:text-slate-400 bg-[var(--color-primary-muted)] dark:hover:bg-slate-800 hover:text-primary-light ${
+                            isActive
+                              ? "bg-[var(--color-primary-muted)] dark:bg-slate-800 text-primary-light"
+                              : ""
+                          }`
+                        }
+                        to={item.href}
+                        title={!sidebarOpen ? item.title : undefined}
+                      >
+                        {sidebarOpen ? (
+                          <div className="flex items-center gap-2">
+                            {IconComponent}
+                            {item.title}
+                          </div>
+                        ) : (
+                          <div className="flex justify-center">
+                            {IconComponent}
+                          </div>
+                        )}
+                      </NavLink>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
             {sidebarOpen && (
@@ -157,11 +173,12 @@ export default function PedidosLayout() {
                     </h4>
                   </div>
                   <p className="text-xs text-red-600 dark:text-red-300 mb-3 leading-relaxed">
-                    Una vez eliminado, este pedido y todos sus datos asociados se perderán permanentemente.
+                    Una vez eliminado, este pedido y todos sus datos asociados
+                    se perderán permanentemente.
                   </p>
-                  <Button 
-                    type="button" 
-                    variant="red" 
+                  <Button
+                    type="button"
+                    variant="red"
                     size="sm"
                     onClick={handleDeletePedido}
                     disabled={isDeleting}
@@ -176,7 +193,7 @@ export default function PedidosLayout() {
 
           {/* Overlay para móvil cuando el sidebar está abierto */}
           {sidebarOpen && (
-            <div 
+            <div
               className="fixed inset-0 bg-black bg-opacity-50 z-10 md:hidden"
               onClick={toggleSidebar}
             />

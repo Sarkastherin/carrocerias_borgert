@@ -11,7 +11,7 @@ export function meta({}: Route.MetaArgs) {
 export default function ClientesCliente() {
   return (
   <div className="flex flex-col items-center w-full max-w-6xl mx-auto px-6">
-      <Subheader title="Editar Cliente" icon={<UserRoundPen className="w-6 h-6 text-blue" />} />
+      <Subheader title="Editar Cliente" icon={{component: UserRoundPen, color: "text-blue-600 dark:text-blue-400"}} />
       <main className="w-full max-w-5xl p-6">
         <ClienteForm />
       </main>

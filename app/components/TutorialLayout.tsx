@@ -1,6 +1,8 @@
 import { ArrowLeft, BookOpen, CheckCircle } from "lucide-react";
 import { NavLink } from "react-router";
 import { Subheader } from "~/components/Headers";
+import type { IconType } from "./IconComponent";
+import { getIcon } from "./IconComponent";
 
 // Componente para secciones del tutorial
 export function TutorialSection({ 
@@ -11,13 +13,14 @@ export function TutorialSection({
 }: { 
   title: string; 
   children: React.ReactNode; 
-  icon?: React.ReactNode;
+  icon?: { component: IconType; color?: string };
   id?: string;
 }) {
+  const IconComponent = icon ? getIcon({ icon: icon.component, size: 6, color: icon.color }) : null;
   return (
     <section id={id} className="mb-12">
       <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-3 border-b border-gray-200 dark:border-gray-700 pb-3">
-        {icon}
+        {IconComponent}
         {title}
       </h2>
       <div className="prose prose-gray dark:prose-invert max-w-none">
@@ -151,7 +154,7 @@ export function TableOfContents({ sections }: { sections: Array<{ id: string; ti
 interface TutorialLayoutProps {
   title: string;
   subtitle: string;
-  icon: React.ReactNode;
+  icon: IconType;
   sections: Array<{ id: string; title: string }>;
   children: React.ReactNode;
   completion: {
@@ -160,19 +163,19 @@ interface TutorialLayoutProps {
     primaryAction: {
       label: string;
       to: string;
-      icon: React.ReactNode;
+      icon: IconType;
     };
   };
 }
 
 export function TutorialLayout({
   title,
-  subtitle,
   icon,
   sections,
   children,
   completion
 }: TutorialLayoutProps) {
+  const CompletionIconComponent = getIcon({ icon: completion.primaryAction.icon, size: 4 });
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-6 py-8">
@@ -189,7 +192,7 @@ export function TutorialLayout({
 
         <Subheader 
           title={title}
-          icon={icon}
+          icon={{component: icon, color: "text-gray-900 dark:text-white"}}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -216,7 +219,7 @@ export function TutorialLayout({
                   to={completion.primaryAction.to}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 justify-center"
                 >
-                  {completion.primaryAction.icon}
+                  {CompletionIconComponent}
                   {completion.primaryAction.label}
                 </NavLink>
                 <NavLink 

@@ -98,7 +98,7 @@ export default function CarroceriaForm() {
                   {...register("largo_int", {
                     required: "Este campo es obligatorio",
                   })}
-                  icon={<RulerDimensionLine className="w-4 h-4" />}
+                  icon={RulerDimensionLine }
                   error={errors.largo_int?.message}
                   requiredField
                 />
@@ -108,7 +108,7 @@ export default function CarroceriaForm() {
                   {...register("largo_ext", {
                     required: "Este campo es obligatorio",
                   })}
-                  icon={<RulerDimensionLine className="w-4 h-4" />}
+                  icon={RulerDimensionLine }
                   requiredField
                   error={errors.largo_ext?.message}
                 />
@@ -134,7 +134,7 @@ export default function CarroceriaForm() {
                   {...register("alto", {
                     required: "Este campo es obligatorio",
                   })}
-                  icon={<RulerDimensionLine className="w-4 h-4" />}
+                  icon={RulerDimensionLine }
                   requiredField
                   error={errors.alto?.message}
                 />
@@ -144,7 +144,7 @@ export default function CarroceriaForm() {
                   {...register("alt_baranda", {
                     required: "Este campo es obligatorio",
                   })}
-                  icon={<RulerDimensionLine className="w-4 h-4" />}
+                  icon={RulerDimensionLine }
                   requiredField
                   error={errors.alt_baranda?.message}
                 />
@@ -154,7 +154,7 @@ export default function CarroceriaForm() {
                   {...register("ptas_por_lado", {
                     required: "Este campo es obligatorio",
                   })}
-                  icon={<RulerDimensionLine className="w-4 h-4" />}
+                  icon={RulerDimensionLine }
                   requiredField
                   error={errors.ptas_por_lado?.message}
                 />
@@ -164,7 +164,7 @@ export default function CarroceriaForm() {
                   {...register("arcos_por_puerta", {
                     required: "Este campo es obligatorio",
                   })}
-                  icon={<RulerDimensionLine className="w-4 h-4" />}
+                  icon={RulerDimensionLine }
                   requiredField
                   error={errors.arcos_por_puerta?.message}
                 />
@@ -313,7 +313,7 @@ export default function CarroceriaForm() {
                   {...register("med_cuchetin", {
                     required: "Este campo es obligatorio",
                   })}
-                  icon={<RulerDimensionLine className="w-4 h-4" />}
+                  icon={RulerDimensionLine }
                   requiredField
                   error={errors.med_cuchetin?.message}
                 />
@@ -324,7 +324,7 @@ export default function CarroceriaForm() {
                   {...register("alt_pta_cuchetin", {
                     required: "Este campo es obligatorio",
                   })}
-                  icon={<RulerDimensionLine className="w-4 h-4" />}
+                  icon={RulerDimensionLine }
                   requiredField
                   error={errors.alt_pta_cuchetin?.message}
                 />
@@ -335,7 +335,7 @@ export default function CarroceriaForm() {
                   {...register("alt_techo_cuchetin", {
                     required: "Este campo es obligatorio",
                   })}
-                  icon={<RulerDimensionLine className="w-4 h-4" />}
+                  icon={RulerDimensionLine }
                   requiredField
                   error={errors.alt_techo_cuchetin?.message}
                 />
@@ -349,7 +349,7 @@ export default function CarroceriaForm() {
                   {...register("boquillas", {
                     required: "Este campo es obligatorio",
                   })}
-                  icon={<RulerDimensionLine className="w-4 h-4" />}
+                  icon={RulerDimensionLine }
                   requiredField
                   error={errors.boquillas?.message}
                 />
@@ -359,7 +359,7 @@ export default function CarroceriaForm() {
                   {...register("med_cajon_herramientas", {
                     required: "Este campo es obligatorio",
                   })}
-                  icon={<RulerDimensionLine className="w-4 h-4" />}
+                  icon={RulerDimensionLine }
                   requiredField
                   error={errors.med_cajon_herramientas?.message}
                 />
@@ -369,7 +369,7 @@ export default function CarroceriaForm() {
                   {...register("luces", {
                     required: "Este campo es obligatorio",
                   })}
-                  icon={<RulerDimensionLine className="w-4 h-4" />}
+                  icon={RulerDimensionLine }
                   requiredField
                   error={errors.luces?.message}
                 />
@@ -404,7 +404,7 @@ export default function CarroceriaForm() {
                   {...register("med_alargue", {
                     required: "Este campo es obligatorio",
                   })}
-                  icon={<RulerDimensionLine className="w-4 h-4" />}
+                  icon={RulerDimensionLine }
                   requiredField
                   error={errors.med_alargue?.message}
                 />

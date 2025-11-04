@@ -23,31 +23,60 @@ export const links: Route.LinksFunction = () => [
     crossOrigin: "anonymous",
   },
   {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap",
+    rel: "dns-prefetch",
+    href: "https://apis.google.com",
   },
-  { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Birthstone&family=Sansation:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" },
+  {
+    rel: "dns-prefetch",
+    href: "https://accounts.google.com",
+  },
+  {
+    rel: "stylesheet",
+    href: "https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Birthstone&family=Sansation:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap",
+  },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  
   useEffect(() => {
     const prefersDark = window.matchMedia(
       "(prefers-color-scheme: dark)"
     ).matches;
     setTheme(prefersDark ? "dark" : "light");
+    
+    // Load Google scripts after initial render
+    const loadGoogleScripts = () => {
+      if (!document.querySelector('script[src*="apis.google.com"]')) {
+        const script1 = document.createElement('script');
+        script1.src = 'https://apis.google.com/js/api.js';
+        script1.async = true;
+        script1.defer = true;
+        document.body.appendChild(script1);
+        
+        const script2 = document.createElement('script');
+        script2.src = 'https://accounts.google.com/gsi/client';
+        script2.async = true;
+        script2.defer = true;
+        document.body.appendChild(script2);
+      }
+    };
+    
+    // Load after page is interactive
+    if (document.readyState === 'complete') {
+      setTimeout(loadGoogleScripts, 1000);
+    } else {
+      window.addEventListener('load', () => {
+        setTimeout(loadGoogleScripts, 1000);
+      });
+    }
   }, []);
+  
   return (
     <html lang="es" data-theme={theme}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <script async defer src="https://apis.google.com/js/api.js"></script>
-        <script
-          async
-          defer
-          src="https://accounts.google.com/gsi/client"
-        ></script>
         <Meta />
         <Links />
       </head>

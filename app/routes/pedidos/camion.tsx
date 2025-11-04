@@ -12,7 +12,7 @@ export function meta({}: Route.MetaArgs) {
 export default function CamionPedidos() {
   return (
     <ContainerToForms>
-      <Subheader title="Camión" icon={<Truck className="w-6 h-6 text-red" />} />
+      <Subheader title="Camión" icon={{component: Truck, color: "text-red-600 dark:text-red-400"}} />
       <CamionForm />
     </ContainerToForms>
   );

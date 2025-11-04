@@ -14,7 +14,7 @@ export default function PedidosCarroceria() {
     <ContainerToForms>
       <Subheader
         title="Carrocería"
-        icon={<LayoutPanelTop className="w-6 h-6 text-yellow" />}
+        icon={{component: LayoutPanelTop, color: "text-yellow-600 dark:text-yellow-400"}}
       />
       <CarroceriaForm />
     </ContainerToForms>

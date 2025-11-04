@@ -1,12 +1,10 @@
 import type { Route } from "./+types/home";
 import { ReceiptText, NotebookTabs, FileCog } from "lucide-react";
-import { Link } from "react-router";
 import pkg from "package.json";
-import { CardLink } from "~/components/Cards";
 import type { CardLinkProps } from "~/components/Cards";
 import { LogoComponent } from "~/components/LogoComponent";
+import { CardLink } from "~/components/Cards";
 const appVersion = pkg.version;
-
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -25,21 +23,18 @@ export default function HomePage() {
       description: "Gestiona tus pedidos y controla tus avances.",
       icon: ReceiptText,
       path: "/pedidos",
-      variant: "blue",
     },
     {
       name: "Clientes",
       description: "Organiza tus clientes y gestiona su información.",
       icon: NotebookTabs,
       path: "/clientes",
-      variant: "green",
     },
     {
       name: "Parametros",
       description: "Gestiona los parametros y configuraciones.",
       icon: FileCog,
       path: "/settings",
-      variant: "yellow",
     },
   ];
 
@@ -60,7 +55,7 @@ export default function HomePage() {
           {/* Título principal */}
           <div className="text-center mb-8 sm:mb-12 max-w-4xl">
             <h1 className="scale-200 mb-4">
-              <LogoComponent noTheme/>
+              <LogoComponent noTheme />
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-gray-100 font-light px-4">
               Sistema de gestión profesional para tu empresa
@@ -72,23 +67,13 @@ export default function HomePage() {
             {modules.map((mod) => {
               const IconComponent = mod.icon;
               return (
-                <Link
+                <CardLink
                   key={mod.name}
-                  to={mod.path}
-                  className="backdrop-blur-lg bg-white/10 border border-white/20 rounded-2xl shadow-2xl p-5 sm:p-6 hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-3xl group min-h-[160px] sm:min-h-[180px]"
-                >
-                  <div className="flex flex-col items-start h-full">
-                    <div className="mb-3 sm:mb-4 p-2.5 sm:p-3 rounded-xl bg-white/20 backdrop-blur-sm group-hover:bg-white/30 transition-colors">
-                      <IconComponent className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                    </div>
-                    <h2 className="text-lg sm:text-xl font-semibold text-white mb-2 group-hover:text-gray-100 transition-colors">
-                      {mod.name}
-                    </h2>
-                    <p className="text-sm text-gray-200 group-hover:text-gray-100 transition-colors leading-relaxed flex-1">
-                      {mod.description}
-                    </p>
-                  </div>
-                </Link>
+                  name={mod.name}
+                  path={mod.path}
+                  icon={IconComponent}
+                  description={mod.description}
+                />
               );
             })}
           </main>
@@ -97,7 +82,10 @@ export default function HomePage() {
         {/* Footer */}
         <footer className="p-2 sm:p-4 text-gray-300 text-xs text-center backdrop-blur-sm bg-black/20 border-t border-white/10">
           <div className="flex flex-col sm:flex-row sm:justify-center sm:items-center">
-            v{appVersion} <span className="-ms-5 scale-60 inline-block"><LogoComponent noTheme/></span>
+            v{appVersion}{" "}
+            <span className="-ms-5 scale-60 inline-block">
+              <LogoComponent noTheme />
+            </span>
           </div>
         </footer>
       </div>

@@ -6,6 +6,8 @@ import type {
   SelectHTMLAttributes,
 } from "react";
 import { ChevronDown, IdCard, Phone, Banknote } from "lucide-react";
+import type { IconType } from "./IconComponent";
+import { getIcon } from "./IconComponent";
 type CommonInputsProps = {
   id?: string;
   label?: string;
@@ -103,10 +105,11 @@ export function InputWithIcon({
   requiredField,
   icon,
   ...props
-}: InputProps & { icon: React.ReactNode }) {
+}: InputProps & { icon: IconType }) {
   const { ref } = props;
   if (label === "Razón Social") {
   }
+  const IconComponent = getIcon({ icon, size: 5 });
   return (
     <label htmlFor={id} className={hidden ? "sr-only" : ""}>
       <Label label={label ?? ""} requiredField={requiredField} />
@@ -119,7 +122,7 @@ export function InputWithIcon({
  ${basesClass(error ?? "")}`}
         />
         <div className="absolute inset-y-0 end-0 top-0 flex items-center px-3 pointer-events-none border-l border-gray-300 dark:border-gray-600 text-text-secondary">
-          {icon}
+          {IconComponent}
         </div>
       </div>
       {error && <SpanError error={error} />}
@@ -261,11 +264,11 @@ export function CurrencyInput({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
-    
+
     // Solo permitir números, punto y coma
     if (/^[\d.,]*$/.test(inputValue) || inputValue === "") {
       setDisplayValue(inputValue);
-      
+
       if (inputValue === "") {
         onChange("");
       } else {
@@ -309,7 +312,7 @@ export function CurrencyInput({
       onChange={handleChange}
       onFocus={handleFocus}
       onBlur={handleBlur}
-      icon={<Banknote className="text-gray-500" />}
+      icon={Banknote}
       error={error}
     />
   );
@@ -346,20 +349,20 @@ export function CuitInput({
   const validateCuit = (cuit: string): boolean => {
     const cleaned = cuit.replace(/\D/g, "");
     if (cleaned.length !== 11) return false;
-    
+
     // Algoritmo de validación de CUIT/CUIL
     const sequence = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
     const digits = cleaned.split("").map(Number);
     const checkDigit = digits[10];
-    
+
     let sum = 0;
     for (let i = 0; i < 10; i++) {
       sum += digits[i] * sequence[i];
     }
-    
+
     const remainder = sum % 11;
     const calculatedDigit = remainder < 2 ? remainder : 11 - remainder;
-    
+
     return calculatedDigit === checkDigit;
   };
 
@@ -371,11 +374,11 @@ export function CuitInput({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
-    
+
     // Permitir solo números y guiones
     if (/^[\d-]*$/.test(inputValue) || inputValue === "") {
       const cleanedValue = parseCuit(inputValue);
-      
+
       // Limitar a máximo 11 dígitos
       if (cleanedValue.length <= 11) {
         // Aplicar formato automático mientras escribe
@@ -406,7 +409,7 @@ export function CuitInput({
   const cleanedValue = parseCuit(displayValue);
   const isValidLength = cleanedValue.length === 11;
   const isValidCuit = isValidLength && validateCuit(cleanedValue);
-  
+
   // Determinar el error a mostrar (solo mostrar errores si hay contenido)
   let errorMessage = error;
   if (cleanedValue && cleanedValue.length > 0) {
@@ -429,7 +432,7 @@ export function CuitInput({
       error={errorMessage}
       requiredField={requiredField}
       placeholder="Ej: 20-22173992-3"
-      icon={<IdCard className="text-gray-500" />}
+      icon={IdCard}
     />
   );
 }
@@ -449,13 +452,13 @@ export function PhoneInput({
   const formatPhone = (phone: string): string => {
     if (!phone) return "";
     const cleaned = phone.replace(/\D/g, "");
-    
+
     // Remover código de país si está presente
     let workingNumber = cleaned;
     if (cleaned.startsWith("54") && cleaned.length > 11) {
       workingNumber = cleaned.substring(2);
     }
-    
+
     // Formatear según la longitud
     if (workingNumber.length <= 4) {
       return workingNumber;
@@ -463,7 +466,8 @@ export function PhoneInput({
       return `${workingNumber.slice(0, 4)}-${workingNumber.slice(4)}`;
     } else if (workingNumber.length <= 10) {
       // Formato: XXX XXXX-XXXX o XX XXXX-XXXX
-      const areaLength = workingNumber.length === 10 && workingNumber.startsWith("0") ? 3 : 2;
+      const areaLength =
+        workingNumber.length === 10 && workingNumber.startsWith("0") ? 3 : 2;
       return `${workingNumber.slice(0, areaLength)} ${workingNumber.slice(areaLength, areaLength + 4)}-${workingNumber.slice(areaLength + 4)}`;
     } else {
       // Para números más largos (celulares con 15)
@@ -479,22 +483,24 @@ export function PhoneInput({
   // Función para validar teléfono argentino (más flexible)
   const validatePhone = (phone: string): boolean => {
     const cleaned = phone.replace(/\D/g, "");
-    
+
     // Permitir vacío (campo opcional)
     if (cleaned.length === 0) return true;
-    
+
     // Muy corto (menos de 7 dígitos local)
     if (cleaned.length < 7) return false;
-    
+
     // Muy largo (más de 15 dígitos total)
     if (cleaned.length > 15) return false;
-    
+
     // Si tiene código de país, debe empezar con 54
     if (cleaned.length > 11 && !cleaned.startsWith("54")) return false;
-    
+
     // Validaciones básicas: no puede empezar con 0 después del código de área
-    const phoneWithoutCountry = cleaned.startsWith("54") ? cleaned.substring(2) : cleaned;
-    
+    const phoneWithoutCountry = cleaned.startsWith("54")
+      ? cleaned.substring(2)
+      : cleaned;
+
     // Si es un número de 8-13 dígitos, es probablemente válido
     return phoneWithoutCountry.length >= 7 && phoneWithoutCountry.length <= 13;
   };
@@ -507,11 +513,11 @@ export function PhoneInput({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
-    
+
     // Permitir solo números, espacios, guiones, paréntesis y +
     if (/^[\d\s\-\(\)\+]*$/.test(inputValue) || inputValue === "") {
       const cleanedValue = parsePhone(inputValue);
-      
+
       // Limitar a máximo 15 dígitos
       if (cleanedValue.length <= 15) {
         const formattedValue = formatPhone(cleanedValue);
@@ -539,7 +545,7 @@ export function PhoneInput({
 
   const cleanedValue = parsePhone(displayValue);
   const isValidPhone = validatePhone(cleanedValue);
-  
+
   // Determinar el error a mostrar
   let errorMessage = error;
   if (cleanedValue && cleanedValue.length > 0 && !isValidPhone) {
@@ -564,7 +570,7 @@ export function PhoneInput({
       error={errorMessage}
       requiredField={requiredField}
       placeholder="Ej: 011 1234-5678"
-      icon={<Phone className="text-gray-500" />}
+      icon={Phone}
     />
   );
 }

@@ -23,7 +23,7 @@ export default function ConfiguracionTutorial() {
     <TutorialLayout
       title="Tutorial: Parámetros Generales"
       subtitle="Configuración y gestión de elementos del sistema"
-      icon={<Settings className="w-6 h-6 text-blue-600 dark:text-blue-400" />}
+      icon={Settings}
       sections={sections}
       completion={{
         message: "¡Has completado el tutorial de configuraciones! 🎉",
@@ -31,14 +31,17 @@ export default function ConfiguracionTutorial() {
         primaryAction: {
           label: "Ir a Configuraciones",
           to: "/settings/generales",
-          icon: <Settings className="w-4 h-4" />
+          icon: Settings
         }
       }}
     >
             <TutorialSection 
               title="Introducción" 
               id="introduccion"
-              icon={<Info className="w-6 h-6 text-blue-600 dark:text-blue-400" />}
+              icon={{
+                component: Info,
+                color: "text-blue-600 dark:text-blue-400"
+              }}
             >
               <p className="text-gray-700 dark:text-gray-300 mb-4">
                 Los <strong>Parámetros Generales</strong> son la base fundamental del sistema de gestión de carrocerías. 
@@ -85,7 +88,10 @@ export default function ConfiguracionTutorial() {
             <TutorialSection 
               title="Acceder a Configuraciones" 
               id="acceso"
-              icon={<Settings className="w-6 h-6 text-green-600 dark:text-green-400" />}
+              icon={{
+                component: Settings,
+                color: "text-green-600 dark:text-green-400"
+              }}
             >
               <Step number={1} title="Navegación Principal">
                 <p>Desde el menú principal, accede a <strong>"Configuraciones"</strong> → <strong>"Parámetros Generales"</strong></p>
@@ -111,7 +117,10 @@ export default function ConfiguracionTutorial() {
             <TutorialSection 
               title="Entender la Interfaz" 
               id="interfaz"
-              icon={<Grid className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />}
+              icon={{
+                component: Grid,
+                color: "text-indigo-600 dark:text-indigo-400"
+              }}
             >
               <p className="text-gray-700 dark:text-gray-300 mb-6">
                 La interfaz está diseñada para ser consistente y fácil de usar. Cada sección de configuración 
@@ -191,7 +200,10 @@ export default function ConfiguracionTutorial() {
             <TutorialSection 
               title="Gestión de Elementos de Configuración" 
               id="gestion-elementos"
-              icon={<Settings className="w-6 h-6 text-blue-600 dark:text-blue-400" />}
+              icon={{
+                component: Settings,
+                color: "text-blue-600 dark:text-blue-400"
+              }}
             >
               <p className="text-gray-700 dark:text-gray-300 mb-6">
                 Todos los elementos en Parámetros Generales siguen el mismo flujo de gestión: consultar, crear, editar y eliminar. 
@@ -348,7 +360,10 @@ export default function ConfiguracionTutorial() {
             <TutorialSection 
               title="Operaciones Comunes" 
               id="operaciones"
-              icon={<Settings className="w-6 h-6 text-gray-600 dark:text-gray-400" />}
+              icon={{
+                component: Settings,
+                color: "text-gray-600 dark:text-gray-400"
+              }}
             >
               <div className="space-y-6">
                 <div>
@@ -510,7 +525,10 @@ export default function ConfiguracionTutorial() {
             <TutorialSection 
               title="Tips y Mejores Prácticas" 
               id="tips"
-              icon={<Lightbulb className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />}
+              icon={{
+                component: Lightbulb,
+                color: "text-yellow-600 dark:text-yellow-400"
+              }}
             >
               <div className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

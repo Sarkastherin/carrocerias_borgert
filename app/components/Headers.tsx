@@ -3,7 +3,8 @@ import { useUI } from "~/context/UIContext";
 import { useNavigate, NavLink } from "react-router";
 import { LogOut, Sun, Moon, HelpCircle } from "lucide-react";
 import { LogoComponent } from "./LogoComponent";
-
+import type { IconType } from "./IconComponent";
+import { getIcon } from "./IconComponent";
 export function Header() {
   const { toggleTheme, theme } = useUI();
   const { logout } = useAuth();
@@ -51,16 +52,15 @@ export function Header() {
 export function Subheader({
   title,
   icon,
-  color,
 }: {
   title: string;
-  icon: React.ReactNode;
-  color?: string;
+  icon: { component: IconType; color: string };
 }) {
+  const IconComponent = getIcon({ icon: icon.component, size: 6, color: icon.color });
   return (
     <header className="w-full flex justify-between items-center py-8">
       <h2 className="text-2xl font-semibold flex items-center gap-2">
-        {icon}
+        {IconComponent}
         {title}
       </h2>
     </header>

@@ -14,7 +14,7 @@ export default function PedidosPedido() {
       <ContainerToForms>
         <Subheader
           title="Pedido"
-          icon={<ScrollText className="w-6 h-6 text-blue" />}
+          icon={{component: ScrollText, color: "text-blue-600 dark:text-blue-400"}}
         />
         <PedidosForm />
       </ContainerToForms>
