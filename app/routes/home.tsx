@@ -1,9 +1,9 @@
 import type { Route } from "./+types/home";
 import { ReceiptText, NotebookTabs, FileCog } from "lucide-react";
 import pkg from "package.json";
-import type { CardLinkProps } from "~/components/Cards";
+import type { CardLinkProps } from "~/components/GlassCard";
 import { LogoComponent } from "~/components/LogoComponent";
-import { CardLink } from "~/components/Cards";
+import { NavGlassCard } from "~/components/GlassCard";
 const appVersion = pkg.version;
 
 export function meta({}: Route.MetaArgs) {
@@ -65,13 +65,13 @@ export default function HomePage() {
           {/* Cards con Glassmorphism */}
           <main className="w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-4 sm:px-0">
             {modules.map((mod) => {
-              const IconComponent = mod.icon;
+              
               return (
-                <CardLink
+                <NavGlassCard
                   key={mod.name}
                   name={mod.name}
                   path={mod.path}
-                  icon={IconComponent}
+                  icon={mod.icon}
                   description={mod.description}
                 />
               );

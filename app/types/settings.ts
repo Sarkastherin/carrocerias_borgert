@@ -5,6 +5,7 @@ type CommonSettingsBD = {
 };
 export type ColoresBD = {
   nombre: string;
+  tipo: "esmalte" | "lona";
 } & CommonSettingsBD;
 
 export type CarrozadosBD = {

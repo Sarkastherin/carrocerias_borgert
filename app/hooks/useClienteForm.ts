@@ -33,7 +33,19 @@ const validateCuit = (cuit: string): boolean => {
   return calculatedDigit === checkDigit;
 };
 
-export function useClienteForm({modal = false}: {modal?: boolean}) {
+export function useClienteForm({
+  modal = false,
+  onSuccess,
+  onError,
+  onLoadingStart,
+  onLoadingEnd,
+}: {
+  modal?: boolean;
+  onSuccess?: (message: string) => void;
+  onError?: (message: string) => void;
+  onLoadingStart?: () => void;
+  onLoadingEnd?: () => void;
+}) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [direccionData, setDireccionData] = useState<DireccionCompleta | null>(
@@ -41,7 +53,7 @@ export function useClienteForm({modal = false}: {modal?: boolean}) {
   );
   const [hasAddressChanged, setHasAddressChanged] = useState(false);
 
-  const { showLoading, showSuccess, showError, showInfo, closeModal } = useUIModals();
+  const { showLoading, showSuccess, showError, showInfo } = useUIModals();
   const { cliente, getClientes, checkCuitExists } = useData();
   const isEditMode = Boolean(cliente);
   const existingCliente = cliente as ClientesBD | null;
@@ -101,7 +113,12 @@ export function useClienteForm({modal = false}: {modal?: boolean}) {
     try {
       // Validar CUIT antes de enviar
       if (formData.cuit_cuil && !validateCuit(formData.cuit_cuil)) {
-        showError("El CUIT/CUIL ingresado no es válido");
+        const errorMsg = "El CUIT/CUIL ingresado no es válido";
+        if (modal && onError) {
+          onError(errorMsg);
+        } else {
+          showError(errorMsg);
+        }
         return;
       }
 
@@ -113,7 +130,12 @@ export function useClienteForm({modal = false}: {modal?: boolean}) {
         );
         
         if (cuitExists) {
-          showError("Ya existe un cliente registrado con este CUIT/CUIL");
+          const errorMsg = "Ya existe un cliente registrado con este CUIT/CUIL";
+          if (modal && onError) {
+            onError(errorMsg);
+          } else {
+            showError(errorMsg);
+          }
           return;
         }
       }
@@ -124,23 +146,43 @@ export function useClienteForm({modal = false}: {modal?: boolean}) {
       const localidadFinal = direccionData?.localidadNombre || formData.localidad_nombre;
 
       if (!direccionFinal || direccionFinal.trim() === "") {
-        showError("La dirección es obligatoria");
+        const errorMsg = "La dirección es obligatoria";
+        if (modal && onError) {
+          onError(errorMsg);
+        } else {
+          showError(errorMsg);
+        }
         return;
       }
 
       if (!provinciaFinal || provinciaFinal.trim() === "") {
-        showError("La provincia es obligatoria");
+        const errorMsg = "La provincia es obligatoria";
+        if (modal && onError) {
+          onError(errorMsg);
+        } else {
+          showError(errorMsg);
+        }
         return;
       }
 
       if (!localidadFinal || localidadFinal.trim() === "") {
-        showError("La localidad es obligatoria");
+        const errorMsg = "La localidad es obligatoria";
+        if (modal && onError) {
+          onError(errorMsg);
+        } else {
+          showError(errorMsg);
+        }
         return;
       }
 
-      showLoading(
-        isEditMode ? "Actualizando cliente..." : "Creando nuevo cliente..."
-      );
+      // Iniciar loading
+      if (modal && onLoadingStart) {
+        onLoadingStart();
+      } else {
+        showLoading(
+          isEditMode ? "Actualizando cliente..." : "Creando nuevo cliente..."
+        );
+      }
       // Preparar datos finales mezclando form data con dirección estructurada
       const finalData: ClientesBD = {
         ...(isEditMode && { id: existingCliente?.id || "" }),
@@ -177,7 +219,12 @@ export function useClienteForm({modal = false}: {modal?: boolean}) {
         
         // Si no hay campos dirty y no hay cambios de dirección, no actualizar
         if (!hasDirtyFields && !hasAddressChanged) {
-          showInfo("No se realizaron cambios en el formulario.");
+          const infoMsg = "No se realizaron cambios en el formulario.";
+          if (modal && onError) {
+            onError(infoMsg);
+          } else {
+            showInfo(infoMsg);
+          }
           return;
         }
         
@@ -209,8 +256,19 @@ export function useClienteForm({modal = false}: {modal?: boolean}) {
           );
         }
         getClientes();
-        navigate("/clientes");
-        showSuccess("Cliente actualizado exitosamente");
+        
+        // Finalizar loading
+        if (modal && onLoadingEnd) {
+          onLoadingEnd();
+        }
+        
+        // Mostrar éxito
+        if (modal && onSuccess) {
+          onSuccess("Cliente actualizado exitosamente");
+        } else {
+          navigate("/clientes");
+          showSuccess("Cliente actualizado exitosamente");
+        }
       } else {
         const response = await clientesAPI.create(finalData);
         if (!response.success) {
@@ -219,20 +277,36 @@ export function useClienteForm({modal = false}: {modal?: boolean}) {
           );
         }
         getClientes();
-        if(modal) {
-          showSuccess("Cliente creado exitosamente", () => {
-            // Cerrar el modal después de mostrar el éxito
-            closeModal();
-          });
-          return;
+        
+        // Finalizar loading
+        if (modal && onLoadingEnd) {
+          onLoadingEnd();
         }
-        navigate("/clientes");
-        showSuccess("Cliente creado exitosamente");
+        
+        // Mostrar éxito
+        if (modal && onSuccess) {
+          onSuccess("Cliente creado exitosamente");
+        } else {
+          navigate("/clientes");
+          showSuccess("Cliente creado exitosamente");
+        }
       }
     } catch (error) {
-      showError(
-        typeof error === "string" ? error : "Error al guardar el cliente"
-      );
+      // Finalizar loading en caso de error
+      if (modal && onLoadingEnd) {
+        onLoadingEnd();
+      }
+      
+      // Mostrar error
+      const errorMsg = error instanceof Error 
+        ? error.message 
+        : (typeof error === "string" ? error : "Error al guardar el cliente");
+      
+      if (modal && onError) {
+        onError(errorMsg);
+      } else {
+        showError(errorMsg);
+      }
     }
   };
   const resetForm = () => {

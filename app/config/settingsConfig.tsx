@@ -1,3 +1,4 @@
+import type { FilterField } from "~/components/EntityTable";
 export type ConfigField = {
   name: string;
   label: string;
@@ -8,7 +9,13 @@ export type ConfigField = {
 
 export type ConfigItem = {
   title: string;
-  icon: "PaintBucket" | "Truck" | "Package" | "DoorOpen" | "ContactRound" | "Drill";
+  icon:
+    | "PaintBucket"
+    | "Truck"
+    | "Package"
+    | "DoorOpen"
+    | "ContactRound"
+    | "Drill";
   columns: Array<{
     name: string;
     selector: (row: any) => any;
@@ -18,11 +25,7 @@ export type ConfigItem = {
   }>;
   formFields: ConfigField[];
   api: string; // Nombre de la API para evitar imports circulares
-  filterFields?: Array<{
-    key: string;
-    label: string;
-    autoFilter?: boolean;
-  }>;
+  filterFields?: FilterField[];
 };
 
 export const settingsConfig: ConfigItem[] = [
@@ -36,14 +39,30 @@ export const settingsConfig: ConfigItem[] = [
         sortable: true,
       },
       {
+        name: "Tipo",
+        selector: (row: any) => capitalize(row.tipo),
+        sortable: false,
+        width: "120px",
+      },
+      {
         name: "Activo",
-        selector: (row: any) => row.activo ? "Activo" : "Inactivo",
+        selector: (row: any) => (row.activo ? "Activo" : "Inactivo"),
         sortable: false,
         width: "100px",
       },
     ],
     formFields: [
       { name: "nombre", label: "Nombre", type: "text", required: true },
+      {
+        name: "tipo",
+        label: "Tipo",
+        type: "select",
+        required: true,
+        options: [
+          { value: "esmalte", label: "Esmalte" },
+          { value: "lona", label: "Lona" },
+        ],
+      },
       {
         name: "activo",
         label: "Activo",
@@ -52,7 +71,22 @@ export const settingsConfig: ConfigItem[] = [
       },
     ],
     api: "coloresAPI", // Nombre de la API para evitar imports circulares
-    filterFields: [{ key: "nombre", label: "Nombre", autoFilter: true }],
+    filterFields: [
+      { key: "nombre", label: "Nombre", autoFilter: true },
+      {
+        key: "tipo",
+        label: "Tipo",
+        autoFilter: true,
+        type: "select",
+        options: (
+          <>
+          <option value="">Tipo de pintura</option>
+            <option value="esmalte">Esmalte</option>
+            <option value="lona">Lona</option>
+          </>
+        ),
+      },
+    ],
   },
   {
     title: "carrozado",
@@ -65,7 +99,7 @@ export const settingsConfig: ConfigItem[] = [
       },
       {
         name: "Activo",
-        selector: (row: any) => row.activo ? "Activo" : "Inactivo",
+        selector: (row: any) => (row.activo ? "Activo" : "Inactivo"),
         sortable: false,
         width: "100px",
       },
@@ -93,7 +127,7 @@ export const settingsConfig: ConfigItem[] = [
       },
       {
         name: "Activo",
-        selector: (row: any) => row.activo ? "Activo" : "Inactivo",
+        selector: (row: any) => (row.activo ? "Activo" : "Inactivo"),
         sortable: false,
         width: "100px",
       },
@@ -126,7 +160,7 @@ export const settingsConfig: ConfigItem[] = [
       },
       {
         name: "Activo",
-        selector: (row: any) => row.activo ? "Activo" : "Inactivo",
+        selector: (row: any) => (row.activo ? "Activo" : "Inactivo"),
         sortable: false,
         width: "100px",
       },
@@ -152,7 +186,7 @@ export const settingsConfig: ConfigItem[] = [
       { key: "apellido", label: "Apellido", autoFilter: true },
     ],
   },
-   {
+  {
     title: "tipos de trabajos",
     icon: "Drill",
     columns: [
@@ -163,13 +197,18 @@ export const settingsConfig: ConfigItem[] = [
       },
       {
         name: "Activo",
-        selector: (row: any) => row.activo ? "Activo" : "Inactivo",
+        selector: (row: any) => (row.activo ? "Activo" : "Inactivo"),
         sortable: false,
         width: "100px",
       },
     ],
     formFields: [
-      { name: "nombre", label: "Descripción del trabajo", type: "text", required: true },
+      {
+        name: "nombre",
+        label: "Descripción del trabajo",
+        type: "text",
+        required: true,
+      },
       {
         name: "activo",
         label: "Activo",
@@ -178,10 +217,7 @@ export const settingsConfig: ConfigItem[] = [
       },
     ],
     api: "configTrabajoChasisAPI",
-    filterFields: [
-      { key: "nombre", label: "Nombre", autoFilter: true },
-      
-    ],
+    filterFields: [{ key: "nombre", label: "Nombre", autoFilter: true }],
   },
 ];
 

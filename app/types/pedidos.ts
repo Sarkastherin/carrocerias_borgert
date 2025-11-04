@@ -14,6 +14,7 @@ export type PedidosBD = {
   cliente_id: string;
   precio_total: number;
   forma_pago: string;
+  forma_pago_otros: string;
   fecha_entrega_estimada: string;
   status: StatusPedidos;
   fecha_entrega: string;
@@ -38,11 +39,11 @@ export type CarroceriaBD = {
   alt_baranda: number;
   ptas_por_lado: number;
   puerta_trasera_id: string;
-  arcos_por_puerta: number;
+  arcos_por_puerta: 1 | 2 | 3 | 0;
   corte_guardabarros: boolean;
   cumbreras: boolean;
   espesor_chapa: "3.2" | "2.9" | "2.6" | "2.2" | "";
-  tipo_zocalo: "recto" | "gross_viejo" | "";
+  tipo_zocalo: "recto" | "gross_viejo" | "gross_nuevo" | "";
   lineas_refuerzo: 0 | 3 | 5;
   /* cuchetin */
   cuchetin: boolean;
@@ -74,6 +75,8 @@ export type CamionBD = {
   marca: string;
   tipo_larguero: string;
   med_larguero: number;
+  centro_eje: number;
+  voladizo_trasero: number;
   observaciones: string;
 };
 export type TrabajoChasisBD = {

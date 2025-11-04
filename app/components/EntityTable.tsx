@@ -38,7 +38,7 @@ createTheme("light", {
     default: "transparent",
   },
 });
-type FilterField = {
+export type FilterField = {
   key: string;
   label: string;
   type?: "text" | "select" | "dateRange";
@@ -54,6 +54,7 @@ type EntityTableProps<T> = {
   onFilteredChange?: (filtered: T[]) => void;
   noDataComponent?: JSX.Element;
   inactiveField?: string; // Campo para identificar elementos inactivos (ej: "activo")
+  alternativeStorageKey?: string; // Clave alternativa para almacenamiento local
 };
 const options = {
   rowsPerPageText: "Filas por página",
@@ -67,11 +68,12 @@ export function EntityTable<T>({
   onFilteredChange,
   noDataComponent,
   inactiveField,
+  alternativeStorageKey,
 }: EntityTableProps<T>) {
   const { theme } = useUI();
   const location = useLocation();
-  const storageKey = `entityTableFilters_${location.pathname}`;
-  
+  const storageKey = alternativeStorageKey || `entityTableFilters_${location.pathname}`;
+
   // Función para crear un componente de estado con colores
   const StatusCell = ({ row, originalSelector }: { row: T; originalSelector: (row: T) => any }) => {
     const status = originalSelector(row);
@@ -185,7 +187,7 @@ export function EntityTable<T>({
   // ...existing code...
   return (
     <>
-      {showFilterInfo && (
+      {showFilterInfo && filterFields.length > 0 && (
         <div className="mb-2 text-blue font-semibold text-sm">
           ℹ️ Filtros aplicados.
         </div>

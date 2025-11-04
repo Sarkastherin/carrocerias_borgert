@@ -20,11 +20,11 @@ import LoadingComponent from "../LoadingComponent";
 export default function PedidosForm() {
   const { vendedores, getVendedores } = useData();
   const { openModal } = useUIModals();
-  
+
   const { isLoading: isLoadingData } = useDataLoader({
     loaders: getVendedores,
     dependencies: [vendedores],
-    errorMessage: "Error loading vendedores"
+    errorMessage: "Error loading vendedores",
   });
   const {
     register,
@@ -43,6 +43,20 @@ export default function PedidosForm() {
       props: {},
     });
   };
+  /* const handleOtrosOption = (value: string) => {
+    if (value === "Otros") {
+      // Mostrar input dabajo de "Forma de pago" de tipo texto
+      return (
+        <Input
+          label="Especifique otra forma de pago"
+          {...register("forma_pago_otros", {
+            required: "Este campo es requerido",
+          })}
+          error={errors.forma_pago_otros?.message}
+        />
+      );
+    }
+  }; */
   if (isLoadingData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -109,11 +123,13 @@ export default function PedidosForm() {
                     error={errors.vendedor_id?.message}
                   >
                     <option value="">Seleccione un vendedor</option>
-                    {vendedores?.filter(item=> item.activo).map((vendedor) => (
-                      <option key={vendedor.id} value={vendedor.id}>
-                        {`${vendedor.nombre} ${vendedor.apellido}`}
-                      </option>
-                    ))}
+                    {vendedores
+                      ?.filter((item) => item.activo)
+                      .map((vendedor) => (
+                        <option key={vendedor.id} value={vendedor.id}>
+                          {`${vendedor.nombre} ${vendedor.apellido}`}
+                        </option>
+                      ))}
                   </Select>
                   <Select
                     label={!isEditMode ? "🔒 Status" : "Status"}
@@ -158,30 +174,47 @@ export default function PedidosForm() {
                     valueAsNumber: true,
                   })}
                 />
-                <div className="md:col-span-2">
-                  <Select
-                    label="Forma de pago"
-                    {...register("forma_pago", {
-                      required: "Este campo es requerido",
-                    })}
-                    error={errors.forma_pago?.message}
-                  >
-                    <option value="">Seleccione una forma de pago</option>
-                    <option value="6 cheques/echeqs 0-150 días (Precio Neto)">
-                      6 cheques/echeqs 0-150 días (Precio Neto)
-                    </option>
-                    <option value="Entrega del 40% + 4 cheques/echeqs (5% de descuento)">
-                      Entrega del 40% + 4 cheques/echeqs (5% de descuento)
-                    </option>
-                    <option value="Contado/transferencia (10% de descuento)">
-                      Contado/transferencia (10% de descuento)
-                    </option>
-                  </Select>
-                </div>
+                <Select
+                  requiredField={true}
+                  label="Forma de pago"
+                  {...register("forma_pago", {
+                    required: "Este campo es requerido",
+                    /* onChange: (e) => handleOtrosOption(e.target.value), */
+                  })}
+                  error={errors.forma_pago?.message}
+                >
+                  <option value="">Seleccione una forma de pago</option>
+                  <option value="6 cheques/echeqs 0-150 días (Precio Neto)">
+                    6 cheques/echeqs 0-150 días (Precio Neto)
+                  </option>
+                  <option value="Entrega del 40% + 4 cheques/echeqs (5% de descuento)">
+                    Entrega del 40% + 4 cheques/echeqs (5% de descuento)
+                  </option>
+                  <option value="Contado/transferencia (10% de descuento)">
+                    Contado/transferencia (10% de descuento)
+                  </option>
+                  <option value="Otros">Otros</option>
+                </Select>
+                <Input
+                  label="Especifique otra forma de pago"
+                  requiredField={watch("forma_pago") === "Otros"}
+                  {...register("forma_pago_otros", {
+                    required:
+                      watch("forma_pago") === "Otros"
+                        ? "Este campo es requerido"
+                        : false,
+                  })}
+                  disabled={watch("forma_pago") !== "Otros"}
+                  error={errors.forma_pago_otros?.message}
+                />
               </fieldset>
             </CardToggle>
             <FooterForm>
-              <Button type="submit" variant="blue" disabled={isLoading || isLoadingData}>
+              <Button
+                type="submit"
+                variant="blue"
+                disabled={isLoading || isLoadingData}
+              >
                 {isLoading ? "Guardando..." : submitButtonText}
               </Button>
             </FooterForm>

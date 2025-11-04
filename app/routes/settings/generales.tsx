@@ -168,11 +168,16 @@ export default function SettingsLayout() {
       props: {
         title: mode === "create" ? "Crear Nuevo Registro" : "Editar Registro",
         fields: form,
-        onSubmit: async (data: any, { reset, setSuccessMessage, setErrorMessage }: any) => {
+        onSubmit: async (
+          data: any,
+          { reset, setSuccessMessage, setErrorMessage }: any
+        ) => {
           if (mode === "create") {
             // Validar nombre único antes de crear (excepto para vendedores)
             if (!validateUniqueNameBeforeCreate(data.nombre, configTitle)) {
-              setErrorMessage(`Ya existe un ${configTitle.slice(0, -1)} con el nombre "${data.nombre}". Por favor, utiliza un nombre diferente.`);
+              setErrorMessage(
+                `Ya existe un ${configTitle.slice(0, -1)} con el nombre "${data.nombre}". Por favor, utiliza un nombre diferente.`
+              );
               return { success: false, keepOpen: true };
             }
 
@@ -202,7 +207,9 @@ export default function SettingsLayout() {
               }, 1500);
               return { success: true, keepOpen: true, autoClose: 1500 };
             } else {
-              setErrorMessage(response.error || "Error al actualizar el registro");
+              setErrorMessage(
+                response.error || "Error al actualizar el registro"
+              );
               return { success: false, keepOpen: true };
             }
           }
@@ -237,7 +244,7 @@ export default function SettingsLayout() {
             handleDelete(row);
           }}
         >
-          <Trash2Icon className="size-4.5"/>
+          <Trash2Icon className="size-4.5" />
         </IconButton>
       </div>
     ),
@@ -247,7 +254,7 @@ export default function SettingsLayout() {
     try {
       // Validar si el elemento está siendo usado antes de eliminar
       const isUsed = await validateElementInUse(row.id, activeTab);
-      
+
       if (isUsed.inUse) {
         openModal("ERROR", {
           title: "⚠️ Elemento en Uso",
@@ -266,7 +273,7 @@ export default function SettingsLayout() {
           const activeItem = itemsConfiguraciones?.find(
             (item) => item.title === activeTab
           );
-          
+
           if (activeItem) {
             const response = await activeItem.api.delete(row.id);
             if (response.success) {
@@ -277,28 +284,40 @@ export default function SettingsLayout() {
                 message: `El ${activeTab.slice(0, -1)} ha sido eliminado correctamente.`,
               });
             } else {
-              const errorMessage = typeof response.error === 'string' 
-                ? response.error 
-                : "Error al eliminar el registro";
+              const errorMessage =
+                typeof response.error === "string"
+                  ? response.error
+                  : "Error al eliminar el registro";
               throw new Error(errorMessage);
             }
           }
-        }
+        },
       });
     } catch (error) {
       console.error("Error al eliminar:", error);
       openModal("ERROR", {
         title: "❌ Error",
-        message: `Error al eliminar el ${activeTab.slice(0, -1)}: ${error instanceof Error ? error.message : 'Error desconocido'}`,
+        message: `Error al eliminar el ${activeTab.slice(0, -1)}: ${error instanceof Error ? error.message : "Error desconocido"}`,
       });
     }
   };
 
   // Función para validar si un elemento está siendo usado en pedidos
-  const validateElementInUse = async (elementId: string, configType: string) => {
+  const validateElementInUse = async (
+    elementId: string,
+    configType: string
+  ) => {
     try {
       // Solo validamos para elementos que se usan en carrocerías
-      if (!["colores", "carrozado", "puertas traseras", "vendedores", "tipos de trabajos"].includes(configType)) {
+      if (
+        ![
+          "colores",
+          "carrozado",
+          "puertas traseras",
+          "vendedores",
+          "tipos de trabajos",
+        ].includes(configType)
+      ) {
         return { inUse: false, count: 0 };
       }
 
@@ -314,19 +333,23 @@ export default function SettingsLayout() {
             value: elementId,
             multiple: true,
           });
-          
+
           const responseZocalo = await carroceriaAPI.read({
-            columnName: "color_zocalo_id", 
+            columnName: "color_zocalo_id",
             value: elementId,
             multiple: true,
           });
 
           let totalUsages = 0;
           if (responseCarrozado.success && responseCarrozado.data) {
-            totalUsages += Array.isArray(responseCarrozado.data) ? responseCarrozado.data.length : 1;
+            totalUsages += Array.isArray(responseCarrozado.data)
+              ? responseCarrozado.data.length
+              : 1;
           }
           if (responseZocalo.success && responseZocalo.data) {
-            totalUsages += Array.isArray(responseZocalo.data) ? responseZocalo.data.length : 1;
+            totalUsages += Array.isArray(responseZocalo.data)
+              ? responseZocalo.data.length
+              : 1;
           }
 
           return { inUse: totalUsages > 0, count: totalUsages };
@@ -344,10 +367,14 @@ export default function SettingsLayout() {
             value: elementId,
             multiple: true,
           });
-          
-          const pedidosCount = responsePedidos.success && responsePedidos.data ? 
-            (Array.isArray(responsePedidos.data) ? responsePedidos.data.length : 1) : 0;
-          
+
+          const pedidosCount =
+            responsePedidos.success && responsePedidos.data
+              ? Array.isArray(responsePedidos.data)
+                ? responsePedidos.data.length
+                : 1
+              : 0;
+
           return { inUse: pedidosCount > 0, count: pedidosCount };
 
         case "tipos de trabajos":
@@ -357,10 +384,14 @@ export default function SettingsLayout() {
             value: elementId,
             multiple: true,
           });
-          
-          const trabajosCount = responseTrabajo.success && responseTrabajo.data ? 
-            (Array.isArray(responseTrabajo.data) ? responseTrabajo.data.length : 1) : 0;
-          
+
+          const trabajosCount =
+            responseTrabajo.success && responseTrabajo.data
+              ? Array.isArray(responseTrabajo.data)
+                ? responseTrabajo.data.length
+                : 1
+              : 0;
+
           return { inUse: trabajosCount > 0, count: trabajosCount };
       }
 
@@ -372,8 +403,12 @@ export default function SettingsLayout() {
           multiple: true,
         });
 
-        const usageCount = response.success && response.data ? 
-          (Array.isArray(response.data) ? response.data.length : 1) : 0;
+        const usageCount =
+          response.success && response.data
+            ? Array.isArray(response.data)
+              ? response.data.length
+              : 1
+            : 0;
 
         return { inUse: usageCount > 0, count: usageCount };
       }
@@ -387,7 +422,10 @@ export default function SettingsLayout() {
   };
 
   // Función para validar nombres únicos antes de crear
-  const validateUniqueNameBeforeCreate = (name: string, configType: string): boolean => {
+  const validateUniqueNameBeforeCreate = (
+    name: string,
+    configType: string
+  ): boolean => {
     try {
       // Los vendedores pueden tener nombres repetidos
       if (configType === "vendedores") {
@@ -396,7 +434,7 @@ export default function SettingsLayout() {
 
       // Normalizar el nombre para comparación (sin espacios extra, lowercase)
       const normalizedName = name.trim().toLowerCase();
-      
+
       if (!normalizedName) {
         return false; // Nombre vacío no es válido
       }
@@ -421,8 +459,9 @@ export default function SettingsLayout() {
       }
 
       // Verificar si ya existe un elemento con el mismo nombre
-      const exists = currentData.some(item => 
-        item.nombre && item.nombre.trim().toLowerCase() === normalizedName
+      const exists = currentData.some(
+        (item) =>
+          item.nombre && item.nombre.trim().toLowerCase() === normalizedName
       );
 
       return !exists; // Retorna true si NO existe (es único)
@@ -448,17 +487,16 @@ export default function SettingsLayout() {
           </div>
           <div className="flex-1 py-10 mx-auto px-10">
             {itemsConfiguraciones.length > 0 &&
-              itemsConfiguraciones.map(
-                (item) =>
+              itemsConfiguraciones.map((item) => {
+                return (
                   activeTab === item.title && (
                     <div key={item.title}>
                       <EntityTable
                         key={item.title}
+                        alternativeStorageKey={`entityTableFilters_settings_${item.title}`} // Clave única por configuración
                         columns={[...item.columns, actionColumn]}
                         data={item.data}
-                        filterFields={[
-                          { key: "nombre", label: "Nombre", autoFilter: true },
-                        ]}
+                        filterFields={item.filterFields}
                         onRowClick={handleOnRowClick}
                         inactiveField="activo" // Campo para identificar elementos inactivos
                         noDataComponent={
@@ -489,7 +527,8 @@ export default function SettingsLayout() {
                       </ButtonAdd>
                     </div>
                   )
-              )}
+                );
+              })}
           </div>
         </>
       ) : (

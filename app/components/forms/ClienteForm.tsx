@@ -8,7 +8,23 @@ import { useUIModals } from "~/context/ModalsContext";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
-export default function ClienteForm({ modal }: { modal?: boolean }) {
+type ClienteFormProps = {
+  modal?: boolean;
+  onSuccess?: (message: string) => void;
+  onError?: (message: string) => void;
+  onLoadingStart?: () => void;
+  onLoadingEnd?: () => void;
+  isLoading?: boolean;
+};
+
+export default function ClienteForm({ 
+  modal, 
+  onSuccess, 
+  onError, 
+  onLoadingStart, 
+  onLoadingEnd,
+  isLoading: externalIsLoading
+}: ClienteFormProps) {
   const navigate = useNavigate();
   const { showConfirmation } = useUIModals();
   const { getVendedores, vendedores, deleteClienteById, cliente } = useData();
@@ -18,14 +34,23 @@ export default function ClienteForm({ modal }: { modal?: boolean }) {
     handleSubmit,
     formState: { errors },
     onSubmit,
-    isLoading,
+    isLoading: internalIsLoading,
     submitButtonText,
     handleDireccionChange,
     initialAddress,
     setValue,
     watch,
     validateAddress,
-  } = useClienteForm({ modal: modal });
+  } = useClienteForm({ 
+    modal: modal,
+    onSuccess,
+    onError,
+    onLoadingStart,
+    onLoadingEnd,
+  });
+
+  // Usar el loading externo si está disponible, sino usar el interno
+  const isLoading = externalIsLoading !== undefined ? externalIsLoading : internalIsLoading;
 
   // Determinar si estamos en modo edición
   const isEditMode = Boolean(cliente);
@@ -163,6 +188,7 @@ export default function ClienteForm({ modal }: { modal?: boolean }) {
             <fieldset className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Select
                 label="Condición frente al IVA"
+                requiredField={true}
                 {...register("condicion_iva")}
                 error={errors.condicion_iva?.message}
               >
@@ -176,6 +202,7 @@ export default function ClienteForm({ modal }: { modal?: boolean }) {
               </Select>
               <Select
                 label="Vendedor Asignado"
+                requiredField={true}
                 {...register("vendedor_id")}
                 error={errors.vendedor_id?.message}
               >

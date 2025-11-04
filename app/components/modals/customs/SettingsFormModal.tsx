@@ -28,7 +28,7 @@ export default function SettingsFormModal({
     helpers: { 
       reset: () => void; 
       setSuccessMessage: (msg: string) => void;
-      setErrorMessage: (msg: string) => void;
+      setErrorMessage: (error: string | { message: string; type?: string; details?: any }) => void;
     }
   ) => Promise<{ success: boolean; keepOpen?: boolean; autoClose?: number } | void>;
   data?: any;
@@ -54,8 +54,25 @@ export default function SettingsFormModal({
           // Limpiar el mensaje después de 3 segundos
           setTimeout(() => setSuccessMessage(""), 3000);
         },
-        setErrorMessage: (msg: string) => {
-          setErrorMessage(msg);
+        setErrorMessage: (error: string | { message: string; type?: string; details?: any }) => {
+          console.error("Error recibido del onSubmit:", error);
+          
+          // Extraer el mensaje de error según el tipo
+          let errorMsg = "";
+          if (typeof error === "string") {
+            errorMsg = error;
+          } else if (error && typeof error === "object" && "message" in error) {
+            errorMsg = error.message;
+            
+            // Si hay detalles adicionales, agregarlos al mensaje
+            if (error.details && error.details.invalidColumns) {
+              errorMsg += `. Columnas inválidas: ${error.details.invalidColumns.join(", ")}`;
+            }
+          } else {
+            errorMsg = "Error desconocido al procesar la solicitud";
+          }
+          
+          setErrorMessage(errorMsg);
           setSuccessMessage(""); // Limpiar éxitos cuando hay error
           // Limpiar el mensaje después de 5 segundos
           setTimeout(() => setErrorMessage(""), 5000);

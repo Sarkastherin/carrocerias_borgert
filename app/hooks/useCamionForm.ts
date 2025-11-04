@@ -30,6 +30,8 @@ export function useCamionForm() {
           tipo_larguero: "",
           med_larguero: 0,
           observaciones: "",
+          centro_eje: 0,
+          voladizo_trasero: 0,
         },
   });
   useEffect(() => {}, [form.formState.dirtyFields]);

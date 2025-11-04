@@ -1,9 +1,4 @@
-import {
-  Input,
-  Textarea,
-  Select,
-  InputWithIcon,
-} from "../Inputs";
+import { Input, Textarea, Select, InputWithIcon } from "../Inputs";
 import { Button } from "../Buttons";
 import { useCamionForm } from "~/hooks/useCamionForm";
 import { CardToggle } from "../CardToggle";
@@ -61,6 +56,24 @@ export default function CamionForm() {
             type="number"
             label="Medida Larguero (mm)"
             {...register("med_larguero", {
+              required: "Este campo es obligatorio",
+            })}
+            icon={RulerDimensionLine}
+          />
+          <InputWithIcon
+            requiredField={true}
+            type="number"
+            label="Centro de Eje (mm)"
+            {...register("centro_eje", {
+              required: "Este campo es obligatorio",
+            })}
+            icon={RulerDimensionLine}
+          />
+          <InputWithIcon
+            requiredField={true}
+            type="number"
+            label="Voladizo Trasero (mm)"
+            {...register("voladizo_trasero", {
               required: "Este campo es obligatorio",
             })}
             icon={RulerDimensionLine}

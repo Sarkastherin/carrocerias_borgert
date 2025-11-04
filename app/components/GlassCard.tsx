@@ -1,5 +1,7 @@
 import { cn } from "../utils/cn";
-
+import type { IconType } from "./IconComponent";
+import { getIcon } from "./IconComponent";
+import { Link } from "react-router";
 export interface GlassCardProps {
   children: React.ReactNode;
   className?: string;
@@ -12,7 +14,7 @@ export interface GlassCardProps {
 
 const sizeClasses = {
   sm: "max-w-sm",
-  md: "max-w-md", 
+  md: "max-w-md",
   lg: "max-w-lg",
   xl: "max-w-xl",
 };
@@ -20,7 +22,7 @@ const sizeClasses = {
 const blurClasses = {
   sm: "backdrop-blur-sm",
   md: "backdrop-blur-md",
-  lg: "backdrop-blur-lg", 
+  lg: "backdrop-blur-lg",
   xl: "backdrop-blur-xl",
 };
 
@@ -32,7 +34,7 @@ const opacityClasses = {
 
 const paddingClasses = {
   sm: "p-4",
-  md: "p-6", 
+  md: "p-6",
   lg: "p-8 sm:p-10",
   xl: "p-10 sm:p-12",
 };
@@ -42,7 +44,7 @@ export function GlassCard({
   className,
   size = "lg",
   blur = "xl",
-  opacity = "medium", 
+  opacity = "medium",
   padding = "lg",
   centered = false,
 }: GlassCardProps) {
@@ -68,11 +70,17 @@ export function GlassCard({
 }
 
 // Componente especializado para login/auth
-export function AuthGlassCard({ children, className }: { children: React.ReactNode; className?: string }) {
+export function AuthGlassCard({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <GlassCard
       size="lg"
-      blur="xl" 
+      blur="xl"
       opacity="medium"
       padding="lg"
       centered={true}
@@ -82,28 +90,32 @@ export function AuthGlassCard({ children, className }: { children: React.ReactNo
     </GlassCard>
   );
 }
-
+export type CardLinkProps = {
+  name: string;
+  path: string;
+  icon: IconType;
+  description: string;
+};
 // Componente para cards de navegación en home
-export function NavGlassCard({ 
-  children, 
-  className,
-  onClick 
-}: { 
-  children: React.ReactNode; 
-  className?: string;
-  onClick?: () => void;
-}) {
+export function NavGlassCard({ name, path, icon, description }: CardLinkProps) {
+  const IconComponent = getIcon({ icon, size: 6, color: "text-white" });
   return (
-    <div
-      onClick={onClick}
-      className={cn(
-        "backdrop-blur-lg bg-white/10 border border-white/20 rounded-2xl shadow-2xl p-5 sm:p-6",
-        "hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-3xl group",
-        "min-h-[180px] sm:min-h-[200px] cursor-pointer",
-        className
-      )}
+    <Link
+      key={name}
+      to={path}
+      className="backdrop-blur-lg bg-white/10 border border-white/20 rounded-2xl shadow-2xl p-5 sm:p-6 hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-3xl group min-h-[160px] sm:min-h-[180px]"
     >
-      {children}
-    </div>
+      <div className="flex flex-col items-start h-full">
+        <div className="mb-3 sm:mb-4 p-2.5 sm:p-3 rounded-xl bg-white/20 backdrop-blur-sm group-hover:bg-white/30 transition-colors">
+          {IconComponent}
+        </div>
+        <h2 className="text-lg sm:text-xl font-semibold text-white mb-2 group-hover:text-gray-100 transition-colors">
+          {name}
+        </h2>
+        <p className="text-sm text-gray-200 group-hover:text-gray-100 transition-colors leading-relaxed flex-1">
+          {description}
+        </p>
+      </div>
+    </Link>
   );
 }
