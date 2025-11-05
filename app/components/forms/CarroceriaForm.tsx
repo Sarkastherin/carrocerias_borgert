@@ -16,7 +16,7 @@ export default function CarroceriaForm() {
     getCarrozados,
     puertasTraseras,
     getPuertasTraseras,
-  } = useData();
+  } = useData(true);
 
   const { isLoading: isLoadingData } = useDataLoader({
     loaders: [getColores, getCarrozados, getPuertasTraseras],
@@ -59,13 +59,11 @@ export default function CarroceriaForm() {
                     error={errors.tipo_carrozado_id?.message}
                   >
                     <option value="">Tipo de Carrozado</option>
-                    {carrozados
-                      ?.filter((item) => item.activo)
-                      .map((carrozado) => (
-                        <option key={carrozado.id} value={carrozado.id}>
-                          {carrozado.nombre}
-                        </option>
-                      ))}
+                    {carrozados?.map((carrozado) => (
+                      <option key={carrozado.id} value={carrozado.id}>
+                        {carrozado.nombre}
+                      </option>
+                    ))}
                   </Select>
                 </div>
                 <Select
@@ -190,13 +188,11 @@ export default function CarroceriaForm() {
                     error={errors.puerta_trasera_id?.message}
                   >
                     <option value="">Seleccione una opción</option>
-                    {puertasTraseras
-                      ?.filter((item) => item.activo)
-                      .map((puerta) => (
-                        <option key={puerta.id} value={puerta.id}>
-                          {puerta.nombre}
-                        </option>
-                      ))}
+                    {puertasTraseras?.map((puerta) => (
+                      <option key={puerta.id} value={puerta.id}>
+                        {puerta.nombre}
+                      </option>
+                    ))}
                   </Select>
                 </div>
                 <ToggleCheckbox
@@ -261,23 +257,6 @@ export default function CarroceriaForm() {
             <CardToggle title="Colores">
               <fieldset className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Select
-                  label="Color lona"
-                  {...register("color_lona", {
-                    required: "Este campo es obligatorio",
-                  })}
-                  requiredField
-                  error={errors.color_lona?.message}
-                >
-                  <option value="">Seleccione una opción</option>
-                  {colores
-                    ?.filter((item) => item.activo)
-                    .map((color) => (
-                      <option key={color.id} value={color.nombre}>
-                        {color.nombre}
-                      </option>
-                    ))}
-                </Select>
-                <Select
                   label="Color carrozado"
                   {...register("color_carrozado_id", {
                     required: "Este campo es obligatorio",
@@ -285,14 +264,12 @@ export default function CarroceriaForm() {
                   requiredField
                   error={errors.color_carrozado_id?.message}
                 >
-                  <option value="">Seleccione una opción</option>
-                  {colores
-                    ?.filter((item) => item.activo)
-                    .map((color) => (
-                      <option key={color.id} value={color.id}>
-                        {color.nombre}
-                      </option>
-                    ))}
+                  <option value="">SColor de Carrozado</option>
+                  {colores?.filter((item) => item.tipo === "esmalte").map((color) => (
+                    <option key={color.id} value={color.id}>
+                      {color.nombre}
+                    </option>
+                  ))}
                 </Select>
                 <Select
                   label="Color zócalo"
@@ -302,14 +279,29 @@ export default function CarroceriaForm() {
                   requiredField
                   error={errors.color_zocalo_id?.message}
                 >
-                  <option value="">Seleccione una opción</option>
+                  <option value="">Color en zócalo</option>
                   {colores
-                    ?.filter((item) => item.activo)
+                    ?.filter((item) => item.tipo === "esmalte")
                     .map((color) => (
                       <option key={color.id} value={color.id}>
                         {color.nombre}
                       </option>
                     ))}
+                </Select>
+                <Select
+                  label="Color lona"
+                  {...register("color_lona", {
+                    required: "Este campo es obligatorio",
+                  })}
+                  requiredField
+                  error={errors.color_lona?.message}
+                >
+                  <option value="">Color de lona</option>
+                  {colores?.filter((item) => item.tipo === "lona").map((color) => (
+                    <option key={color.id} value={color.nombre}>
+                      {color.nombre}
+                    </option>
+                  ))}
                 </Select>
                 <div className="col-span-1 md:col-span-2 lg:col-span-3">
                   <Textarea
@@ -404,7 +396,7 @@ export default function CarroceriaForm() {
                 >
                   <option value="">Seleccione una opción</option>
                   <option value="nacionales">Nacionales</option>
-                  <option value="importados">Importados</option>
+                  <option value="internacionales">Internacionales</option>
                 </Select>
                 <ToggleCheckbox
                   id="guardabarros"

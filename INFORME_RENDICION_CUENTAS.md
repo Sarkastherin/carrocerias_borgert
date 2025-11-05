@@ -126,7 +126,7 @@ Cada pedido tiene un workflow completo con navegación por pestañas:
 - Cantidad de boquillas
 - Medidas de cajón de herramientas
 - Cantidad de luces
-- Tipo de cintas reflectivas (nacionales/importadas)
+- Tipo de cintas reflectivas (nacionales/internacionales)
 - Guardabarros (sí/no)
 - Depósito de agua (sí/no)
 - Medidas de alargue y quiebre en alargue

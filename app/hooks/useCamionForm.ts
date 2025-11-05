@@ -1,14 +1,13 @@
 import { useForm } from "react-hook-form";
-import type { PedidosBD, CamionBD } from "~/types/pedidos";
+import type { CamionBD } from "~/types/pedidos";
 import { useUIModals } from "~/context/ModalsContext";
 import { useData } from "~/context/DataContext";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { camionAPI } from "~/backend/sheetServices";
-import { useNavigate } from "react-router";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
+import { useFormNavigationBlock } from "./useFormNavigationBlock";
 
 export function useCamionForm() {
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const { showLoading, showSuccess, showError, showInfo } = useUIModals();
@@ -34,9 +33,20 @@ export function useCamionForm() {
           voladizo_trasero: 0,
         },
   });
-  useEffect(() => {}, [form.formState.dirtyFields]);
+  
+  // Hook para bloquear navegación si hay cambios sin guardar
+  useFormNavigationBlock({
+    isDirty: form.formState.isDirty,
+    isSubmitSuccessful: form.formState.isSubmitSuccessful,
+    message: "Tienes cambios sin guardar en el camión. Si sales ahora, perderás todos los cambios realizados.",
+    title: "¿Salir sin guardar?",
+    confirmText: "Sí, salir",
+    cancelText: "No, continuar editando",
+  });
+  
   const handleSubmit = async (formData: CamionBD) => {
     try {
+      setIsLoading(true);
       showLoading();
       if (existingPedido) {
         // Verificar si hay cambios en el formulario
@@ -44,8 +54,9 @@ export function useCamionForm() {
           form.formState.dirtyFields &&
           Object.keys(form.formState.dirtyFields).length > 0;
 
-        // Si no hay campos dirty y no hay cambios de dirección, no actualizar
+        // Si no hay campos dirty, no actualizar
         if (!hasDirtyFields) {
+          setIsLoading(false);
           showInfo("No se realizaron cambios en el formulario.");
           return;
         }
@@ -71,10 +82,12 @@ export function useCamionForm() {
           );
         }
       }
-      getPedidos();
+      await getPedidos();
       form.reset(formData); // Resetea el formulario con los datos actuales
-      showSuccess("Camión actualizado exitosamente");
+      setIsLoading(false);
+      showSuccess("Camión guardado exitosamente");
     } catch (error) {
+      setIsLoading(false);
       showError(
         typeof error === "string" ? error : "Error al guardar el camión"
       );

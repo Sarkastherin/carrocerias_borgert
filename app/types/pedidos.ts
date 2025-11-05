@@ -63,7 +63,7 @@ export type CarroceriaBD = {
   quiebre_alargue: boolean;
   guardabarros: boolean;
   dep_agua: boolean;
-  cintas_reflectivas: "nacionales" | "importadas" | "";
+  cintas_reflectivas: "nacionales" | "internacionales" | "";
   observaciones: string;
 };
 export type CamionBD = {

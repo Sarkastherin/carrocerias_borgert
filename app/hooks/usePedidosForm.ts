@@ -2,11 +2,11 @@ import { useForm } from "react-hook-form";
 import type { PedidosBD } from "~/types/pedidos";
 import { useUIModals } from "~/context/ModalsContext";
 import { useData } from "~/context/DataContext";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { pedidosAPI } from "~/backend/sheetServices";
 import { useNavigate } from "react-router";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
-
+import { useFormNavigationBlock } from "./useFormNavigationBlock";
 export function usePedidosForm() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -34,11 +34,19 @@ export function usePedidosForm() {
           vendedor_id: "",
         },
   });
-  useEffect(() => {
-    //console.log(form.formState.dirtyFields)
-  }, [form.formState.dirtyFields]);
+  // Hook para bloquear navegación si hay cambios sin guardar
+  useFormNavigationBlock({
+    isDirty: form.formState.isDirty,
+    isSubmitSuccessful: form.formState.isSubmitSuccessful,
+    message: "Tienes cambios sin guardar en el pedido. Si sales ahora, perderás todos los cambios realizados.",
+    title: "¿Salir sin guardar?",
+    confirmText: "Sí, salir",
+    cancelText: "No, continuar editando",
+  });
+
   const handleSubmit = async (formData: PedidosBD) => {
     try {
+      setIsLoading(true);
       showLoading(
         isEditMode ? "Actualizando pedido..." : "Creando nuevo pedido..."
       );
@@ -48,8 +56,9 @@ export function usePedidosForm() {
           form.formState.dirtyFields &&
           Object.keys(form.formState.dirtyFields).length > 0;
 
-        // Si no hay campos dirty y no hay cambios de dirección, no actualizar
+        // Si no hay campos dirty, no actualizar
         if (!hasDirtyFields) {
+          setIsLoading(false);
           showInfo("No se realizaron cambios en el formulario.");
           return;
         }
@@ -67,8 +76,9 @@ export function usePedidosForm() {
             response.message || "Error desconocido al actualizar el pedido"
           );
         }
-        getPedidos();
+        await getPedidos();
         form.reset(formData); // Resetea el formulario con los datos actuales
+        setIsLoading(false);
         showSuccess("Pedido actualizado exitosamente");
       } else {
         const numeroPedido = await getNextPedidoNumber();
@@ -80,15 +90,18 @@ export function usePedidosForm() {
           );
         }
         const createdId = response.data?.id;
-        getPedidos();
+        await getPedidos();
         if (!createdId) {
+          setIsLoading(false);
           navigate("/pedidos");
           throw new Error("No se obtuvo el ID del pedido creado");
         }
+        setIsLoading(false);
         navigate(`/pedidos/info/${createdId}`);
         showSuccess("Pedido creado exitosamente");
       }
     } catch (error) {
+      setIsLoading(false);
       showError(
         typeof error === "string" ? error : "Error al guardar el pedido"
       );
@@ -103,7 +116,7 @@ export function usePedidosForm() {
     if (!response.success) {
       throw new Error("Error al obtener los pedidos");
     }
-    if (response.data && response.data.length > 0) {
+    if (response.data && Array.isArray(response.data) && response.data.length > 0) {
       const numerosPedidos = response.data.map(
         (pedido: PedidosBD) => pedido.numero_pedido
       );

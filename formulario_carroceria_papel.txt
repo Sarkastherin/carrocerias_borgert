@@ -86,7 +86,7 @@ Medida Cajón de Herramientas: _____________ mm
 Cantidad de Luces: _______________
 
 Cintas Reflectivas:
-   □ Nacionales    □ Importadas
+   □ Nacionales    □ internacionales
 
 Características Adicionales:
    □ Guardabarros

@@ -10,7 +10,7 @@ import { useState, useCallback, useEffect } from "react";
 import { clientesAPI } from "~/backend/sheetServices";
 import { useNavigate } from "react-router";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
-
+import { useFormNavigationBlock } from "./useFormNavigationBlock";
 // Función para validar CUIT/CUIL
 const validateCuit = (cuit: string): boolean => {
   if (!cuit) return false;
@@ -89,6 +89,16 @@ export function useClienteForm({
     mode: "onChange", // Para validar en tiempo real
   });
   
+  // Hook para bloquear navegación si hay cambios sin guardar
+  useFormNavigationBlock({
+    isDirty: form.formState.isDirty,
+    isSubmitSuccessful: form.formState.isSubmitSuccessful,
+    message: "Tienes cambios sin guardar en clientes. Si sales ahora, perderás todos los cambios realizados.",
+    title: "¿Salir sin guardar?",
+    confirmText: "Sí, salir",
+    cancelText: "No, continuar editando",
+  });
+  
   // Efecto para resetear el estado de cambios de dirección cuando se carga un cliente existente
   useEffect(() => {
     if (isEditMode && existingCliente) {
@@ -105,10 +115,9 @@ export function useClienteForm({
         });
       }, 100);
     }
-  }, [isEditMode, existingCliente?.id, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditMode, existingCliente?.id]);
   
-  useEffect(() => {
-  }, [form.formState.dirtyFields]);
   const handleSubmit = async (formData: ClienteFormData) => {
     try {
       // Validar CUIT antes de enviar
@@ -176,6 +185,7 @@ export function useClienteForm({
       }
 
       // Iniciar loading
+      setIsLoading(true);
       if (modal && onLoadingStart) {
         onLoadingStart();
       } else {
@@ -219,6 +229,7 @@ export function useClienteForm({
         
         // Si no hay campos dirty y no hay cambios de dirección, no actualizar
         if (!hasDirtyFields && !hasAddressChanged) {
+          setIsLoading(false);
           const infoMsg = "No se realizaron cambios en el formulario.";
           if (modal && onError) {
             onError(infoMsg);
@@ -255,9 +266,10 @@ export function useClienteForm({
             response.message || "Error desconocido al actualizar el cliente"
           );
         }
-        getClientes();
+        await getClientes();
         
         // Finalizar loading
+        setIsLoading(false);
         if (modal && onLoadingEnd) {
           onLoadingEnd();
         }
@@ -276,9 +288,10 @@ export function useClienteForm({
             response.message || "Error desconocido al crear el cliente"
           );
         }
-        getClientes();
+        await getClientes();
         
         // Finalizar loading
+        setIsLoading(false);
         if (modal && onLoadingEnd) {
           onLoadingEnd();
         }
@@ -293,6 +306,7 @@ export function useClienteForm({
       }
     } catch (error) {
       // Finalizar loading en caso de error
+      setIsLoading(false);
       if (modal && onLoadingEnd) {
         onLoadingEnd();
       }

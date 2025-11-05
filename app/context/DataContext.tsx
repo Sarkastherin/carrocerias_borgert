@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useMemo } from "react";
 import {
   clientesAPI,
   pedidosAPI,
@@ -435,10 +435,28 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const useData = () => {
+export const useData = (onlyActive: boolean = false) => {
   const context = useContext(DataContext);
   if (context === undefined) {
     throw new Error("useData must be used within a DataProvider");
   }
-  return context;
+  
+  // Aplicar filtros usando useMemo para optimizar performance
+  const filteredData = useMemo(() => {
+    if (!onlyActive) {
+      return context;
+    }
+
+    return {
+      ...context,
+      clientes: context.clientes?.filter(c => c.activo) || null,
+      colores: context.colores?.filter(c => c.activo) || null,
+      carrozados: context.carrozados?.filter(c => c.activo) || null,
+      puertasTraseras: context.puertasTraseras?.filter(p => p.activo) || null,
+      vendedores: context.vendedores?.filter(v => v.activo) || null,
+      configTrabajosChasis: context.configTrabajosChasis?.filter(t => t.activo) || null,
+    };
+  }, [context, onlyActive]);
+
+  return filteredData;
 };

@@ -309,7 +309,7 @@ export default function AyudaPedidos() {
               Piso (liso/semillado), boquillas, cajón de herramientas, luces.
             </li>
             <li>Alargue, quiebre, guardabarros, depósito de agua.</li>
-            <li>Cintas reflectivas: nacionales o importadas.</li>
+            <li>Cintas reflectivas: nacionales o internacionales.</li>
           </ul>
         </Step>
         <Alert type="tip">

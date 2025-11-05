@@ -2,7 +2,7 @@ import { PlusIcon } from "lucide-react";
 import type { JSX, ButtonHTMLAttributes } from "react";
 import { NavLink } from "react-router";
 import type { NavLinkProps } from "react-router";
-import { COLOR_TOKENS, CSS_CLASSES } from "~/config/colorSystem";
+import { COLOR_TOKENS } from "~/config/colorSystem";
 
 // Variantes mejoradas usando el nuevo sistema de tokens
 export const variants = {
@@ -27,7 +27,7 @@ export const variants = {
   dark: "text-white bg-stone-800 hover:bg-stone-800 focus:ring-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 dark:focus:ring-stone-700 dark:border-stone-700",
   
   // Variantes outline usando tokens semánticos
-  outlinePrimary: `text-[${COLOR_TOKENS.PRIMARY}] hover:text-[${COLOR_TOKENS.BUTTON_PRIMARY_TEXT}] border border-[${COLOR_TOKENS.PRIMARY}] hover:bg-[${COLOR_TOKENS.BUTTON_PRIMARY_HOVER}] focus:ring-[${COLOR_TOKENS.PRIMARY_FOCUS}]`,
+  outlinePrimary: `text-[${COLOR_TOKENS.PRIMARY}] hover:text-white border border-[${COLOR_TOKENS.PRIMARY}] hover:bg-[${COLOR_TOKENS.BUTTON_PRIMARY_HOVER}] focus:ring-[${COLOR_TOKENS.PRIMARY_FOCUS}]`,
   outlineSuccess: `text-[${COLOR_TOKENS.SUCCESS}] hover:text-white border border-[${COLOR_TOKENS.SUCCESS}] hover:bg-green-hover focus:ring-green-focus`,
   outlineWarning: `text-[${COLOR_TOKENS.WARNING}] hover:text-white border border-[${COLOR_TOKENS.WARNING}] hover:bg-yellow-hover focus:ring-yellow-focus`,
   outlineError: `text-[${COLOR_TOKENS.ERROR}] hover:text-white border border-[${COLOR_TOKENS.ERROR}] hover:bg-red-hover focus:ring-red-focus`,

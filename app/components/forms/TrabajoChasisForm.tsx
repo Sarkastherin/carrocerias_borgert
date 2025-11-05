@@ -26,7 +26,7 @@ export default function TrabajoChasisForm() {
     submitButtonText,
     fieldsArray,
     handleRemove,
-    defaulValuesEmpty,
+    defaultValuesEmpty,
   } = useTrabajoChasisForm();
   if (isLoadingData) {
       return (
@@ -93,7 +93,7 @@ export default function TrabajoChasisForm() {
                       <td className="ps-2 pe-6">
                         <IconButton
                           type="button"
-                          variant="red"
+                          variant="outlineRed"
                           size="md"
                           onClick={() => handleRemove(index)}
                         >
@@ -110,7 +110,7 @@ export default function TrabajoChasisForm() {
             <Button
               type="button"
               variant="outlinePrimary"
-              onClick={() => fieldsArray.append(defaulValuesEmpty)}
+              onClick={() => fieldsArray.append(defaultValuesEmpty)}
             >
               <div className="flex gap-2">
                 <PlusIcon className="size-5 mx-auto" />

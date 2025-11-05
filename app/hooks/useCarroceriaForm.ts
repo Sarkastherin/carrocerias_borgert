@@ -1,14 +1,13 @@
 import { useForm } from "react-hook-form";
-import type { PedidosBD, CarroceriaBD } from "~/types/pedidos";
+import type { CarroceriaBD } from "~/types/pedidos";
 import { useUIModals } from "~/context/ModalsContext";
 import { useData } from "~/context/DataContext";
 import { useState, useEffect } from "react";
-import { carroceriaAPI, pedidosAPI } from "~/backend/sheetServices";
-import { useNavigate } from "react-router";
+import { carroceriaAPI } from "~/backend/sheetServices";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
+import { useFormNavigationBlock } from "./useFormNavigationBlock";
 
 export function useCarroceriaForm() {
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const { showLoading, showSuccess, showError, showInfo } = useUIModals();
@@ -57,11 +56,18 @@ export function useCarroceriaForm() {
           observaciones: "",
         },
   });
-  useEffect(() => {
-    //console.log(form.formState.dirtyFields)
-  }, [form.formState.dirtyFields]);
+  // Hook para bloquear navegación si hay cambios sin guardar
+  useFormNavigationBlock({
+    isDirty: form.formState.isDirty,
+    isSubmitSuccessful: form.formState.isSubmitSuccessful,
+    message: "Tienes cambios sin guardar en la carrocería. Si sales ahora, perderás todos los cambios realizados.",
+    title: "¿Salir sin guardar?",
+    confirmText: "Sí, salir",
+    cancelText: "No, continuar editando",
+  });
   const handleSubmit = async (formData: CarroceriaBD) => {
     try {
+      setIsLoading(true);
       showLoading();
       if (existingPedido) {
         // Verificar si hay cambios en el formulario
@@ -69,8 +75,9 @@ export function useCarroceriaForm() {
           form.formState.dirtyFields &&
           Object.keys(form.formState.dirtyFields).length > 0;
 
-        // Si no hay campos dirty y no hay cambios de dirección, no actualizar
+        // Si no hay campos dirty, no actualizar
         if (!hasDirtyFields) {
+          setIsLoading(false);
           showInfo("No se realizaron cambios en el formulario.");
           return;
         }
@@ -85,7 +92,7 @@ export function useCarroceriaForm() {
         );
         if (!response.success) {
           throw new Error(
-            response.message || "Error desconocido al actualizar el pedido"
+            response.message || "Error desconocido al actualizar la carrocería"
           );
         }
       } else {
@@ -96,12 +103,14 @@ export function useCarroceriaForm() {
           );
         }
       }
-      getPedidos();
+      await getPedidos();
       form.reset(formData); // Resetea el formulario con los datos actuales
-      showSuccess("Carrocería actualizada exitosamente");
+      setIsLoading(false);
+      showSuccess("Carrocería guardada exitosamente");
     } catch (error) {
+      setIsLoading(false);
       showError(
-        typeof error === "string" ? error : "Error al guardar el carrocería"
+        typeof error === "string" ? error : "Error al guardar la carrocería"
       );
     }
   };
@@ -116,8 +125,10 @@ export function useCarroceriaForm() {
   const resetForm = () => {
     form.reset();
   };
+  
   useEffect(() => {
     handleChangeFieldCuchetin();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.watch("cuchetin")]);
   return {
     // Form methods

@@ -2,7 +2,7 @@ import type { Route } from "../+types/home";
 import { useEffect, useMemo, useState } from "react";
 import { useData } from "~/context/DataContext";
 import { EntityTable } from "~/components/EntityTable";
-import { Button, ButtonAdd, IconButton } from "~/components/Buttons";
+import { ButtonAdd, IconButton } from "~/components/Buttons";
 import NoDataComponent from "~/components/NoDataComponent";
 import SettingsFormModal from "~/components/modals/customs/SettingsFormModal";
 import { useUIModals } from "~/context/ModalsContext";
@@ -20,6 +20,7 @@ import { settingsConfig, capitalize } from "~/config/settingsConfig";
 import { getIcon } from "~/config/settingsIcons";
 import LoadingComponent from "~/components/LoadingComponent";
 import { Trash2Icon } from "lucide-react";
+import { Subheader } from "~/components/Headers";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Parametros" },
@@ -491,6 +492,12 @@ export default function SettingsLayout() {
                 return (
                   activeTab === item.title && (
                     <div key={item.title}>
+                      <div className="pb-4 flex items-center">
+                        <span className="scale-125 flex items-center gap-2 font-semibold text-text-primary dark:text-white">
+                          {item.icon}
+                          <h2>{capitalize(item.title)}</h2>
+                        </span>
+                      </div>
                       <EntityTable
                         key={item.title}
                         alternativeStorageKey={`entityTableFilters_settings_${item.title}`} // Clave única por configuración

@@ -126,7 +126,7 @@ export default function PedidosLayout() {
                     <li key={item.title}>
                       <NavLink
                         className={({ isActive }) =>
-                          `block rounded-lg ${sidebarOpen ? "px-4 py-2" : "px-3 py-3"} text-sm font-medium text-slate-600 dark:text-slate-400 bg-[var(--color-primary-muted)] dark:hover:bg-slate-800 hover:text-primary-light ${
+                          `block rounded-lg ${sidebarOpen ? "px-4 py-2" : "px-3 py-3"} text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-[var(--color-primary-muted)] dark:hover:bg-slate-800 hover:text-primary-light ${
                             isActive
                               ? "bg-[var(--color-primary-muted)] dark:bg-slate-800 text-primary-light"
                               : ""
