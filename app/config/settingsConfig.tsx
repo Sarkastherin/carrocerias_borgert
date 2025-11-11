@@ -15,7 +15,8 @@ export type ConfigItem = {
     | "Package"
     | "DoorOpen"
     | "ContactRound"
-    | "Drill";
+    | "Drill"
+    | "PencilRuler";
   columns: Array<{
     name: string;
     selector: (row: any) => any;
@@ -218,6 +219,54 @@ export const settingsConfig: ConfigItem[] = [
     ],
     api: "configTrabajoChasisAPI",
     filterFields: [{ key: "nombre", label: "Nombre", autoFilter: true }],
+  },
+  {
+    title: "items de control",
+    icon: "PencilRuler",
+    columns: [
+      {
+        name: "Nombre",
+        selector: (row: any) => row.nombre,
+        sortable: true,
+      },
+      {
+        name: "Control",
+        selector: (row: any) => capitalize(row.control),
+        sortable: false,
+        width: "150px",
+      },
+      {
+        name: "Activo",
+        selector: (row: any) => (row.activo ? "Activo" : "Inactivo"),
+        sortable: false,
+        width: "100px",
+      },
+    ],
+    formFields: [
+      {
+        name: "nombre",
+        label: "Descripción del trabajo",
+        type: "text",
+        required: true,
+      },
+      {
+        name: "control",
+        label: "Control",
+        type: "select",
+        options: [{ value: "carrozado", label: "Carrozado" }],
+        required: true,
+      },
+      {
+        name: "activo",
+        label: "Activo",
+        type: "boolean",
+        required: false,
+      },
+    ],
+    api: "configItemsControlAPI",
+    filterFields: [{ key: "nombre", label: "Nombre", autoFilter: true }, {
+      key: "control",
+      label: "Control", autoFilter: true,}],
   },
 ];
 

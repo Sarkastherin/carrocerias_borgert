@@ -1,7 +1,7 @@
 import { useAuth } from "~/context/Auth";
 import { useUI } from "~/context/UIContext";
 import { useNavigate, NavLink } from "react-router";
-import { LogOut, Sun, Moon, HelpCircle } from "lucide-react";
+import { LogOut, Sun, Moon, HelpCircle, ArrowLeft } from "lucide-react";
 import { LogoComponent } from "./LogoComponent";
 import type { IconType } from "./IconComponent";
 import { getIcon } from "./IconComponent";
@@ -52,17 +52,30 @@ export function Header() {
 export function Subheader({
   title,
   icon,
+  back_path,
 }: {
   title: string;
   icon: { component: IconType; color: string };
+  back_path?: string;
 }) {
   const IconComponent = getIcon({ icon: icon.component, size: 6, color: icon.color });
   return (
     <header className="w-full flex justify-between items-center py-8">
-      <h2 className="text-2xl font-semibold flex items-center gap-2">
-        {IconComponent}
-        {title}
-      </h2>
+      <div className="flex items-center gap-3">
+        {back_path && (
+          <NavLink
+            to={back_path}
+            className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-purple-100 dark:hover:bg-gray-800 rounded-full transition-all duration-200"
+            title="Volver"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </NavLink>
+        )}
+        <h2 className="text-2xl font-semibold flex items-center gap-2">
+          {IconComponent}
+          {title}
+        </h2>
+      </div>
     </header>
   );
 }

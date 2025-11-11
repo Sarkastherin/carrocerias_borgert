@@ -15,6 +15,7 @@ import {
   carroceriaAPI,
   pedidosAPI,
   trabajoChasisAPI,
+  configItemsControlAPI,
 } from "~/backend/sheetServices";
 import { settingsConfig, capitalize } from "~/config/settingsConfig";
 import { getIcon } from "~/config/settingsIcons";
@@ -34,6 +35,7 @@ const apiMap = {
   puertasTraserasAPI: puertasTraserasAPI,
   vendedoresAPI: vendedoresAPI,
   configTrabajoChasisAPI: configTrabajoChasisAPI,
+  configItemsControlAPI: configItemsControlAPI,
 } as const;
 
 type MenuOpenProps = {
@@ -53,6 +55,8 @@ export default function SettingsLayout() {
     getVendedores,
     configTrabajosChasis,
     getConfigTrabajosChasis,
+    configItemsControl,
+    getConfigItemsControl,
   } = useData();
   const [isLoading, setIsLoading] = useState(true);
   const { openModal } = useUIModals();
@@ -65,6 +69,7 @@ export default function SettingsLayout() {
       await getPuertasTraseras();
       await getVendedores();
       await getConfigTrabajosChasis();
+      await getConfigItemsControl();
       setIsLoading(false);
     };
     loadData();
@@ -94,6 +99,9 @@ export default function SettingsLayout() {
         case "tipos de trabajos":
           data = configTrabajosChasis || [];
           break;
+        case "items de control":
+          data = configItemsControl || [];
+          break;
         default:
           data = [];
       }
@@ -112,6 +120,7 @@ export default function SettingsLayout() {
     puertasTraseras,
     vendedores,
     configTrabajosChasis,
+    configItemsControl,
   ]);
   const MenuOpen = ({ title, icon }: MenuOpenProps) => {
     return (
@@ -144,6 +153,9 @@ export default function SettingsLayout() {
         break;
       case "tipos de trabajos":
         await getConfigTrabajosChasis();
+        break;
+      case "items de control":
+        await getConfigItemsControl();
         break;
     }
   };

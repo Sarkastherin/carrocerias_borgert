@@ -10,6 +10,9 @@ import {
   puertasTraserasAPI,
   vendedoresAPI,
   configTrabajoChasisAPI,
+  configItemsControlAPI,
+  defaultAPI,
+  controlCarrozadoAPI,
 } from "~/backend/sheetServices";
 import type { ClientesBD } from "~/types/clientes";
 import { useUIModals } from "./ModalsContext";
@@ -21,6 +24,9 @@ import type {
   PuertasTraserasBD,
   VendedoresBD,
   ConfigTrabajosChasisBD,
+  ConfigItemsControlBD,
+  DefaultDB,
+  ControlCarrozadoDB,
 } from "~/types/settings";
 
 type DataContextType = {
@@ -49,6 +55,12 @@ type DataContextType = {
   deletePedidoById: (id: string) => Promise<void>;
   deleteClienteById: (id: string) => Promise<void>;
   checkCuitExists: (cuit: string, excludeId?: string) => Promise<boolean>;
+  configItemsControl: ConfigItemsControlBD[] | null;
+  getConfigItemsControl: () => Promise<ConfigItemsControlBD[]>;
+  controlCarrozado: ControlCarrozadoDB[] | null;
+  getControles: () => Promise<ControlCarrozadoDB[]>;
+  getDefaults: () => Promise<DefaultDB[]>;
+  defaults: DefaultDB[] | null;
 };
 const DataContext = createContext<DataContextType | undefined>(undefined);
 export const DataProvider = ({ children }: { children: React.ReactNode }) => {
@@ -62,9 +74,16 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const [puertasTraseras, setPuertasTraseras] = useState<
     PuertasTraserasBD[] | null
   >(null);
+  const [configItemsControl, setConfigItemsControl] = useState<
+    ConfigItemsControlBD[] | null
+  >(null);
   const [vendedores, setVendedores] = useState<VendedoresBD[] | null>(null);
   const [configTrabajosChasis, setConfigTrabajosChasis] = useState<
     ConfigTrabajosChasisBD[] | null
+  >(null);
+  const [defaults, setDefaults] = useState<DefaultDB[] | null>(null);
+  const [controlCarrozado, setControlCarrozado] = useState<
+    ControlCarrozadoDB[] | null
   >(null);
   const getClientes = async () => {
     const response = await clientesAPI.read();
@@ -179,19 +198,19 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const deletePedidoById = async (id: string) => {
     try {
       // Eliminar todos los registros relacionados primero
-      
+
       // 1. Eliminar trabajos en chasis asociados al pedido
       const responseTrabajos = await trabajoChasisAPI.read({
         columnName: "pedido_id",
         value: id,
         multiple: true,
       });
-      
+
       if (responseTrabajos.success && responseTrabajos.data) {
-        const trabajos = Array.isArray(responseTrabajos.data) 
-          ? responseTrabajos.data 
+        const trabajos = Array.isArray(responseTrabajos.data)
+          ? responseTrabajos.data
           : [responseTrabajos.data];
-        
+
         for (const trabajo of trabajos) {
           await trabajoChasisAPI.delete(trabajo.id);
         }
@@ -203,10 +222,10 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         value: id,
         multiple: false,
       });
-      
+
       if (responseCamion.success && responseCamion.data) {
-        const camion = Array.isArray(responseCamion.data) 
-          ? responseCamion.data[0] 
+        const camion = Array.isArray(responseCamion.data)
+          ? responseCamion.data[0]
           : responseCamion.data;
         if (camion) {
           await camionAPI.delete(camion.id);
@@ -219,10 +238,10 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         value: id,
         multiple: false,
       });
-      
+
       if (responseCarroceria.success && responseCarroceria.data) {
-        const carroceria = Array.isArray(responseCarroceria.data) 
-          ? responseCarroceria.data[0] 
+        const carroceria = Array.isArray(responseCarroceria.data)
+          ? responseCarroceria.data[0]
           : responseCarroceria.data;
         if (carroceria) {
           await carroceriaAPI.delete(carroceria.id);
@@ -231,7 +250,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
 
       // 4. Finalmente, eliminar el pedido principal
       const deletePedidoResponse = await pedidosAPI.delete(id);
-      
+
       if (!deletePedidoResponse.success) {
         logDetailedError(deletePedidoResponse.error);
         const formattedError = getFormattedError(deletePedidoResponse.error);
@@ -241,12 +260,11 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
 
       // Actualizar el estado local
       setPedido(null);
-      
+
       // Opcionalmente, actualizar la lista de pedidos
       if (pedidos) {
-        setPedidos(pedidos.filter(p => p.id !== id));
+        setPedidos(pedidos.filter((p) => p.id !== id));
       }
-      
     } catch (error) {
       logDetailedError(error);
       const formattedError = getFormattedError(error);
@@ -265,10 +283,10 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
 
       // Si la consulta fue exitosa y hay datos, significa que tiene pedidos asociados
       if (responsePedidos.success && responsePedidos.data) {
-        const pedidosAsociados = Array.isArray(responsePedidos.data) 
-          ? responsePedidos.data 
+        const pedidosAsociados = Array.isArray(responsePedidos.data)
+          ? responsePedidos.data
           : [responsePedidos.data];
-        
+
         if (pedidosAsociados.length > 0) {
           // Cliente tiene pedidos asociados, mostrar error
           const errorMessage = `No se puede eliminar el cliente porque tiene ${pedidosAsociados.length} pedido(s) asociado(s). Elimine primero los pedidos relacionados.`;
@@ -279,7 +297,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
 
       // 2. Si no tiene pedidos asociados, proceder a eliminar el cliente
       const deleteClienteResponse = await clientesAPI.delete(id);
-      
+
       if (!deleteClienteResponse.success) {
         logDetailedError(deleteClienteResponse.error);
         const formattedError = getFormattedError(deleteClienteResponse.error);
@@ -289,16 +307,18 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
 
       // 3. Actualizar el estado local
       setCliente(null);
-      
+
       // Actualizar la lista de clientes
       if (clientes) {
-        setClientes(clientes.filter(c => c.id !== id));
+        setClientes(clientes.filter((c) => c.id !== id));
       }
-      
     } catch (error) {
       logDetailedError(error);
       // Si el error ya fue formateado arriba, no lo formatees de nuevo
-      if (error instanceof Error && error.message.includes('pedido(s) asociado(s)')) {
+      if (
+        error instanceof Error &&
+        error.message.includes("pedido(s) asociado(s)")
+      ) {
         throw error;
       }
       const formattedError = getFormattedError(error);
@@ -362,15 +382,50 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     setConfigTrabajosChasis((response.data as ConfigTrabajosChasisBD[]) || []);
     return response.data as ConfigTrabajosChasisBD[];
   };
-
-  const checkCuitExists = async (cuit: string, excludeId?: string): Promise<boolean> => {
+  const getConfigItemsControl = async () => {
+    const response = await configItemsControlAPI.read();
+    if (!response.success) {
+      logDetailedError(response.error);
+      const formattedError = getFormattedError(response.error);
+      showError(formattedError);
+      throw new Error(formattedError);
+    }
+    setConfigItemsControl((response.data as ConfigItemsControlBD[]) || []);
+    return response.data as ConfigItemsControlBD[];
+  };
+  const getDefaults = async () => {
+    const response = await defaultAPI.read();
+    if (!response.success) {
+      logDetailedError(response.error);
+      const formattedError = getFormattedError(response.error);
+      showError(formattedError);
+      throw new Error(formattedError);
+    }
+    setDefaults((response.data as DefaultDB[]) || []);
+    return response.data as DefaultDB[];
+  };
+  const getControles = async () => {
+    const response = await controlCarrozadoAPI.read();
+    if (!response.success) {
+      logDetailedError(response.error);
+      const formattedError = getFormattedError(response.error);
+      showError(formattedError);
+      throw new Error(formattedError);
+    }
+    setControlCarrozado((response.data as ControlCarrozadoDB[]) || []);
+    return response.data as ControlCarrozadoDB[];
+  };
+  const checkCuitExists = async (
+    cuit: string,
+    excludeId?: string
+  ): Promise<boolean> => {
     try {
       // Buscar clientes con el CUIT especificado
       const response = await clientesAPI.read({
         columnName: "cuit_cuil",
         value: cuit,
         operator: "=",
-        multiple: true
+        multiple: true,
       });
 
       if (!response.success) {
@@ -379,7 +434,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       const clientesConCuit = response.data as ClientesBD[];
-      
+
       // Si no se encontraron clientes con ese CUIT, no existe duplicado
       if (!clientesConCuit || clientesConCuit.length === 0) {
         return false;
@@ -387,7 +442,9 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
 
       // Si se proporciona excludeId (caso de edición), filtrar ese cliente
       if (excludeId) {
-        const otrosClientes = clientesConCuit.filter(cliente => cliente.id !== excludeId);
+        const otrosClientes = clientesConCuit.filter(
+          (cliente) => cliente.id !== excludeId
+        );
         return otrosClientes.length > 0;
       }
 
@@ -395,7 +452,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       return clientesConCuit.length > 0;
     } catch (error) {
       // En caso de error, asumir que no existe (es más seguro)
-      console.error('Error checking CUIT existence:', error);
+      console.error("Error checking CUIT existence:", error);
       return false;
     }
   };
@@ -428,6 +485,12 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         deletePedidoById,
         deleteClienteById,
         checkCuitExists,
+        getConfigItemsControl,
+        configItemsControl,
+        getControles,
+        controlCarrozado,
+        getDefaults,
+        defaults,
       }}
     >
       {children}
@@ -440,7 +503,7 @@ export const useData = (onlyActive: boolean = false) => {
   if (context === undefined) {
     throw new Error("useData must be used within a DataProvider");
   }
-  
+
   // Aplicar filtros usando useMemo para optimizar performance
   const filteredData = useMemo(() => {
     if (!onlyActive) {
@@ -449,12 +512,13 @@ export const useData = (onlyActive: boolean = false) => {
 
     return {
       ...context,
-      clientes: context.clientes?.filter(c => c.activo) || null,
-      colores: context.colores?.filter(c => c.activo) || null,
-      carrozados: context.carrozados?.filter(c => c.activo) || null,
-      puertasTraseras: context.puertasTraseras?.filter(p => p.activo) || null,
-      vendedores: context.vendedores?.filter(v => v.activo) || null,
-      configTrabajosChasis: context.configTrabajosChasis?.filter(t => t.activo) || null,
+      clientes: context.clientes?.filter((c) => c.activo) || null,
+      colores: context.colores?.filter((c) => c.activo) || null,
+      carrozados: context.carrozados?.filter((c) => c.activo) || null,
+      puertasTraseras: context.puertasTraseras?.filter((p) => p.activo) || null,
+      vendedores: context.vendedores?.filter((v) => v.activo) || null,
+      configTrabajosChasis:
+        context.configTrabajosChasis?.filter((t) => t.activo) || null,
     };
   }, [context, onlyActive]);
 

@@ -52,6 +52,8 @@ export function useClienteForm({
     null
   );
   const [hasAddressChanged, setHasAddressChanged] = useState(false);
+  const [isFormInitialized, setIsFormInitialized] = useState(false);
+  const [hasBeenSubmittedSuccessfully, setHasBeenSubmittedSuccessfully] = useState(false);
 
   const { showLoading, showSuccess, showError, showInfo } = useUIModals();
   const { cliente, getClientes, checkCuitExists } = useData();
@@ -91,8 +93,8 @@ export function useClienteForm({
   
   // Hook para bloquear navegación si hay cambios sin guardar
   useFormNavigationBlock({
-    isDirty: form.formState.isDirty,
-    isSubmitSuccessful: form.formState.isSubmitSuccessful,
+    isDirty: form.formState.isDirty && !hasBeenSubmittedSuccessfully,
+    isSubmitSuccessful: form.formState.isSubmitSuccessful || hasBeenSubmittedSuccessfully,
     message: "Tienes cambios sin guardar en clientes. Si sales ahora, perderás todos los cambios realizados.",
     title: "¿Salir sin guardar?",
     confirmText: "Sí, salir",
@@ -103,6 +105,9 @@ export function useClienteForm({
   useEffect(() => {
     if (isEditMode && existingCliente) {
       setHasAddressChanged(false);
+      setIsFormInitialized(false);
+      setHasBeenSubmittedSuccessfully(false);
+      
       // También resetear los dirty fields después de un pequeño delay
       // para permitir que la inicialización complete
       setTimeout(() => {
@@ -113,10 +118,51 @@ export function useClienteForm({
           localidad_id: existingCliente.localidad_id || "",
           localidad_nombre: existingCliente.localidad,
         });
+        
+        // Marcar como inicializado después de un delay adicional
+        setTimeout(() => {
+          setIsFormInitialized(true);
+        }, 500); // Incrementar el delay para dar más tiempo a la inicialización completa
+      }, 200); // También incrementar este delay
+    } else {
+      // Para formularios nuevos, marcar como inicializado después de un pequeño delay
+      setTimeout(() => {
+        setIsFormInitialized(true);
+        setHasBeenSubmittedSuccessfully(false);
       }, 100);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditMode, existingCliente?.id]);
+
+  // Efecto para resetear hasBeenSubmittedSuccessfully cuando el usuario hace cambios después de un submit exitoso
+  useEffect(() => {
+    if (hasBeenSubmittedSuccessfully && form.formState.isDirty) {
+      setHasBeenSubmittedSuccessfully(false);
+    }
+  }, [form.formState.isDirty, hasBeenSubmittedSuccessfully]);
+
+  // Efecto adicional para limpiar cualquier estado dirty que se haya establecido durante la inicialización
+  useEffect(() => {
+    if (isFormInitialized && isEditMode && existingCliente && form.formState.isDirty) {
+      // Si el formulario se marca como dirty inmediatamente después de la inicialización,
+      // probablemente es debido a la inicialización de componentes, no a cambios del usuario
+      const timeoutId = setTimeout(() => {
+        if (form.formState.isDirty && !hasBeenSubmittedSuccessfully) {
+          // Forzar un reset suave que mantenga los valores pero limpie el estado dirty
+          const currentValues = form.getValues();
+          form.reset(currentValues, {
+            keepValues: true,
+            keepDirty: false,
+            keepTouched: false,
+            keepErrors: false,
+          });
+          setHasAddressChanged(false);
+        }
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isFormInitialized, isEditMode, existingCliente, form, hasBeenSubmittedSuccessfully]);
   
   const handleSubmit = async (formData: ClienteFormData) => {
     try {
@@ -149,20 +195,10 @@ export function useClienteForm({
         }
       }
 
-      // Validar dirección obligatoria
-      const direccionFinal = direccionData?.direccion || formData.direccion;
+      // Validar campos de ubicación obligatorios (solo provincia y localidad)
+      const direccionFinal = direccionData?.direccion || formData.direccion || "";
       const provinciaFinal = direccionData?.provinciaNombre || formData.provincia_nombre;
       const localidadFinal = direccionData?.localidadNombre || formData.localidad_nombre;
-
-      if (!direccionFinal || direccionFinal.trim() === "") {
-        const errorMsg = "La dirección es obligatoria";
-        if (modal && onError) {
-          onError(errorMsg);
-        } else {
-          showError(errorMsg);
-        }
-        return;
-      }
 
       if (!provinciaFinal || provinciaFinal.trim() === "") {
         const errorMsg = "La provincia es obligatoria";
@@ -245,8 +281,8 @@ export function useClienteForm({
           effectiveDirtyFields = {
             ...effectiveDirtyFields,
             direccion: true,
-            localidad_nombre: true,
-            provincia_nombre: true,
+            localidad: true,  // Campo real en BD
+            provincia: true,  // Campo real en BD
             localidad_id: true,
             provincia_id: true
           };
@@ -268,6 +304,20 @@ export function useClienteForm({
         }
         await getClientes();
         
+        // Marcar como exitosamente enviado
+        setHasBeenSubmittedSuccessfully(true);
+        
+        // Resetear el formulario después de una actualización exitosa
+        form.reset(finalData, { 
+          keepValues: true,
+          keepDirty: false,
+          keepTouched: false,
+          keepErrors: false,
+          keepIsSubmitted: false,
+          keepSubmitCount: false
+        });
+        setHasAddressChanged(false);
+        
         // Finalizar loading
         setIsLoading(false);
         if (modal && onLoadingEnd) {
@@ -278,8 +328,11 @@ export function useClienteForm({
         if (modal && onSuccess) {
           onSuccess("Cliente actualizado exitosamente");
         } else {
-          navigate("/clientes");
           showSuccess("Cliente actualizado exitosamente");
+          // Pequeño delay para asegurar que el estado se actualice antes de la navegación
+          setTimeout(() => {
+            navigate("/clientes");
+          }, 100);
         }
       } else {
         const response = await clientesAPI.create(finalData);
@@ -289,6 +342,13 @@ export function useClienteForm({
           );
         }
         await getClientes();
+        
+        // Marcar como exitosamente enviado
+        setHasBeenSubmittedSuccessfully(true);
+        
+        // Resetear el formulario después de una creación exitosa
+        form.reset();
+        setHasAddressChanged(false);
         
         // Finalizar loading
         setIsLoading(false);
@@ -300,8 +360,11 @@ export function useClienteForm({
         if (modal && onSuccess) {
           onSuccess("Cliente creado exitosamente");
         } else {
-          navigate("/clientes");
           showSuccess("Cliente creado exitosamente");
+          // Pequeño delay para asegurar que el estado se actualice antes de la navegación
+          setTimeout(() => {
+            navigate("/clientes");
+          }, 100);
         }
       }
     } catch (error) {
@@ -327,6 +390,8 @@ export function useClienteForm({
     form.reset();
     setDireccionData(null);
     setHasAddressChanged(false);
+    setIsFormInitialized(true);
+    setHasBeenSubmittedSuccessfully(false);
   };
 
   const handleDireccionChange = useCallback(
@@ -345,7 +410,7 @@ export function useClienteForm({
       };
 
       // Detección más precisa de inicialización vs cambio de usuario
-      const isLikelyInitialization = isEditMode && 
+      const isLikelyInitialization = !isFormInitialized || (isEditMode && 
         !hasAddressChanged && 
         existingCliente &&
         (
@@ -362,10 +427,10 @@ export function useClienteForm({
            isSameValue(direccion.provinciaNombre, existingCliente.provincia) &&
            isSameValue(direccion.provinciaId, existingCliente.provincia_id) &&
            isSameValue(direccion.localidadId, existingCliente.localidad_id))
-        );
+        ));
       
       // Solo marcar como cambio si definitivamente NO es inicialización
-      if (!isLikelyInitialization) {
+      if (!isLikelyInitialization && isFormInitialized) {
         setHasAddressChanged(true);
       }
 
@@ -388,17 +453,16 @@ export function useClienteForm({
         }
       }
     },
-    [form, isEditMode, hasAddressChanged, existingCliente]
+    [form, isEditMode, hasAddressChanged, existingCliente, isFormInitialized]
   );
 
   // Función para validar dirección en tiempo real
   const validateAddress = useCallback(() => {
-    const direccionFinal = direccionData?.direccion || form.getValues("direccion");
     const provinciaFinal = direccionData?.provinciaNombre || form.getValues("provincia_nombre");
     const localidadFinal = direccionData?.localidadNombre || form.getValues("localidad_nombre");
 
     const errors = {
-      direccion: !direccionFinal || direccionFinal.trim() === "" ? "La dirección es obligatoria" : "",
+      direccion: "", // La dirección ya no es obligatoria
       provincia: !provinciaFinal || provinciaFinal.trim() === "" ? "La provincia es obligatoria" : "",
       localidad: !localidadFinal || localidadFinal.trim() === "" ? "La localidad es obligatoria" : ""
     };

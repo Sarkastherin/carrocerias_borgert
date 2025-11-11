@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { use, useEffect } from "react";
 import type { Route } from "../+types/home";
 import { useData } from "~/context/DataContext";
 import { Spinning } from "~/components/Spinning";
@@ -30,22 +30,26 @@ const clienteColumns: TableColumn<ClientesBD>[] = [
   {
     name: "Razón Social",
     selector: (row) => row.razon_social,
+    sortable: true,
   },
   {
     name: "Nombre de Contacto",
     selector: (row) => row.nombre_contacto,
+    sortable: true,
   },
   {
     name: "Teléfono",
     selector: (row) => row.telefono,
   },
   {
-    name: "Email",
-    selector: (row) => row.email,
+    name: "Provincia",
+    selector: (row) => row.provincia,
+    sortable: true,
   },
   {
     name: "CUIT/CUIL",
     selector: (row) => formatCuit(row.cuit_cuil || ""),
+    sortable: true,
   },
 ];
 export default function ClientesHome() {
@@ -105,6 +109,12 @@ export default function ClientesHome() {
                 label: "Razón Social",
                 autoFilter: true,
               },
+              {
+                key: "cuit_cuil",
+                label: "CUIT/CUIL",
+                autoFilter: true,
+              },
+              { key: "provincia", label: "Provincia", autoFilter: true}
             ]}
           />
           <ButtonLinkAdd to="/clientes/nuevo">Nuevo Cliente</ButtonLinkAdd>

@@ -27,9 +27,11 @@ export default [
     ...prefix("settings", [
       index("routes/settings/home.tsx"),
       route("generales", "routes/settings/generales.tsx"),
-      /* layout("layouts/layoutSettings.tsx", [
-        route("/", "routes/settings/home.tsx"),
-      ]), */
+      ...prefix("carrozados", [
+        route("/", "routes/settings/carrozados/home.tsx"),
+        route("parametros/:carrozadoId", "routes/settings/carrozados/parametros.tsx"),
+      ])
+      //route("carrozados", "routes/settings/carrozados.tsx"),
     ]),
     ...prefix("ayuda", [
       index("routes/ayuda/home.tsx"),

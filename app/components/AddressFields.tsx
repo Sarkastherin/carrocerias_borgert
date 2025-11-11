@@ -68,7 +68,8 @@ export function AddressFields({
   useEffect(() => {
     if (!onChange) return;
 
-    const hasValidData = isFormValid && addressData.provincia && addressData.localidad;
+    // Solo requiere provincia y localidad, la dirección es opcional
+    const hasValidData = addressData.provincia && addressData.localidad;
     
     if (hasValidData && addressData.provincia && addressData.localidad) {
       const direccionCompleta: DireccionCompleta = {
@@ -76,7 +77,7 @@ export function AddressFields({
         provinciaNombre: addressData.provincia.nombre,
         localidadId: addressData.localidadId,
         localidadNombre: addressData.localidad.nombre,
-        direccion: addressData.direccion,
+        direccion: addressData.direccion || "", // Permitir direccion vacía
         direccionCompleta: getFormattedAddress()
       };
       onChange(direccionCompleta);
@@ -166,7 +167,7 @@ export function AddressFields({
         value={addressData.direccion}
         onChange={(e) => handleDireccionChange(e.target.value)}
         error={errors.direccion}
-        placeholder="Ej: Av. Corrientes 1234, Piso 5, Depto B"
+        placeholder="Ej: Av. Corrientes 1234, Piso 5, Depto B (Opcional)"
         disabled={disabled}
       />
 
