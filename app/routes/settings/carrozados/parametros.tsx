@@ -1,95 +1,317 @@
-import type { Route } from "../+types/home";
-import { Subheader } from "~/components/Headers";
-import { PencilRuler, FileCode } from "lucide-react";
-import { useState } from "react";
+import { useSettingsData } from "~/config/settingsConfigCarrozado";
+import SidebarConfig from "~/components/SidebarConfig";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { capitalize } from "~/config/settingsConfig";
-import { getIcon } from "~/components/IconComponent";
 import { EntityTable } from "~/components/EntityTable";
+import { IconButton } from "~/components/Buttons";
+import { Trash2Icon } from "lucide-react";
+import NoDataComponent from "~/components/NoDataComponent";
+import { ButtonAdd } from "~/components/Buttons";
+import LoadingComponent from "~/components/LoadingComponent";
+import { useUIModals } from "~/context/ModalsContext";
+import SettingsFormModal from "~/components/modals/customs/SettingsFormModal";
+import { useParams } from "react-router";
 import { useData } from "~/context/DataContext";
-export function meta({}: Route.MetaArgs) {
-  return [
-    { title: "Default Values" },
-    {
-      name: "description",
-      content: "Default values specific to each carrozado",
+import { carrozadoAPI } from "~/backend/sheetServices";
+export default function SettingsLayoutCarrozado() {
+  const { carrozados, getCarrozados } = useData();
+  const { carrozadoId } = useParams();
+  const [activeTab, setActiveTab] = useState("valores por defecto");
+  const { isLoading, itemsConfiguraciones, controlCarrozado, defaults } =
+    useSettingsData(carrozadoId);
+  const [carrozadoNombre, setCarrozadoNombre] = useState<string>("");
+  useEffect(() => {
+    const getNombreCarrozado = async () => {
+      if (carrozadoId) {
+        const response = await carrozadoAPI.read({ value: carrozadoId });
+        if (!response.success || !response.data) return;
+        const dataArray = Array.isArray(response.data)
+          ? response.data
+          : [response.data];
+        const carrozado = dataArray.find((c: any) => c.id === carrozadoId);
+        if (carrozado) {
+          setCarrozadoNombre(carrozado.nombre);
+        }
+      }
+    };
+    getNombreCarrozado();
+  }, [carrozadoId]);
+
+  const { openModal } = useUIModals();
+  const validateUniqueItemOnCarrozado = useCallback(
+    (atributo: string, configType: string): boolean => {
+      try {
+        const normalizedAtributo = atributo.trim().toLowerCase();
+        if (!normalizedAtributo) {
+          return false;
+        }
+
+        let exists: boolean = false;
+        switch (configType) {
+          case "valores por defecto":
+            exists =
+              defaults?.some(
+                (item) =>
+                  item.atributo &&
+                  item.atributo.trim().toLowerCase() === normalizedAtributo
+              ) || false;
+            break;
+          case "control de carrozado":
+            exists =
+              controlCarrozado?.some(
+                (item) =>
+                  item.item_control_id &&
+                  item.item_control_id.trim().toLowerCase() ===
+                    normalizedAtributo
+              ) || false;
+            break;
+          default:
+            return true;
+        }
+        // Los datos ya están filtrados por carrozadoId, solo verificar si el atributo existe
+        /* const exists = currentData.some(
+          (item) =>
+            item.atributo &&
+            item.atributo.trim().toLowerCase() === normalizedAtributo
+        ); */
+
+        console.log("¿Existe el atributo?", exists);
+        return !exists; // Retorna true si NO existe (validación exitosa)
+      } catch (error) {
+        console.error("Error validando nombre único:", error);
+        return false;
+      }
     },
-  ];
-}
-type MenuOpenProps = {
-  title: string;
-  icon: React.ReactNode;
-};
-export default function CarrozadoSettings() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("valores predeterminados");
-  const { controlCarrozado, getControles } = useData();
-  const MenuOpen = ({ title, icon }: MenuOpenProps) => {
-    return (
-      <button
-        key={title}
-        type="button"
-        onClick={() => setActiveTab(title)}
-        className={`block rounded-lg px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-[var(--color-primary-muted)] dark:hover:bg-slate-800 hover:text-primary-light ${activeTab === title ? "bg-[var(--color-primary-muted)] dark:bg-slate-800 text-primary-light" : ""}`}
-      >
-        <div className="flex items-center gap-2">
-          {icon}
-          {capitalize(title)}
+    [defaults, controlCarrozado, carrozadoId]
+  );
+  const handleOpenForm = useCallback(
+    ({
+      form,
+      mode,
+      api,
+      data,
+      configTitle,
+      reloadData,
+    }: {
+      form: any;
+      mode: "create" | "edit";
+      api: any;
+      data?: any;
+      configTitle: string;
+      reloadData: () => Promise<any>;
+    }) => {
+      const defaultData =
+        mode === "create"
+          ? { activo: true, carrozado_id: carrozadoId, ...data }
+          : data;
+      openModal("CUSTOM", {
+        component: SettingsFormModal,
+        props: {
+          title:
+            mode === "create"
+              ? `Agregar ${configTitle.slice(0, -1)} a ${carrozadoNombre}`
+              : `Editar ${configTitle.slice(0, -1)} de ${carrozadoNombre}`,
+          fields: form,
+          onSubmit: async (
+            data: any,
+            { reset, setSuccessMessage, setErrorMessage }: any
+          ) => {
+            if (mode === "create") {
+              console.log(data);
+              const itemToValidate =
+                configTitle === "valores por defecto"
+                  ? data.atributo
+                  : configTitle === "control de carrozado"
+                    ? data.item_control_id
+                    : null;
+              const isValid = validateUniqueItemOnCarrozado(
+                itemToValidate,
+                configTitle
+              );
+
+              if (!isValid) {
+                setErrorMessage(
+                  `Ya existe un ${configTitle.slice(0, -1)} con el atributo "${data.atributo}" para este carrozado. Por favor, utiliza un nombre diferente.`
+                );
+                return { success: false, keepOpen: true };
+              }
+              const response = await api.create(data);
+              if (response.success) {
+                await reloadData();
+                reset();
+                setSuccessMessage("¡Registro creado exitosamente!");
+                return { success: true, keepOpen: true };
+              } else {
+                setErrorMessage(response.error || "Error al crear el registro");
+                return { success: false, keepOpen: true };
+              }
+            }
+            if (mode === "edit") {
+              const response = await api.update(data.id, data);
+              if (response.success) {
+                await reloadData();
+                setSuccessMessage("¡Registro actualizado exitosamente!");
+                return { success: true, keepOpen: true, autoClose: 1500 };
+              } else {
+                setErrorMessage(
+                  response.error || "Error al actualizar el registro"
+                );
+                return { success: false, keepOpen: true };
+              }
+            }
+          },
+          data: defaultData,
+        },
+      });
+    },
+    [validateUniqueItemOnCarrozado, carrozadoId, openModal]
+  );
+  const handleDelete = useCallback((row: any) => {
+    // Lógica para eliminar el registro
+    openModal("CONFIRMATION", {
+      title: "Confirmar Eliminación",
+      message: `¿Estás seguro de que deseas eliminar este ${activeTab.slice(0, -1)}? Esta acción no se puede deshacer.`,
+      confirmText: "Eliminar",
+      cancelText: "Cancelar",
+      onConfirm: async () => {
+        const activeItem = itemsConfiguraciones?.find(
+          (item) => item.title === activeTab
+        );
+
+        if (activeItem) {
+          const response = await activeItem.api.delete(row.id);
+          if (response.success) {
+            await activeItem.reloadData();
+            openModal("SUCCESS", {
+              title: "✅ Eliminación Exitosa",
+              message: `El ${activeTab.slice(0, -1)} ha sido eliminado correctamente.`,
+            });
+          } else {
+            const errorMessage =
+              typeof response.error === "string"
+                ? response.error
+                : "Error al eliminar el registro";
+            throw new Error(errorMessage);
+          }
+        }
+      },
+    });
+    try {
+    } catch (e) {}
+  }, []);
+  const handleOnRowClick = useCallback(
+    (row: any) => {
+      // Lógica para manejar el clic en la fila
+      const activeItem = itemsConfiguraciones?.find(
+        (item) => item.title === activeTab
+      );
+      if (activeItem) {
+        handleOpenForm({
+          form: activeItem.formFields,
+          mode: "edit",
+          api: activeItem.api,
+          data: row,
+          configTitle: activeTab,
+          reloadData: activeItem.reloadData,
+        });
+      }
+    },
+    [itemsConfiguraciones, activeTab, handleOpenForm]
+  );
+
+  const actionColumn = useMemo(
+    () => ({
+      name: "Acciones",
+      cell: (row: any) => (
+        <div>
+          <IconButton
+            variant="outlineRed"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(row);
+            }}
+          >
+            <Trash2Icon className="size-4.5" />
+          </IconButton>
         </div>
-      </button>
-    );
-  };
-  const itemsConfiguraciones = [
-    { title: "valores predeterminados", icon: FileCode, columns: [], data: [] },
-    { title: "control de carrozado", icon: PencilRuler, columns: [], data: [] },
-  ];
+      ),
+      width: "90px",
+    }),
+    [handleDelete]
+  );
+
   return (
     <div className="flex" style={{ minHeight: "calc(100vh - 67px)" }}>
-      <div className="flex flex-col justify-between border-e border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700/20">
-        <div className="px-4">
-          <ul className="mt-6 space-y-1">
-            {itemsConfiguraciones.map((item) => {
-              const IconComponent = getIcon({
-                icon: item.icon,
-                size: 4,
-                color: "text-slate-600 dark:text-slate-400",
-              });
-              return (
-                <li key={item.title}>
-                  <MenuOpen title={item.title} icon={IconComponent} />
-                </li>
-              );
-            })}
-          </ul>
+      {!isLoading && itemsConfiguraciones ? (
+        <>
+          <SidebarConfig
+            itemsConfiguraciones={itemsConfiguraciones}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
+          <div className="flex-1 py-10 mx-auto px-10">
+            {itemsConfiguraciones.length > 0 &&
+              itemsConfiguraciones.map((item) => {
+                return (
+                  activeTab === item.title && (
+                    <div key={item.title}>
+                      <div className="px-10 pb-6 flex items-center">
+                        <span className="scale-125 flex items-center gap-2 font-semibold text-text-primary dark:text-white">
+                          {item.icon}
+                          <h2 className="">
+                            {carrozadoNombre} -{" "}
+                            <code>{capitalize(item.title)}</code>
+                          </h2>
+                        </span>
+                      </div>
+                      <EntityTable
+                        key={item.title}
+                        alternativeStorageKey={`entityTableFilters_settings_${item.title}`}
+                        columns={[...item.columns, actionColumn]}
+                        data={item.data}
+                        filterFields={item.filterFields}
+                        onRowClick={handleOnRowClick}
+                        inactiveField="activo"
+                        noDataComponent={
+                          <NoDataComponent
+                            word={capitalize(item.title)}
+                            onClick={() =>
+                              handleOpenForm({
+                                form: item.formFields,
+                                mode: "create",
+                                api: item.api,
+                                configTitle: item.title,
+                                reloadData: item.reloadData,
+                              })
+                            }
+                          />
+                        }
+                      />
+                      <ButtonAdd
+                        onClick={() =>
+                          handleOpenForm({
+                            form: item.formFields,
+                            mode: "create",
+                            api: item.api,
+                            configTitle: item.title,
+                            reloadData: item.reloadData,
+                          })
+                        }
+                      >
+                        Agregar {item.title.slice(0, -1)}
+                      </ButtonAdd>
+                    </div>
+                  )
+                );
+              })}
+          </div>
+        </>
+      ) : (
+        <div className="flex flex-1 items-center justify-center">
+          <LoadingComponent content="Cargando configuraciones..." />
         </div>
-      </div>
-      <div className="flex-1 py-10 mx-auto px-10">
-        {itemsConfiguraciones.length > 0 &&
-          itemsConfiguraciones.map((item) => {
-            const IconComponent = getIcon({
-              icon: item.icon,
-              size: 5,
-              color: "text-slate-600 dark:text-slate-400",
-            });
-            return (
-              activeTab === item.title && (
-                <div key={item.title}>
-                  <div className="pb-4 flex items-center">
-                    <span className="scale-125 flex items-center gap-2 font-semibold text-text-primary dark:text-white">
-                      {IconComponent}
-                      <h2>{capitalize(item.title)}</h2>
-                    </span>
-                  </div>
-                  <EntityTable
-                  key={item.title}
-                  alternativeStorageKey={`entityTableFilters_settings_${item.title}`}
-                  columns={[...item.columns]}
-                  data={item.data}
-                  />
-                </div>
-              )
-            );
-          })}
-      </div>
+      )}
     </div>
   );
 }

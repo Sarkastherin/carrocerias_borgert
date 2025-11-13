@@ -17,7 +17,7 @@ export default function PedidosNuevo() {
   }, []);
   return (
     <div className="flex flex-col items-center w-full max-w-6xl mx-auto">
-      <Subheader title="Nuevo Pedido" icon={{component: FilePlus2, color: "text-green-600 dark:text-green-400"}} />
+      <Subheader title="Nuevo Pedido" icon={{component: FilePlus2, color: "text-green-600 dark:text-green-400"}}   back_path="/pedidos"/>
       <main className="w-full max-w-5xl p-6">
         <PedidosForm />
       </main>

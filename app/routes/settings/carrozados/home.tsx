@@ -30,8 +30,9 @@ export default function AdvanceLayout() {
           <Subheader
             title="Configuraciones Avanzadas"
             icon={{ component: Wrench, color: "white" }}
+            back_path="/settings"
           />
-          <div className="grid grid-cols-5 mx-auto gap-6 p-6 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 mx-auto gap-6 p-6 w-full">
             {carrozados?.map((carrozado) => (
               <ConfigGlassCard
                 key={carrozado.id}

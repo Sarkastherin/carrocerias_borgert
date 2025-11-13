@@ -11,7 +11,7 @@ export function useCarroceriaForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const { showLoading, showSuccess, showError, showInfo } = useUIModals();
-  const { pedido, getPedidos } = useData();
+  const { pedido, getPedidos, configItemsControl } = useData();
   const isEditMode = Boolean(pedido);
   const { carroceria } = pedido || {};
   const existingPedido = carroceria || null;
@@ -135,14 +135,16 @@ export function useCarroceriaForm() {
     register: form.register,
     handleSubmit: form.handleSubmit,
     formState: form.formState,
-    reset: resetForm,
+    resetForm: resetForm,
     setValue: form.setValue,
     getValues: form.getValues,
     watch: form.watch,
+    reset: form.reset,
 
     // Custom submit handler
     onSubmit: handleSubmit,
     isLoading,
+    setIsLoading,
     isEditMode,
 
     // Helper texts

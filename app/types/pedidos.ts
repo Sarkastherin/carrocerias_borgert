@@ -1,9 +1,39 @@
-export type StatusPedidos =
-  | "nuevo"
-  | "en_produccion"
-  | "finalizado"
-  | "entregado"
-  | "cancelado";
+import {
+  materialOptions,
+  anchoOptions,
+  arcosOptions,
+  espesorOptions,
+  zocaloOptions,
+  lineasRefOptions,
+  pisoOptions,
+  cintasOptions,
+} from "~/config/atributosMetadata";
+export const statusOptions = [
+  { value: "nuevo", label: "🆕 Nuevo" },
+  { value: "en_produccion", label: "🏭 En Producción" },
+  { value: "finalizado", label: "✅ Finalizado" },
+  { value: "entregado", label: "📦 Entregado" },
+  { value: "cancelado", label: "❌ Cancelado" },
+]
+export const formaPagoOptions = [
+  {
+    value: "6 cheques/echeqs 0-150 días (Precio Neto)",
+    label: "6 cheques/echeqs 0-150 días (Precio Neto)",
+  },
+  {
+    value: "Entrega del 40% + 4 cheques/echeqs (5% de descuento)",
+    label: "Entrega del 40% + 4 cheques/echeqs (5% de descuento)",
+  },
+  {
+    value: "Contado/transferencia (10% de descuento)",
+    label: "Contado/transferencia (10% de descuento)",
+  },
+  {
+    value: "Carrocería usada",
+    label: "Carrocería usada",
+  },
+  { value: "Otros", label: "Otros" },
+];
 export type PedidosBD = {
   id: string;
   fecha_creacion: string;
@@ -13,10 +43,11 @@ export type PedidosBD = {
   camion_id: string;
   cliente_id: string;
   precio_total: number;
-  forma_pago: string;
+  forma_pago: (typeof formaPagoOptions)[number]["value"];
+  valor_tasacion: number;
   forma_pago_otros: string;
   fecha_entrega_estimada: string;
-  status: StatusPedidos;
+  status: (typeof statusOptions)[number]["value"];
   fecha_entrega: string;
   notas_entrega: string;
   vendedor_id: string;
@@ -33,18 +64,18 @@ export type CarroceriaBD = {
   tipo_carrozado_id: string;
   largo_int: number;
   largo_ext: number;
-  material: string;
-  ancho_ext: number;
+  material: (typeof materialOptions)[number]["value"];
+  ancho_ext: (typeof anchoOptions)[number]["value"];
   alto: number;
   alt_baranda: number;
   ptas_por_lado: number;
   puerta_trasera_id: string;
-  arcos_por_puerta: 1 | 2 | 3 | 0;
+  arcos_por_puerta: (typeof arcosOptions)[number]["value"];
   corte_guardabarros: boolean;
   cumbreras: boolean;
-  espesor_chapa: "3.2" | "2.9" | "2.6" | "2.2" | "";
-  tipo_zocalo: "recto" | "gross_viejo" | "gross_nuevo" | "";
-  lineas_refuerzo: 0 | 3 | 5;
+  espesor_chapa: (typeof espesorOptions)[number]["value"];
+  tipo_zocalo: (typeof zocaloOptions)[number]["value"];
+  lineas_refuerzo: (typeof lineasRefOptions)[number]["value"];
   /* cuchetin */
   cuchetin: boolean;
   med_cuchetin: number;
@@ -55,7 +86,7 @@ export type CarroceriaBD = {
   color_carrozado_id: string;
   color_zocalo_id: string;
   notas_color: string;
-  tipo_piso: "liso" | "semillado" | "";
+  tipo_piso: (typeof pisoOptions)[number]["value"];
   boquillas: number;
   med_cajon_herramientas: number;
   luces: number;
@@ -63,7 +94,7 @@ export type CarroceriaBD = {
   quiebre_alargue: boolean;
   guardabarros: boolean;
   dep_agua: boolean;
-  cintas_reflectivas: "nacionales" | "internacionales" | "";
+  cintas_reflectivas: (typeof cintasOptions)[number]["value"];
   observaciones: string;
 };
 export type CamionBD = {

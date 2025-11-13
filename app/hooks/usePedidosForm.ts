@@ -20,7 +20,6 @@ export function usePedidosForm() {
     defaultValues: existingPedido
       ? {
           ...existingPedido,
-          // Mapear campos existentes a los nuevos campos estructurados
         }
       : {
           numero_pedido: "",
@@ -28,6 +27,7 @@ export function usePedidosForm() {
           cliente_id: "",
           precio_total: 0,
           forma_pago: "",
+          valor_tasacion: 0,
           status: "nuevo",
           fecha_entrega: "",
           notas_entrega: "",

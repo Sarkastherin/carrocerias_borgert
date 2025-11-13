@@ -1,4 +1,21 @@
 import type { FilterField } from "~/components/EntityTable";
+import type { IconType } from "~/components/IconComponent";
+import type { CRUDMethods } from "~/backend/crudFactory";
+import type { TableColumn } from "react-data-table-component";
+import { useMemo } from "react";
+import { useData } from "~/context/DataContext";
+import { useDataLoader } from "~/hooks/useDataLoader";
+import { getIcon } from "~/components/IconComponent";
+import { PaintBucket, Truck, DoorOpen, ContactRound, Drill, PencilRuler } from "lucide-react";
+import {
+  coloresAPI,
+  carrozadoAPI,
+  puertasTraserasAPI,
+  vendedoresAPI,
+  configTrabajoChasisAPI,
+  configItemsControlAPI,
+} from "~/backend/sheetServices";
+
 export type ConfigField = {
   name: string;
   label: string;
@@ -9,30 +26,41 @@ export type ConfigField = {
 
 export type ConfigItem = {
   title: string;
-  icon:
-    | "PaintBucket"
-    | "Truck"
-    | "Package"
-    | "DoorOpen"
-    | "ContactRound"
-    | "Drill"
-    | "PencilRuler";
-  columns: Array<{
-    name: string;
-    selector: (row: any) => any;
-    sortable?: boolean;
-    width?: string;
-    cell?: (row: any) => React.ReactNode;
-  }>;
+  icon: IconType;
+  columns: TableColumn<any>[];
   formFields: ConfigField[];
-  api: string; // Nombre de la API para evitar imports circulares
+  api: CRUDMethods<any>; // API con tipo CRUDMethods
+  reloadData: () => Promise<void>; // Función para recargar datos específicos
   filterFields?: FilterField[];
 };
 
-export const settingsConfig: ConfigItem[] = [
+export type ConfigItemWithData = ConfigItem & {
+  data: any[];
+};
+
+export type SettingsDataContext = {
+  colores?: any[] | null;
+  carrozados?: any[] | null;
+  puertasTraseras?: any[] | null;
+  vendedores?: any[] | null;
+  configTrabajosChasis?: any[] | null;
+  configItemsControl?: any[] | null;
+};
+
+export type SettingsDataLoaders = {
+  getColores: () => Promise<any>;
+  getCarrozados: () => Promise<any>;
+  getPuertasTraseras: () => Promise<any>;
+  getVendedores: () => Promise<any>;
+  getConfigTrabajosChasis: () => Promise<any>;
+  getConfigItemsControl: () => Promise<any>;
+};
+
+export const createSettingsConfig = (loaders: SettingsDataLoaders): ConfigItem[] => [
   {
     title: "colores",
-    icon: "PaintBucket",
+    icon: PaintBucket,
+    reloadData: loaders.getColores,
     columns: [
       {
         name: "Nombre",
@@ -71,7 +99,7 @@ export const settingsConfig: ConfigItem[] = [
         required: false,
       },
     ],
-    api: "coloresAPI", // Nombre de la API para evitar imports circulares
+    api: coloresAPI,
     filterFields: [
       { key: "nombre", label: "Nombre", autoFilter: true },
       {
@@ -91,7 +119,8 @@ export const settingsConfig: ConfigItem[] = [
   },
   {
     title: "carrozado",
-    icon: "Truck",
+    icon: Truck,
+    reloadData: loaders.getCarrozados,
     columns: [
       {
         name: "Nombre",
@@ -114,12 +143,13 @@ export const settingsConfig: ConfigItem[] = [
         required: false,
       },
     ],
-    api: "carrozadoAPI", // Nombre de la API para evitar imports circulares
+    api: carrozadoAPI,
     filterFields: [{ key: "nombre", label: "Nombre", autoFilter: true }],
   },
   {
     title: "puertas traseras",
-    icon: "DoorOpen",
+    icon: DoorOpen,
+    reloadData: loaders.getPuertasTraseras,
     columns: [
       {
         name: "Nombre",
@@ -142,12 +172,13 @@ export const settingsConfig: ConfigItem[] = [
         required: false,
       },
     ],
-    api: "puertasTraserasAPI",
+    api: puertasTraserasAPI,
     filterFields: [{ key: "nombre", label: "Nombre", autoFilter: true }],
   },
   {
     title: "vendedores",
-    icon: "ContactRound",
+    icon: ContactRound,
+    reloadData: loaders.getVendedores,
     columns: [
       {
         name: "Nombre",
@@ -181,7 +212,7 @@ export const settingsConfig: ConfigItem[] = [
         required: false,
       },
     ],
-    api: "vendedoresAPI",
+    api: vendedoresAPI,
     filterFields: [
       { key: "nombre", label: "Nombre", autoFilter: true },
       { key: "apellido", label: "Apellido", autoFilter: true },
@@ -189,7 +220,8 @@ export const settingsConfig: ConfigItem[] = [
   },
   {
     title: "tipos de trabajos",
-    icon: "Drill",
+    icon: Drill,
+    reloadData: loaders.getConfigTrabajosChasis,
     columns: [
       {
         name: "Descripción del trabajo",
@@ -217,12 +249,13 @@ export const settingsConfig: ConfigItem[] = [
         required: false,
       },
     ],
-    api: "configTrabajoChasisAPI",
+    api: configTrabajoChasisAPI,
     filterFields: [{ key: "nombre", label: "Nombre", autoFilter: true }],
   },
   {
     title: "items de control",
-    icon: "PencilRuler",
+    icon: PencilRuler,
+    reloadData: loaders.getConfigItemsControl,
     columns: [
       {
         name: "Nombre",
@@ -263,7 +296,7 @@ export const settingsConfig: ConfigItem[] = [
         required: false,
       },
     ],
-    api: "configItemsControlAPI",
+    api: configItemsControlAPI,
     filterFields: [{ key: "nombre", label: "Nombre", autoFilter: true }, {
       key: "control",
       label: "Control", autoFilter: true,}],
@@ -271,3 +304,115 @@ export const settingsConfig: ConfigItem[] = [
 ];
 
 export const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+export const getSettingsWithData = (
+  dataContext: SettingsDataContext,
+  loaders: SettingsDataLoaders
+): ConfigItemWithData[] => {
+  const settingsConfig = createSettingsConfig(loaders);
+  const dataMapping = {
+    "colores": dataContext.colores || [],
+    "carrozado": dataContext.carrozados || [],
+    "puertas traseras": dataContext.puertasTraseras || [],
+    "vendedores": dataContext.vendedores || [],
+    "tipos de trabajos": dataContext.configTrabajosChasis || [],
+    "items de control": dataContext.configItemsControl || [],
+  };
+
+  return settingsConfig.map((config) => ({
+    ...config,
+    data: dataMapping[config.title as keyof typeof dataMapping] || [],
+  }));
+};
+
+// Hook personalizado que maneja toda la lógica de datos de settings
+export const useSettingsData = () => {
+  const {
+    colores,
+    getColores,
+    carrozados,
+    getCarrozados,
+    puertasTraseras,
+    getPuertasTraseras,
+    vendedores,
+    getVendedores,
+    configTrabajosChasis,
+    getConfigTrabajosChasis,
+    configItemsControl,
+    getConfigItemsControl,
+  } = useData();
+
+  // Usar el hook useDataLoader para cargar todos los datos
+  const { isLoading } = useDataLoader({
+    loaders: [
+      getColores,
+      getCarrozados,
+      getPuertasTraseras,
+      getVendedores,
+      getConfigTrabajosChasis,
+      getConfigItemsControl,
+    ],
+    dependencies: [
+      colores,
+      carrozados,
+      puertasTraseras,
+      vendedores,
+      configTrabajosChasis,
+      configItemsControl,
+    ],
+    errorMessage: "Error cargando configuraciones",
+  });
+
+  // Crear la configuración de items con datos incorporados
+  const itemsConfiguraciones = useMemo(() => {
+    if (isLoading) return null;
+
+    return getSettingsWithData(
+      {
+        colores,
+        carrozados,
+        puertasTraseras,
+        vendedores,
+        configTrabajosChasis,
+        configItemsControl,
+      },
+      {
+        getColores,
+        getCarrozados,
+        getPuertasTraseras,
+        getVendedores,
+        getConfigTrabajosChasis,
+        getConfigItemsControl,
+      }
+    ).map((config) => ({
+      ...config,
+      icon: getIcon({ icon: config.icon, size: 4 }),
+    }));
+  }, [
+    isLoading,
+    colores,
+    carrozados,
+    puertasTraseras,
+    vendedores,
+    configTrabajosChasis,
+    configItemsControl,
+    getColores,
+    getCarrozados,
+    getPuertasTraseras,
+    getVendedores,
+    getConfigTrabajosChasis,
+    getConfigItemsControl,
+  ]);
+
+  return {
+    isLoading,
+    itemsConfiguraciones,
+    // También exponemos los datos individuales por si se necesitan
+    colores,
+    carrozados,
+    puertasTraseras,
+    vendedores,
+    configTrabajosChasis,
+    configItemsControl,
+  };
+};

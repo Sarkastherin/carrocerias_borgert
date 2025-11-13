@@ -61,6 +61,9 @@ type DataContextType = {
   getControles: () => Promise<ControlCarrozadoDB[]>;
   getDefaults: () => Promise<DefaultDB[]>;
   defaults: DefaultDB[] | null;
+  selectedCarrozado: DefaultDB[] | null;
+  setSelectedCarrozado: React.Dispatch<React.SetStateAction<DefaultDB[] | null>>;
+  getCarrozadoByID: (id: string) => Promise<void>;
 };
 const DataContext = createContext<DataContextType | undefined>(undefined);
 export const DataProvider = ({ children }: { children: React.ReactNode }) => {
@@ -85,6 +88,9 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const [controlCarrozado, setControlCarrozado] = useState<
     ControlCarrozadoDB[] | null
   >(null);
+  const [selectedCarrozado, setSelectedCarrozado] = useState<DefaultDB[] | null>(
+    null
+  );
   const getClientes = async () => {
     const response = await clientesAPI.read();
     if (!response.success) {
@@ -194,6 +200,17 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       camion: responseCamion.data || null,
     };
     setPedido(pedidoConCarroceria as PedidosUI);
+  };
+  const getCarrozadoByID = async (id: string) => {
+    const response = await defaultAPI.read({
+      columnName: "carrozado_id",
+      value: id,
+    });
+    if (!response.success && response.status !== 404) {
+      const formattedError = getFormattedError(response.error);
+      throw new Error(formattedError);
+    }
+    setSelectedCarrozado(response.data as DefaultDB[]);
   };
   const deletePedidoById = async (id: string) => {
     try {
@@ -491,6 +508,9 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         controlCarrozado,
         getDefaults,
         defaults,
+        selectedCarrozado,
+        getCarrozadoByID,
+        setSelectedCarrozado
       }}
     >
       {children}

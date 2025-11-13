@@ -6,6 +6,7 @@ import {
   LayoutPanelTop,
   Menu,
   X,
+  ArrowLeft,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useData } from "~/context/DataContext";
@@ -111,17 +112,27 @@ export default function PedidosLayout() {
 
             <div className={`${sidebarOpen ? "px-4" : "px-2"}`}>
               {sidebarOpen && (
-                <div className="text-center mt-4">
-                  <span className="text-text-secondary text-sm font-bold">
+                <>
+                  <span className="flex items-center gap-3 font-bold text-text-secondary bg-primary-100 dark:bg-gray-700/50 rounded-md mt-2">
+                    <NavLink
+                      to={"/pedidos"}
+                      className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-primary-100 dark:hover:bg-gray-800 rounded-full transition-all duration-200"
+                      title="Volver"
+                    >
+                      <ArrowLeft className="w-5 h-5" />
+                    </NavLink>
                     {pedido.numero_pedido}
                   </span>
-                </div>
+                </>
               )}
               <ul
                 className={`${sidebarOpen ? "mt-6 space-y-1" : "mt-16 space-y-2"}`}
               >
                 {menu.map((item) => {
-                  const IconComponent = getIcon({icon: item.icon as IconType, size: 4});
+                  const IconComponent = getIcon({
+                    icon: item.icon as IconType,
+                    size: 4,
+                  });
                   return (
                     <li key={item.title}>
                       <NavLink

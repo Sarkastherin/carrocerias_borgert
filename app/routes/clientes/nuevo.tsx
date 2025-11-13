@@ -16,8 +16,15 @@ export default function ClientesNuevo() {
     setCliente(null);
   }, []);
   return (
-    <div className="flex flex-col items-center w-full max-w-6xl mx-auto">
-      <Subheader title="Nuevo Cliente" icon={{component: UserRoundPlus, color: "text-purple-600 dark:text-purple-400"}} />
+    <div className="flex flex-col items-center w-full px-6">
+      <Subheader
+        title="Agregar Cliente"
+        icon={{
+          component: UserRoundPlus,
+          color: "text-blue-600 dark:text-blue-400",
+        }}
+        back_path="/clientes"
+      />
       <main className="w-full max-w-5xl p-6">
         <ClienteForm />
       </main>

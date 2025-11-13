@@ -37,35 +37,24 @@ export default function HomePage() {
       path: "/settings",
     },
   ];
-
+  //
   return (
-    <div className="min-h-screen relative">
-      {/* Hero Background */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url("/cover.jpg")' }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black/80"></div>
-      </div>
-
-      {/* Content */}
-      <div className="relative z-10 flex flex-col min-h-screen">
-        {/* Hero Section */}
-        <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-16 sm:pt-20 pb-8 sm:pb-12">
-          {/* Título principal */}
-          <div className="text-center mb-8 sm:mb-12 max-w-4xl">
+    <div
+      className="flex flex-col justify-between relative"
+      style={{ minHeight: "calc(100vh - 71px)" }}
+    >
+      <main className="flex-1 relative flex flex-col items-center justify-center overflow-hidden">
+        <div className="relative z-10">
+          <div className="flex flex-col items-center justify-center gap-4">
             <h1 className="scale-200 mb-4">
               <LogoComponent noTheme />
             </h1>
-            <p className="text-lg sm:text-xl md:text-2xl text-gray-100 font-light px-4">
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-100 font-light px-4 mb-10">
               Sistema de gestión profesional para tu empresa
             </p>
           </div>
-
-          {/* Cards con Glassmorphism */}
-          <main className="w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-4 sm:px-0">
+          <div className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-4 sm:px-0">
             {modules.map((mod) => {
-              
               return (
                 <NavGlassCard
                   key={mod.name}
@@ -76,19 +65,23 @@ export default function HomePage() {
                 />
               );
             })}
-          </main>
-        </div>
-
-        {/* Footer */}
-        <footer className="p-2 sm:p-4 text-gray-300 text-xs text-center backdrop-blur-sm bg-black/20 border-t border-white/10">
-          <div className="flex flex-col sm:flex-row sm:justify-center sm:items-center">
-            v{appVersion}{" "}
-            <span className="-ms-5 scale-60 inline-block">
-              <LogoComponent noTheme />
-            </span>
           </div>
-        </footer>
-      </div>
+        </div>
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: 'url("/cover.jpg")' }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black/80"></div>
+        </div>
+      </main>
+      <footer className="p-2 sm:p-4 text-text-secondary text-xs text-center backdrop-blur-sm bg-black/20 border-t border-white/10">
+        <div className="flex flex-col sm:flex-row sm:justify-center sm:items-center">
+          v{appVersion}{" "}
+          <span className="-ms-5 scale-60 inline-block">
+            <LogoComponent />
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }

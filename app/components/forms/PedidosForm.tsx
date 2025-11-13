@@ -1,10 +1,4 @@
-import {
-  Input,
-  Textarea,
-  Select,
-  InputWithIcon,
-  CurrencyInput,
-} from "../Inputs";
+import { Input, Select, CurrencyInput } from "../Inputs";
 import { Button } from "../Buttons";
 import { usePedidosForm } from "~/hooks/usePedidosForm";
 import { CardToggle } from "../CardToggle";
@@ -16,6 +10,7 @@ import { useUIModals } from "~/context/ModalsContext";
 import ClienteNuevoModal from "../modals/customs/ClienteNuevoModal";
 import { FooterForm } from "./Footer";
 import LoadingComponent from "../LoadingComponent";
+import { formaPagoOptions, statusOptions } from "~/types/pedidos";
 
 export default function PedidosForm() {
   const { vendedores, getVendedores } = useData();
@@ -43,20 +38,6 @@ export default function PedidosForm() {
       props: {},
     });
   };
-  /* const handleOtrosOption = (value: string) => {
-    if (value === "Otros") {
-      // Mostrar input dabajo de "Forma de pago" de tipo texto
-      return (
-        <Input
-          label="Especifique otra forma de pago"
-          {...register("forma_pago_otros", {
-            required: "Este campo es requerido",
-          })}
-          error={errors.forma_pago_otros?.message}
-        />
-      );
-    }
-  }; */
   if (isLoadingData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -139,12 +120,11 @@ export default function PedidosForm() {
                     disabled={!isEditMode}
                     error={errors.status?.message}
                   >
-                    <option value="">Seleccione un status</option>
-                    <option value="nuevo">🆕 Nuevo</option>
-                    <option value="en_produccion">🛠️ En Producción</option>
-                    <option value="finalizado">✅ Finalizado</option>
-                    <option value="entregado">📦 Entregado</option>
-                    <option value="cancelado">🚫 Cancelado</option>
+                    {statusOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </Select>
                 </div>
               </fieldset>
@@ -179,34 +159,52 @@ export default function PedidosForm() {
                   label="Forma de pago"
                   {...register("forma_pago", {
                     required: "Este campo es requerido",
-                    /* onChange: (e) => handleOtrosOption(e.target.value), */
                   })}
                   error={errors.forma_pago?.message}
                 >
                   <option value="">Seleccione una forma de pago</option>
-                  <option value="6 cheques/echeqs 0-150 días (Precio Neto)">
-                    6 cheques/echeqs 0-150 días (Precio Neto)
-                  </option>
-                  <option value="Entrega del 40% + 4 cheques/echeqs (5% de descuento)">
-                    Entrega del 40% + 4 cheques/echeqs (5% de descuento)
-                  </option>
-                  <option value="Contado/transferencia (10% de descuento)">
-                    Contado/transferencia (10% de descuento)
-                  </option>
-                  <option value="Otros">Otros</option>
+                  {formaPagoOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </Select>
-                <Input
-                  label="Especifique otra forma de pago"
-                  requiredField={watch("forma_pago") === "Otros"}
-                  {...register("forma_pago_otros", {
-                    required:
-                      watch("forma_pago") === "Otros"
-                        ? "Este campo es requerido"
-                        : false,
-                  })}
-                  disabled={watch("forma_pago") !== "Otros"}
-                  error={errors.forma_pago_otros?.message}
+                <CurrencyInput
+                  label="Valor de tasación"
+                  value={watch("valor_tasacion")}
+                  disabled={watch("forma_pago") !== "Carrocería usada"}
+                  placeholder={
+                    watch("forma_pago") === "Carrocería usada"
+                      ? "Ingrese el valor de tasación"
+                      : "No aplica"
+                  }
+                  onChange={(value) =>
+                    setValue("valor_tasacion", value === "" ? 0 : value, {
+                      shouldDirty: true,
+                    })
+                  }
+                  error={errors.valor_tasacion?.message}
                 />
+                <input
+                  type="hidden"
+                  {...register("valor_tasacion", {
+                    valueAsNumber: true,
+                  })}
+                />
+                <div className="col-span-2">
+                  <Input
+                    label="Especifique otra forma de pago"
+                    requiredField={watch("forma_pago") === "Otros"}
+                    {...register("forma_pago_otros", {
+                      required:
+                        watch("forma_pago") === "Otros"
+                          ? "Este campo es requerido"
+                          : false,
+                    })}
+                    disabled={watch("forma_pago") !== "Otros"}
+                    error={errors.forma_pago_otros?.message}
+                  />
+                </div>
               </fieldset>
             </CardToggle>
             <FooterForm>

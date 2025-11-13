@@ -2,16 +2,11 @@ import ModalBase from "../ModalBase";
 import { Input, Select, Textarea } from "~/components/Inputs";
 import { Button } from "~/components/Buttons";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { CheckCircle, AlertCircle } from "lucide-react";
+import type { ConfigField } from "~/config/settingsConfigCarrozado";
 
-type Field = {
-  name: string;
-  label: string;
-  type: "text" | "boolean" | "select" | "textarea";
-  required?: boolean;
-  options?: { value: string | number; label: string }[];
-};
+type Field = ConfigField;
 
 export default function SettingsFormModal({
   title,
@@ -33,12 +28,44 @@ export default function SettingsFormModal({
   ) => Promise<{ success: boolean; keepOpen?: boolean; autoClose?: number } | void>;
   data?: any;
 }) {
-  const { register, handleSubmit, reset } = useForm({
+  const { register, handleSubmit, reset, watch, getValues } = useForm({
     defaultValues: data || {},
   });
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [dynamicFields, setDynamicFields] = useState<Record<string, Field>>({});
+
+  // Función para actualizar campos dinámicos cuando cambia un campo dependiente
+  const updateDynamicField = useCallback((fieldName: string, value: any) => {
+    const dependentField = fields.find(f => f.type === "dynamic" && f.dependsOn === fieldName);
+    if (dependentField && dependentField.getDynamicConfig) {
+      const dynamicConfig = dependentField.getDynamicConfig(value);
+      setDynamicFields(prev => ({
+        ...prev,
+        [dependentField.name]: {
+          ...dependentField,
+          ...dynamicConfig,
+        }
+      }));
+    }
+  }, [fields]);
+
+  // Inicializar campos dinámicos
+  useEffect(() => {
+    const initialDynamicFields: Record<string, Field> = {};
+    
+    fields.forEach(field => {
+      if (field.type === "dynamic") {
+        initialDynamicFields[field.name] = {
+          ...field,
+          type: "text", // Fallback inicial
+        };
+      }
+    });
+    
+    setDynamicFields(initialDynamicFields);
+  }, [fields]);
 
   const handleFormSubmit = async (data: any) => {
     try {
@@ -127,46 +154,83 @@ export default function SettingsFormModal({
         )}
         
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6 ">
-          {fields.map((f) => (
-            <div key={f.name}>
-              {f.type === "text" && (
-                <Input
-                  label={f.label}
-                  {...register(f.name, { required: f.required })}
-                />
-              )}
+          {fields.map((f) => {
+            // Si es un campo dinámico, usar la configuración dinámica
+            const fieldConfig = f.type === "dynamic" && dynamicFields[f.name] ? dynamicFields[f.name] : f;
+            
+            return (
+              <div key={f.name}>
+                {fieldConfig.type === "text" && (
+                  <Input
+                    label={fieldConfig.label}
+                    placeholder={fieldConfig.placeholder}
+                    {...register(f.name, { required: fieldConfig.required })}
+                  />
+                )}
 
-              {f.type === "boolean" && (
-                <label className="inline-flex gap-2 text-sm items-center">
-                  <input type="checkbox" {...register(f.name)} />
-                  {f.label}
-                </label>
-              )}
+                {fieldConfig.type === "number" && (
+                  <Input
+                    type="number"
+                    label={fieldConfig.label}
+                    placeholder={fieldConfig.placeholder}
+                    {...register(f.name, { 
+                      required: fieldConfig.required,
+                      min: fieldConfig.min,
+                      max: fieldConfig.max,
+                      valueAsNumber: true,
+                    })}
+                  />
+                )}
 
-              {f.type === "select" && (
-                <>
-                  <Select
-                    label={f.label}
-                    {...register(f.name, { required: f.required })}
-                    defaultValue=""
-                  >
-                    <option value="">— Seleccionar —</option>
-                    {f.options?.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </Select>
-                </>
-              )}
-              {f.type === "textarea" && (
-                <Textarea
-                  label={f.label}
-                  {...register(f.name, { required: f.required })}
-                />
-              )}
-            </div>
-          ))}
+                {fieldConfig.type === "boolean" && (
+                  <label className="inline-flex gap-2 text-sm items-center">
+                    <input type="checkbox" {...register(f.name)} />
+                    {fieldConfig.label}
+                  </label>
+                )}
+
+                {fieldConfig.type === "select" && (
+                  <>
+                    <Select
+                      label={fieldConfig.label}
+                      {...register(f.name, { 
+                        required: fieldConfig.required,
+                        onChange: (e) => {
+                          // Si este campo es dependencia de algún campo dinámico, actualizarlo
+                          updateDynamicField(f.name, e.target.value);
+                        }
+                      })}
+                      defaultValue=""
+                    >
+                      <option value="">— Seleccionar —</option>
+                      {fieldConfig.options?.map((opt) => (
+                        <option key={String(opt.value)} value={String(opt.value)}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </Select>
+                  </>
+                )}
+                
+                {fieldConfig.type === "textarea" && (
+                  <Textarea
+                    label={fieldConfig.label}
+                    placeholder={fieldConfig.placeholder}
+                    {...register(f.name, { required: fieldConfig.required })}
+                  />
+                )}
+
+                {fieldConfig.type === "dynamic" && !dynamicFields[f.name] && (
+                  <div className="text-gray-400 text-sm p-2 border border-dashed border-gray-300 rounded">
+                    {fieldConfig.dependsOn ? 
+                      `Selecciona ${fields.find(field => field.name === fieldConfig.dependsOn)?.label || fieldConfig.dependsOn} para configurar este campo` : 
+                      'Campo dinámico no configurado'
+                    }
+                  </div>
+                )}
+              </div>
+            );
+          })}
           <div className="flex justify-end gap-4">
             <Button variant="light" type="button" onClick={onClose} disabled={isLoading}>
               Cancelar
