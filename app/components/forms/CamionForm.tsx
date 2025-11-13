@@ -24,6 +24,7 @@ export default function CamionForm() {
               required: "Este campo es obligatorio",
             })}
             error={errors.marca?.message}
+            requiredField={true}
           >
             <option value="">Marca</option>
             <option value="scania">Scania</option>
@@ -40,6 +41,7 @@ export default function CamionForm() {
               required: "Este campo es obligatorio",
             })}
             error={errors.modelo?.message}
+            requiredField={true}
           />
           <Input label="Patente" {...register("patente")} />
           <Select
@@ -47,6 +49,8 @@ export default function CamionForm() {
             {...register("tipo_larguero", {
               required: "Este campo es obligatorio",
             })}
+            requiredField={true}
+            error={errors.tipo_larguero?.message}
           >
             <option value="">Seleccione una opción</option>
             <option value="recto">Recto</option>
@@ -59,15 +63,18 @@ export default function CamionForm() {
               required: "Este campo es obligatorio",
             })}
             icon={RulerDimensionLine}
+            requiredField={true}
+            error={errors.med_larguero?.message}
           />
           <InputWithIcon
-            requiredField={true}
             type="number"
             label="Centro de Eje (mm)"
             {...register("centro_eje", {
               required: "Este campo es obligatorio",
             })}
             icon={RulerDimensionLine}
+            requiredField={true}
+            error={errors.centro_eje?.message}
           />
           <InputWithIcon
             requiredField={true}
@@ -77,6 +84,7 @@ export default function CamionForm() {
               required: "Este campo es obligatorio",
             })}
             icon={RulerDimensionLine}
+            error={errors.voladizo_trasero?.message}
           />
         </fieldset>
       </CardToggle>

@@ -102,6 +102,7 @@ export default function PedidosForm() {
                       required: "Este campo es requerido",
                     })}
                     error={errors.vendedor_id?.message}
+                    requiredField={true}
                   >
                     <option value="">Seleccione un vendedor</option>
                     {vendedores
@@ -119,6 +120,7 @@ export default function PedidosForm() {
                     })}
                     disabled={!isEditMode}
                     error={errors.status?.message}
+                    requiredField={true}
                   >
                     {statusOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -146,6 +148,7 @@ export default function PedidosForm() {
                     })
                   }
                   error={errors.precio_total?.message}
+                  requiredField={true}
                 />
                 <input
                   type="hidden"
@@ -170,7 +173,7 @@ export default function PedidosForm() {
                   ))}
                 </Select>
                 <CurrencyInput
-                  label="Valor de tasación"
+                  label="Valor de tasación (aplica a carrocería usada)"
                   value={watch("valor_tasacion")}
                   disabled={watch("forma_pago") !== "Carrocería usada"}
                   placeholder={
