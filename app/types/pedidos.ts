@@ -8,13 +8,14 @@ import {
   pisoOptions,
   cintasOptions,
 } from "~/config/atributosMetadata";
+import type { ClientesBD } from "./clientes";
 export const statusOptions = [
   { value: "nuevo", label: "🆕 Nuevo" },
   { value: "en_produccion", label: "🏭 En Producción" },
   { value: "finalizado", label: "✅ Finalizado" },
   { value: "entregado", label: "📦 Entregado" },
   { value: "cancelado", label: "❌ Cancelado" },
-]
+];
 export const formaPagoOptions = [
   {
     value: "6 cheques/echeqs 0-150 días (Precio Neto)",
@@ -40,16 +41,13 @@ export type PedidosBD = {
   fecha_pedido: string;
   fecha_fabricacion: string;
   numero_pedido: string;
-  camion_id: string;
   cliente_id: string;
   precio_total: number;
   forma_pago: (typeof formaPagoOptions)[number]["value"];
-  valor_tasacion: number;
+  valor_tasacion?: number | string;
   forma_pago_otros: string;
   fecha_entrega_estimada: string;
   status: (typeof statusOptions)[number]["value"];
-  fecha_entrega: string;
-  notas_entrega: string;
   vendedor_id: string;
 };
 export type PedidosTable = PedidosBD & {
@@ -82,7 +80,7 @@ export type CarroceriaBD = {
   alt_pta_cuchetin: number;
   alt_techo_cuchetin: number;
   /* color */
-  color_lona: string;
+  color_lona_id: string;
   color_carrozado_id: string;
   color_zocalo_id: string;
   notas_color: string;
@@ -117,6 +115,16 @@ export type TrabajoChasisBD = {
   tipo_trabajo_id: string;
   descripcion: string;
 };
-export type PedidosUI = PedidosTable & { carroceria: CarroceriaBD | null } & {
-  trabajo_chasis: TrabajoChasisBD[];
+export type PedidosUI = PedidosTable & {
+  carroceria:
+    | (CarroceriaBD & {
+        carrozado_nombre: string;
+        puerta_trasera_nombre: string;
+        color_carrozado_nombre: string;
+        color_zocalo_nombre: string;
+        color_lona_nombre: string;
+      })
+    | null;
+} & {
+  trabajo_chasis: (TrabajoChasisBD & { tipo_trabajo_nombre: string })[];
 } & { camion: CamionBD | null };

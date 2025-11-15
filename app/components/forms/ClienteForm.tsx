@@ -27,7 +27,7 @@ export default function ClienteForm({
 }: ClienteFormProps) {
   const navigate = useNavigate();
   const { showConfirmation } = useUIModals();
-  const { getVendedores, vendedores, deleteClienteById, cliente } = useData();
+  const { getPersonal, vendedores, deleteClienteById, cliente } = useData();
   const [isDeleting, setIsDeleting] = useState(false);
   const {
     register,
@@ -87,7 +87,7 @@ export default function ClienteForm({
   };
   useEffect(() => {
     const loadVendedores = async () => {
-      await getVendedores();
+      await getPersonal();
     };
     loadVendedores();
   }, []);

@@ -8,7 +8,7 @@ import {
   coloresAPI,
   carrozadoAPI,
   puertasTraserasAPI,
-  vendedoresAPI,
+  personalAPI,
   configTrabajoChasisAPI,
   configItemsControlAPI,
   defaultAPI,
@@ -17,12 +17,12 @@ import {
 import type { ClientesBD } from "~/types/clientes";
 import { useUIModals } from "./ModalsContext";
 import { getFormattedError, logDetailedError } from "~/utils/errorMessage";
-import type { PedidosBD, PedidosTable, PedidosUI } from "~/types/pedidos";
+import type { PedidosBD, PedidosTable, PedidosUI, TrabajoChasisBD } from "~/types/pedidos";
 import type {
   ColoresBD,
   CarrozadosBD,
   PuertasTraserasBD,
-  VendedoresBD,
+  PersonalBD,
   ConfigTrabajosChasisBD,
   ConfigItemsControlBD,
   DefaultDB,
@@ -38,7 +38,7 @@ type DataContextType = {
   getClienteById: (id: string) => Promise<void>;
   pedidos: PedidosTable[] | null;
   setPedidos: React.Dispatch<React.SetStateAction<PedidosTable[] | null>>;
-  getPedidos: () => Promise<void>;
+  getPedidos: () => Promise<PedidosTable[]>;
   pedido: PedidosUI | null;
   setPedido: React.Dispatch<React.SetStateAction<PedidosUI | null>>;
   getPedidoById: (id: string) => Promise<void>;
@@ -48,8 +48,8 @@ type DataContextType = {
   getCarrozados: () => Promise<CarrozadosBD[]>;
   puertasTraseras: PuertasTraserasBD[] | null;
   getPuertasTraseras: () => Promise<PuertasTraserasBD[]>;
-  vendedores: VendedoresBD[] | null;
-  getVendedores: () => Promise<VendedoresBD[]>;
+  personal: PersonalBD[] | null;
+  getPersonal: () => Promise<PersonalBD[]>;
   configTrabajosChasis: ConfigTrabajosChasisBD[] | null;
   getConfigTrabajosChasis: () => Promise<ConfigTrabajosChasisBD[]>;
   deletePedidoById: (id: string) => Promise<void>;
@@ -62,7 +62,9 @@ type DataContextType = {
   getDefaults: () => Promise<DefaultDB[]>;
   defaults: DefaultDB[] | null;
   selectedCarrozado: DefaultDB[] | null;
-  setSelectedCarrozado: React.Dispatch<React.SetStateAction<DefaultDB[] | null>>;
+  setSelectedCarrozado: React.Dispatch<
+    React.SetStateAction<DefaultDB[] | null>
+  >;
   getCarrozadoByID: (id: string) => Promise<void>;
 };
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -80,7 +82,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const [configItemsControl, setConfigItemsControl] = useState<
     ConfigItemsControlBD[] | null
   >(null);
-  const [vendedores, setVendedores] = useState<VendedoresBD[] | null>(null);
+  const [personal, setPersonal] = useState<PersonalBD[] | null>(null);
   const [configTrabajosChasis, setConfigTrabajosChasis] = useState<
     ConfigTrabajosChasisBD[] | null
   >(null);
@@ -88,9 +90,9 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const [controlCarrozado, setControlCarrozado] = useState<
     ControlCarrozadoDB[] | null
   >(null);
-  const [selectedCarrozado, setSelectedCarrozado] = useState<DefaultDB[] | null>(
-    null
-  );
+  const [selectedCarrozado, setSelectedCarrozado] = useState<
+    DefaultDB[] | null
+  >(null);
   const getClientes = async () => {
     const response = await clientesAPI.read();
     if (!response.success) {
@@ -128,7 +130,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       throw new Error(formattedError);
     }
     const resClientes = await getClientes();
-    const resVendedores = await getVendedores();
+    const resVendedores = await getPersonal();
     const pedidosConCliente = (resPedidos.data as PedidosBD[]).map((pedido) => {
       const cliente = resClientes.find((c) => c.id === pedido.cliente_id);
       const vendedor = resVendedores.find((v) => v.id === pedido.vendedor_id);
@@ -143,23 +145,37 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       };
     });
     setPedidos(pedidosConCliente);
+    return pedidosConCliente;
   };
   const getPedidoById = async (id: string) => {
-    const response = await pedidosAPI.read({
-      columnName: "id",
-      value: id,
-      multiple: false,
-    });
-    if (!response.success) {
-      logDetailedError(response.error);
-      const formattedError = getFormattedError(response.error);
-      throw new Error(formattedError);
-    }
-    if (!response.data) {
-      setCliente(null);
+    const getPedido = async () => {
+      if (!pedidos) {
+        // Si no hay pedidos cargados, cargar todos los pedidos
+        const pedidosData = await getPedidos();
+        // Buscar el pedido específico en los datos recién cargados
+        const existingPedido = pedidosData.find((p) => p.id === id);
+        if (!existingPedido) {
+          setPedido(null);
+          return null;
+        }
+        return existingPedido;
+      } else {
+        // Si hay pedidos cargados, buscar en el cache
+        const existingPedido = pedidos.find((p) => p.id === id);
+        if (!existingPedido) {
+          setPedido(null);
+          return null;
+        }
+        return existingPedido;
+      }
+    };
+    const data = await getPedido();
+    // Si no se encontró el pedido, salir de la función
+    if (!data) {
       return;
     }
-    const idPedido = (response.data as PedidosBD).id;
+    const idPedido = data.id;
+    /* Obtener los datos relacionados al pedido */
     const responseCarroceria = await carroceriaAPI.read({
       columnName: "pedido_id",
       value: idPedido,
@@ -169,6 +185,118 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       logDetailedError(responseCarroceria.error);
       const formattedError = getFormattedError(responseCarroceria.error);
       throw new Error(formattedError);
+    }
+    const carroceriaId = Array.isArray(responseCarroceria.data) 
+      ? responseCarroceria.data[0]?.tipo_carrozado_id || ""
+      : responseCarroceria.data?.tipo_carrozado_id || "";
+    /* Obtener datos de las referencias (id's) */
+    const getCarrozado=async (id: string) => {
+      if(!carrozados) {
+        //Si no hay carrozados cargados, cargarlos
+        const carrozadosData = await getCarrozados();
+        const carrozadoPedido = carrozadosData.find((c) => c.id === id);
+        if(!carrozadoPedido) return null;
+        return carrozadoPedido;
+      }
+      else {
+        const carrozadoPedido = carrozados.find((c) => c.id === id);
+        if(!carrozadoPedido) return null;
+        return carrozadoPedido;
+      }
+    }
+    const carrozado = await getCarrozado(carroceriaId);
+    if (carrozado) {
+      //Agregar carrozado_nombre al objeto carroceria
+      if (Array.isArray(responseCarroceria.data)) {
+        (responseCarroceria.data[0] as any).carrozado_nombre = carrozado.nombre || "";
+      } else if (responseCarroceria.data) {
+        (responseCarroceria.data as any).carrozado_nombre = carrozado.nombre || "";
+      }
+    }
+    
+    /* Obtener puerta trasera */
+    const puertaTraseraId = Array.isArray(responseCarroceria.data) 
+      ? responseCarroceria.data[0]?.puerta_trasera_id || ""
+      : responseCarroceria.data?.puerta_trasera_id || "";
+      
+    const getPuertaTrasera = async (id: string) => {
+      if (!puertasTraseras) {
+        // Si no hay puertas traseras cargadas, cargarlas
+        const puertasTraserasData = await getPuertasTraseras();
+        const puertaTraseraPedido = puertasTraserasData.find((p) => p.id === id);
+        if (!puertaTraseraPedido) return null;
+        return puertaTraseraPedido;
+      } else {
+        const puertaTraseraPedido = puertasTraseras.find((p) => p.id === id);
+        if (!puertaTraseraPedido) return null;
+        return puertaTraseraPedido;
+      }
+    };
+    
+    const puertaTrasera = await getPuertaTrasera(puertaTraseraId);
+    if (puertaTrasera) {
+      // Agregar puerta_trasera_nombre al objeto carroceria
+      if (Array.isArray(responseCarroceria.data)) {
+        (responseCarroceria.data[0] as any).puerta_trasera_nombre = puertaTrasera.nombre || "";
+      } else if (responseCarroceria.data) {
+        (responseCarroceria.data as any).puerta_trasera_nombre = puertaTrasera.nombre || "";
+      }
+    }
+    
+    /* Obtener colores */
+    const colorCarrozadoId = Array.isArray(responseCarroceria.data) 
+      ? responseCarroceria.data[0]?.color_carrozado_id || ""
+      : responseCarroceria.data?.color_carrozado_id || "";
+      
+    const colorZocaloId = Array.isArray(responseCarroceria.data) 
+      ? responseCarroceria.data[0]?.color_zocalo_id || ""
+      : responseCarroceria.data?.color_zocalo_id || "";
+    const colorLonaId = Array.isArray(responseCarroceria.data)
+      ? responseCarroceria.data[0]?.color_lona_id || ""
+      : responseCarroceria.data?.color_lona_id || "";
+    
+    const getColor = async (id: string) => {
+      if (!colores) {
+        // Si no hay colores cargados, cargarlos
+        const coloresData = await getColores();
+        const colorPedido = coloresData.find((c) => c.id === id);
+        if (!colorPedido) return null;
+        return colorPedido;
+      } else {
+        const colorPedido = colores.find((c) => c.id === id);
+        if (!colorPedido) return null;
+        return colorPedido;
+      }
+    };
+    
+    const colorCarrozado = await getColor(colorCarrozadoId);
+    const colorZocalo = await getColor(colorZocaloId);
+    const colorLona = await getColor(colorLonaId);
+    
+    if (colorCarrozado) {
+      // Agregar color_carrozado_nombre al objeto carroceria
+      if (Array.isArray(responseCarroceria.data)) {
+        (responseCarroceria.data[0] as any).color_carrozado_nombre = colorCarrozado.nombre || "";
+      } else if (responseCarroceria.data) {
+        (responseCarroceria.data as any).color_carrozado_nombre = colorCarrozado.nombre || "";
+      }
+    }
+    
+    if (colorZocalo) {
+      // Agregar color_zocalo_nombre al objeto carroceria
+      if (Array.isArray(responseCarroceria.data)) {
+        (responseCarroceria.data[0] as any).color_zocalo_nombre = colorZocalo.nombre || "";
+      } else if (responseCarroceria.data) {
+        (responseCarroceria.data as any).color_zocalo_nombre = colorZocalo.nombre || "";
+      }
+    }
+    if (colorLona) {
+      // Agregar color_lona_nombre al objeto carroceria
+      if (Array.isArray(responseCarroceria.data)) {
+        (responseCarroceria.data[0] as any).color_lona_nombre = colorLona.nombre || "";
+      } else if (responseCarroceria.data) {
+        (responseCarroceria.data as any).color_lona_nombre = colorLona.nombre || "";
+      }
     }
     const responseTrabajoChasis = await trabajoChasisAPI.read({
       columnName: "pedido_id",
@@ -183,6 +311,38 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       const formattedError = getFormattedError(responseTrabajoChasis.error);
       throw new Error(formattedError);
     }
+
+    /* Agregar nombres a los trabajos de chassis */
+    let trabajosConNombres: (TrabajoChasisBD & { tipo_trabajo_nombre: string })[] = [];
+    
+    if (responseTrabajoChasis.data) {
+      const trabajosArray = Array.isArray(responseTrabajoChasis.data) 
+        ? responseTrabajoChasis.data 
+        : [responseTrabajoChasis.data];
+
+      const getTipoTrabajo = async (id: string) => {
+        if (!configTrabajosChasis) {
+          // Si no hay config trabajos chassis cargados, cargarlos
+          const configTrabajosChasisData = await getConfigTrabajosChasis();
+          const tipoTrabajo = configTrabajosChasisData.find((t) => t.id === id);
+          if (!tipoTrabajo) return null;
+          return tipoTrabajo;
+        } else {
+          const tipoTrabajo = configTrabajosChasis.find((t) => t.id === id);
+          if (!tipoTrabajo) return null;
+          return tipoTrabajo;
+        }
+      };
+
+      // Procesar cada trabajo de chassis
+      for (const trabajo of trabajosArray) {
+        const tipoTrabajo = await getTipoTrabajo(trabajo.tipo_trabajo_id);
+        trabajosConNombres.push({
+          ...trabajo,
+          tipo_trabajo_nombre: tipoTrabajo?.nombre || "Trabajo no encontrado"
+        });
+      }
+    }
     const responseCamion = await camionAPI.read({
       columnName: "pedido_id",
       value: idPedido,
@@ -193,11 +353,15 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       const formattedError = getFormattedError(responseCamion.error);
       throw new Error(formattedError);
     }
+
     const pedidoConCarroceria = {
-      ...(response.data as PedidosBD),
+      ...data,
       carroceria: responseCarroceria.data || null,
-      trabajo_chasis: responseTrabajoChasis.data || null,
+      trabajo_chasis: trabajosConNombres,
       camion: responseCamion.data || null,
+      // El cliente ya viene incluido en data desde getPedidos (cliente_nombre)
+      // o podemos extraer el cliente completo desde el cache de clientes
+      cliente: null, // Se podría obtener desde clientes cache si se necesita objeto completo
     };
     setPedido(pedidoConCarroceria as PedidosUI);
   };
@@ -377,16 +541,16 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     setPuertasTraseras((response.data as PuertasTraserasBD[]) || []);
     return response.data as PuertasTraserasBD[];
   };
-  const getVendedores = async () => {
-    const response = await vendedoresAPI.read();
+  const getPersonal = async () => {
+    const response = await personalAPI.read();
     if (!response.success) {
       logDetailedError(response.error);
       const formattedError = getFormattedError(response.error);
       showError(formattedError);
       throw new Error(formattedError);
     }
-    setVendedores((response.data as VendedoresBD[]) || []);
-    return response.data as VendedoresBD[];
+    setPersonal((response.data as PersonalBD[]) || []);
+    return response.data as PersonalBD[];
   };
   const getConfigTrabajosChasis = async () => {
     const response = await configTrabajoChasisAPI.read();
@@ -495,8 +659,8 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         carrozados,
         getPuertasTraseras,
         puertasTraseras,
-        getVendedores,
-        vendedores,
+        getPersonal,
+        personal,
         getConfigTrabajosChasis,
         configTrabajosChasis,
         deletePedidoById,
@@ -510,7 +674,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         defaults,
         selectedCarrozado,
         getCarrozadoByID,
-        setSelectedCarrozado
+        setSelectedCarrozado,
       }}
     >
       {children}
@@ -536,7 +700,7 @@ export const useData = (onlyActive: boolean = false) => {
       colores: context.colores?.filter((c) => c.activo) || null,
       carrozados: context.carrozados?.filter((c) => c.activo) || null,
       puertasTraseras: context.puertasTraseras?.filter((p) => p.activo) || null,
-      vendedores: context.vendedores?.filter((v) => v.activo) || null,
+      personal: context.personal?.filter((v) => v.activo) || null,
       configTrabajosChasis:
         context.configTrabajosChasis?.filter((t) => t.activo) || null,
     };

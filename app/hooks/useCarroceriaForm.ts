@@ -43,7 +43,7 @@ export function useCarroceriaForm() {
           med_cuchetin: 0,
           alt_pta_cuchetin: 0,
           alt_techo_cuchetin: 0,
-          color_lona: "",
+          color_lona_id: "",
           tipo_piso: "",
           color_carrozado_id: "",
           color_zocalo_id: "",

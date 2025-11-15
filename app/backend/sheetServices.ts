@@ -10,7 +10,7 @@ import type {
   ColoresBD,
   CarrozadosBD,
   PuertasTraserasBD,
-  VendedoresBD,
+  PersonalBD,
   ConfigTrabajosChasisBD,
   ConfigItemsControlBD,
   DefaultDB,
@@ -57,9 +57,9 @@ export const puertasTraserasAPI = createCrud<PuertasTraserasBD>({
   nameSheet: "Puertas Traseras",
   nameFile: "Parámetros y Configuraciones",
 });
-export const vendedoresAPI = createCrud<VendedoresBD>({
+export const personalAPI = createCrud<PersonalBD>({
   sheetId: import.meta.env.VITE_SHEET_ID_CONFIGURACIONES,
-  nameSheet: "Vendedores",
+  nameSheet: "Personal",
   nameFile: "Parámetros y Configuraciones",
 });
 export const configTrabajoChasisAPI = createCrud<ConfigTrabajosChasisBD>({

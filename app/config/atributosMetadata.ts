@@ -169,7 +169,7 @@ export const atributosConMetadata: AtributoMetadata[] = [
     min: 0,
   },
   /* {
-    value: "color_lona",
+    value: "color_lona_id",
     label: "Color lona",
     fieldType: "text",
     placeholder: "Color de la lona",

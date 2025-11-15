@@ -39,7 +39,7 @@ export default function SettingsLayout() {
   const validateUniqueNameBeforeCreate = useCallback(
     (name: string, configType: string): boolean => {
       try {
-        if (configType === "vendedores") {
+        if (configType === "personal") {
           return true;
         }
 
@@ -88,7 +88,7 @@ export default function SettingsLayout() {
             "colores",
             "carrozado",
             "puertas traseras",
-            "vendedores",
+            "personal",
             "tipos de trabajos",
           ].includes(configType)
         ) {
@@ -149,7 +149,7 @@ export default function SettingsLayout() {
                 : 0;
             return { inUse: count2 > 0, count: count2 };
 
-          case "vendedores":
+          case "personal":
             const responsePedidos = await pedidosAPI.read({
               columnName: "vendedor_id",
               value: elementId,

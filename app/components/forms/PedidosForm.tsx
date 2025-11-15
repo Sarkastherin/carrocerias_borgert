@@ -13,11 +13,11 @@ import LoadingComponent from "../LoadingComponent";
 import { formaPagoOptions, statusOptions } from "~/types/pedidos";
 
 export default function PedidosForm() {
-  const { vendedores, getVendedores } = useData();
+  const { vendedores, getPersonal } = useData();
   const { openModal } = useUIModals();
 
   const { isLoading: isLoadingData } = useDataLoader({
-    loaders: getVendedores,
+    loaders: getPersonal,
     dependencies: [vendedores],
     errorMessage: "Error loading vendedores",
   });

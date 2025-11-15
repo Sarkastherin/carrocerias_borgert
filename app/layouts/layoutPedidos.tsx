@@ -7,6 +7,8 @@ import {
   Menu,
   X,
   ArrowLeft,
+  FileBox,
+  ShieldCheck
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useData } from "~/context/DataContext";
@@ -79,6 +81,16 @@ export default function PedidosLayout() {
         href: `/pedidos/trabajo-chasis/${id}`,
         icon: Drill,
       },
+      /* {
+        title: "Órdenes de Trabajo",
+        href: `/pedidos/ordenes-trabajo/${id}`,
+        icon: FileBox,
+      },
+      {
+        title: "Controles de Calidad",
+        href: `/pedidos/controles-calidad/${id}`,
+        icon: ShieldCheck,
+      } */
     ];
   };
   const menu = menuItems(pedidoId);

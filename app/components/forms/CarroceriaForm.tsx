@@ -344,14 +344,14 @@ export default function CarroceriaForm() {
                 </Select>
                 <Select
                   label="Color lona"
-                  {...register("color_lona")}
-                  error={errors.color_lona?.message}
+                  {...register("color_lona_id")}
+                  error={errors.color_lona_id?.message}
                 >
                   <option value="">Color de lona</option>
                   {colores
                     ?.filter((item) => item.tipo === "lona")
                     .map((color) => (
-                      <option key={color.id} value={color.nombre}>
+                      <option key={color.id} value={color.id}>
                         {color.nombre}
                       </option>
                     ))}

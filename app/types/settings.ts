@@ -20,9 +20,10 @@ export type ZocalosBD = {
 export type PuertasTraserasBD = {
   nombre: string;
 } & CommonSettingsBD;
-export type VendedoresBD = {
+export type PersonalBD = {
   nombre: string;
   apellido: string;
+  sector: string;
 } & CommonSettingsBD;
 export type ConfigTrabajosChasisBD = {
   nombre: string;

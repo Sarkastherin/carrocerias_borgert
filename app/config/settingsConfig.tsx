@@ -11,7 +11,7 @@ import {
   coloresAPI,
   carrozadoAPI,
   puertasTraserasAPI,
-  vendedoresAPI,
+  personalAPI,
   configTrabajoChasisAPI,
   configItemsControlAPI,
 } from "~/backend/sheetServices";
@@ -42,7 +42,7 @@ export type SettingsDataContext = {
   colores?: any[] | null;
   carrozados?: any[] | null;
   puertasTraseras?: any[] | null;
-  vendedores?: any[] | null;
+  personal?: any[] | null;
   configTrabajosChasis?: any[] | null;
   configItemsControl?: any[] | null;
 };
@@ -51,7 +51,7 @@ export type SettingsDataLoaders = {
   getColores: () => Promise<any>;
   getCarrozados: () => Promise<any>;
   getPuertasTraseras: () => Promise<any>;
-  getVendedores: () => Promise<any>;
+  getPersonal: () => Promise<any>;
   getConfigTrabajosChasis: () => Promise<any>;
   getConfigItemsControl: () => Promise<any>;
 };
@@ -176,9 +176,9 @@ export const createSettingsConfig = (loaders: SettingsDataLoaders): ConfigItem[]
     filterFields: [{ key: "nombre", label: "Nombre", autoFilter: true }],
   },
   {
-    title: "vendedores",
+    title: "personal",
     icon: ContactRound,
-    reloadData: loaders.getVendedores,
+    reloadData: loaders.getPersonal,
     columns: [
       {
         name: "Nombre",
@@ -189,6 +189,12 @@ export const createSettingsConfig = (loaders: SettingsDataLoaders): ConfigItem[]
         name: "Apellido",
         selector: (row: any) => row.apellido || "-",
         sortable: false,
+      },
+      {
+        name: "Sector",
+        selector: (row: any) => capitalize(row.sector) || "-",
+        sortable: false,
+        width: "150px",
       },
       {
         name: "Activo",
@@ -206,16 +212,29 @@ export const createSettingsConfig = (loaders: SettingsDataLoaders): ConfigItem[]
         required: false,
       },
       {
+        name: "sector",
+        label: "Sector",
+        type: "select",
+        required: false,
+        options: [
+          { value: "ventas", label: "Ventas" },
+          { value: "fabricacion", label: "Producción" },
+          { value: "pintura", label: "Pintura" },
+          { value: "montaje", label: "Montaje" },
+        ],
+      },
+      {
         name: "activo",
         label: "Activo",
         type: "boolean",
         required: false,
       },
     ],
-    api: vendedoresAPI,
+    api: personalAPI,
     filterFields: [
       { key: "nombre", label: "Nombre", autoFilter: true },
       { key: "apellido", label: "Apellido", autoFilter: true },
+      { key: "sector", label: "Sector", autoFilter: true }
     ],
   },
   {
@@ -314,7 +333,7 @@ export const getSettingsWithData = (
     "colores": dataContext.colores || [],
     "carrozado": dataContext.carrozados || [],
     "puertas traseras": dataContext.puertasTraseras || [],
-    "vendedores": dataContext.vendedores || [],
+    "personal": dataContext.personal || [],
     "tipos de trabajos": dataContext.configTrabajosChasis || [],
     "items de control": dataContext.configItemsControl || [],
   };
@@ -334,8 +353,8 @@ export const useSettingsData = () => {
     getCarrozados,
     puertasTraseras,
     getPuertasTraseras,
-    vendedores,
-    getVendedores,
+    personal,
+    getPersonal,
     configTrabajosChasis,
     getConfigTrabajosChasis,
     configItemsControl,
@@ -348,7 +367,7 @@ export const useSettingsData = () => {
       getColores,
       getCarrozados,
       getPuertasTraseras,
-      getVendedores,
+      getPersonal,
       getConfigTrabajosChasis,
       getConfigItemsControl,
     ],
@@ -356,7 +375,7 @@ export const useSettingsData = () => {
       colores,
       carrozados,
       puertasTraseras,
-      vendedores,
+      personal,
       configTrabajosChasis,
       configItemsControl,
     ],
@@ -372,7 +391,7 @@ export const useSettingsData = () => {
         colores,
         carrozados,
         puertasTraseras,
-        vendedores,
+        personal,
         configTrabajosChasis,
         configItemsControl,
       },
@@ -380,7 +399,7 @@ export const useSettingsData = () => {
         getColores,
         getCarrozados,
         getPuertasTraseras,
-        getVendedores,
+        getPersonal,
         getConfigTrabajosChasis,
         getConfigItemsControl,
       }
@@ -393,13 +412,13 @@ export const useSettingsData = () => {
     colores,
     carrozados,
     puertasTraseras,
-    vendedores,
+    personal,
     configTrabajosChasis,
     configItemsControl,
     getColores,
     getCarrozados,
     getPuertasTraseras,
-    getVendedores,
+    getPersonal,
     getConfigTrabajosChasis,
     getConfigItemsControl,
   ]);
@@ -411,7 +430,7 @@ export const useSettingsData = () => {
     colores,
     carrozados,
     puertasTraseras,
-    vendedores,
+    personal,
     configTrabajosChasis,
     configItemsControl,
   };

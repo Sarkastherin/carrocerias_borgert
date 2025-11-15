@@ -7,6 +7,8 @@ import {
 } from "@react-router/dev/routes";
 export default [
   route("login", "routes/login.tsx"),
+  // Ruta de desarrollo para PDF (sin layout para pantalla completa)
+  route("dev/pdf", "routes/dev.pdf.tsx"),
   layout("layouts/main.tsx", [
     index("routes/home.tsx"),
     ...prefix("clientes", [
@@ -22,6 +24,8 @@ export default [
         route("carroceria/:pedidoId", "routes/pedidos/carroceria.tsx"),
         route("camion/:pedidoId", "routes/pedidos/camion.tsx"),
         route("trabajo-chasis/:pedidoId", "routes/pedidos/trabajo-chasis.tsx"),
+        route("ordenes-trabajo/:pedidoId", "routes/pedidos/ordenes-trabajo.tsx"),
+        route("controles-calidad/:pedidoId", "routes/pedidos/controles-calidad.tsx"),
       ]),
     ]),
     ...prefix("settings", [
@@ -31,7 +35,6 @@ export default [
         route("/", "routes/settings/carrozados/home.tsx"),
         route("parametros/:carrozadoId", "routes/settings/carrozados/parametros.tsx"),
       ])
-      //route("carrozados", "routes/settings/carrozados.tsx"),
     ]),
     ...prefix("ayuda", [
       index("routes/ayuda/home.tsx"),

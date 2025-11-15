@@ -5,11 +5,12 @@ import { Link } from "react-router";
 export interface GlassCardProps {
   children: React.ReactNode;
   className?: string;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "full";
   blur?: "sm" | "md" | "lg" | "xl";
   opacity?: "low" | "medium" | "high";
   padding?: "sm" | "md" | "lg" | "xl";
   centered?: boolean;
+  variant?: "default" | "blue" | "green" | "purple" | "red";
 }
 
 const sizeClasses = {
@@ -17,6 +18,7 @@ const sizeClasses = {
   md: "max-w-md",
   lg: "max-w-lg",
   xl: "max-w-xl",
+  full: "w-full",
 };
 
 const blurClasses = {
@@ -27,9 +29,9 @@ const blurClasses = {
 };
 
 const opacityClasses = {
-  low: "bg-white/10 border-white/20",
-  medium: "bg-white/20 border-white/30",
-  high: "bg-white/30 border-white/40",
+  low: "bg-white/10 dark:bg-white/5 border-white/20 dark:border-white/10",
+  medium: "bg-white/20 dark:bg-white/10 border-white/30 dark:border-white/20", 
+  high: "bg-white/30 dark:bg-white/15 border-white/40 dark:border-white/25",
 };
 
 const paddingClasses = {
@@ -37,6 +39,14 @@ const paddingClasses = {
   md: "p-6",
   lg: "p-8 sm:p-10",
   xl: "p-10 sm:p-12",
+};
+
+const variantClasses = {
+  default: "bg-gray-50/80 dark:bg-gray-900/80 border-gray-200/60 dark:border-gray-700/50",
+  blue: "bg-blue-50/90 dark:bg-blue-900/20 border-blue-200/60 dark:border-blue-700/50",
+  green: "bg-green-50/90 dark:bg-green-900/20 border-green-200/60 dark:border-green-700/50",
+  purple: "bg-purple-50/90 dark:bg-purple-900/20 border-purple-200/60 dark:border-purple-700/50",
+  red: "bg-red-50/90 dark:bg-red-900/20 border-red-200/60 dark:border-red-700/50",
 };
 
 export function GlassCard({
@@ -47,17 +57,21 @@ export function GlassCard({
   opacity = "medium",
   padding = "lg",
   centered = false,
+  variant = "default",
 }: GlassCardProps) {
   return (
     <div
       className={cn(
-        // Base styles
-        "border rounded-2xl shadow-xl w-full",
+        // Base styles - mejorados para ambos modos
+        "border rounded-2xl shadow-lg dark:shadow-2xl w-full transition-all duration-200",
+        "backdrop-blur-sm",
         // Dynamic styles
         sizeClasses[size],
         blurClasses[blur],
         opacityClasses[opacity],
         paddingClasses[padding],
+        // Variant styles (background y border)
+        variantClasses[variant],
         // Conditional centering
         centered && "text-center",
         // Custom className
@@ -149,7 +163,7 @@ export function ConfigGlassCard({
         blur="lg"
         opacity="low"
         padding="sm"
-        className="!border-gray-300/80 dark:!border-white/20 hover:bg-gray-100/50 dark:hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl overflow-hidden"
+        className="hover:bg-gray-100/70 dark:hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl overflow-hidden"
       >
         <div className="flex flex-col h-full">
           {/* Imagen o Ícono predeterminado */}
