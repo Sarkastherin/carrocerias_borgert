@@ -167,7 +167,6 @@ export function Select({
         <select
           {...props}
           className={`${basesClass(error || "")} appearance-none pr-8 text-gray-500 [&:invalid]:text-gray-400 [&>option]:text-gray-900 dark:[&>option]:text-gray-300 [&>option[value='']]:text-gray-400`}
-          required
         >
           {children}
         </select>
