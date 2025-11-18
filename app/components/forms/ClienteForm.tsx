@@ -27,7 +27,7 @@ export default function ClienteForm({
 }: ClienteFormProps) {
   const navigate = useNavigate();
   const { showConfirmation } = useUIModals();
-  const { getPersonal, vendedores, deleteClienteById, cliente } = useData();
+  const { getPersonal, personal, deleteClienteById, cliente } = useData();
   const [isDeleting, setIsDeleting] = useState(false);
   const {
     register,
@@ -99,7 +99,7 @@ export default function ClienteForm({
   const addressErrors = validateAddress();
   return (
     <>
-      {vendedores && (
+      {personal && (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <CardToggle title="Información del Cliente">
             <fieldset className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -207,9 +207,9 @@ export default function ClienteForm({
                 error={errors.vendedor_id?.message}
               >
                 <option value="">Seleccione un vendedor</option>
-                {vendedores?.map((vendedor) => (
-                  <option key={vendedor.id} value={vendedor.id}>
-                    {`${vendedor.nombre} ${vendedor.apellido}`}
+                {personal?.filter(item => item.sector === "ventas").map((empleado) => (
+                  <option key={empleado.id} value={empleado.id}>
+                    {`${empleado.nombre} ${empleado.apellido}`}
                   </option>
                 ))}
               </Select>

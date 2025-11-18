@@ -207,7 +207,7 @@ export default function ConfiguracionTutorial() {
             >
               <p className="text-gray-700 dark:text-gray-300 mb-6">
                 Todos los elementos en Parámetros Generales siguen el mismo flujo de gestión: consultar, crear, editar y eliminar. 
-                Esta sección explica el proceso común que aplica a <strong>colores, carrozados, puertas traseras, vendedores y tipos de trabajos</strong>.
+                Esta sección explica el proceso común que aplica a <strong>colores, carrozados, puertas traseras, personal y tipos de trabajos</strong>.
               </p>
 
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 mb-6">
@@ -294,7 +294,7 @@ export default function ConfiguracionTutorial() {
                 </ol>
 
                 <Alert type="info">
-                  <strong>*Excepción - Vendedores:</strong> Los vendedores pueden tener nombres duplicados 
+                  <strong>*Excepción - Personal:</strong> El personal puede tener nombres duplicados 
                   (para casos de homónimos en el equipo de ventas).
                 </Alert>
               </Step>
@@ -404,7 +404,7 @@ export default function ConfiguracionTutorial() {
                     </div>
 
                     <Alert type="success">
-                      <strong>🛡️ Validación de Nombres Únicos:</strong> El sistema automáticamente verifica que no existan nombres duplicados al crear nuevos elementos (excepto vendedores).
+                      <strong>🛡️ Validación de Nombres Únicos:</strong> El sistema automáticamente verifica que no existan nombres duplicados al crear nuevos elementos (excepto personal).
                     </Alert>
 
                     <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
@@ -443,7 +443,7 @@ export default function ConfiguracionTutorial() {
                     </div>
 
                     <Alert type="info">
-                      <strong>📝 Excepción - Vendedores:</strong> Los vendedores pueden tener nombres duplicados ya que pueden existir homónimos en el equipo de ventas.
+                      <strong>📝 Excepción - Personal:</strong> El personal puede tener nombres duplicados ya que pueden existir homónimos en el equipo de ventas.
                     </Alert>
                   </div>
                 </div>

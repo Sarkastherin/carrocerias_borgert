@@ -55,7 +55,7 @@ export const useSettingsManager = ({
     settingsConfigs.forEach(config => {
       // Reglas de validación basadas en el validationMap o configuración por defecto
       validationRules[config.title] = validationMap?.[config.title] || {
-        uniqueNameValidation: config.title !== "vendedores", // Los vendedores pueden repetir nombres
+        uniqueNameValidation: config.title !== "personal", // El personal pueden repetir nombres
         usageValidation: validationMap?.[config.title]?.usageValidation
       };
 

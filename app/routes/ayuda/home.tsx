@@ -63,7 +63,7 @@ const tutorials = [
     id: "configuracion",
     title: "Configuración del Sistema",
     description:
-      "Personaliza el sistema según tus necesidades: colores, carrozados, vendedores y otras configuraciones importantes.",
+      "Personaliza el sistema según tus necesidades: colores, carrozados, personal y otras configuraciones importantes.",
     icon: <Settings className="w-6 h-6" />,
     category: "Administración",
     duration: "10 min",
@@ -72,7 +72,7 @@ const tutorials = [
     topics: [
       "Gestionar colores disponibles",
       "Configurar tipos de carrozado",
-      "Administrar vendedores",
+      "Administrar personal",
       "Opciones de trabajos de chasis",
       "Configuraciones generales",
     ],
