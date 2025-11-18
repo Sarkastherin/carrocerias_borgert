@@ -44,7 +44,7 @@ export type PedidosBD = {
   cliente_id: string;
   precio_total: number;
   forma_pago: (typeof formaPagoOptions)[number]["value"];
-  valor_tasacion?: number | string;
+  valor_tasacion?: number;
   forma_pago_otros: string;
   fecha_entrega_estimada: string;
   status: (typeof statusOptions)[number]["value"];
@@ -79,6 +79,7 @@ export type CarroceriaBD = {
   med_cuchetin: number;
   alt_pta_cuchetin: number;
   alt_techo_cuchetin: number;
+  notas_cuchetin: string;
   /* color */
   color_lona_id: string;
   color_carrozado_id: string;
@@ -128,3 +129,12 @@ export type PedidosUI = PedidosTable & {
 } & {
   trabajo_chasis: (TrabajoChasisBD & { tipo_trabajo_nombre: string })[];
 } & { camion: CamionBD | null };
+export type OrdenesBD = {
+  id: string;
+  fecha_creacion: string;
+  pedido_id: string;
+  tipo_orden: "fabricacion" | "pintura" | "chasis";
+  responsable_id: string;
+  fecha_ejecucion: string;
+  url_archivo: string;
+}

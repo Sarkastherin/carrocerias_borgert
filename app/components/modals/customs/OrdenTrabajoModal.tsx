@@ -53,12 +53,6 @@ const ordenConfigs: Record<TipoOrden, OrdenConfig> = {
         placeholder: "Nombre del responsable",
         options: [] // Se llena dinámicamente con personal del sector
       },
-      {
-        name: "observaciones",
-        label: "Observaciones especiales",
-        type: "textarea",
-        placeholder: "Notas adicionales...",
-      },
     ],
   },
   pintura: {
@@ -203,7 +197,6 @@ export default function OrdenTrabajoModal({
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-console.log(pedidoData)
   // Hook para acceder al personal desde el contexto global
   const { personal, getPersonal } = useData();
 
@@ -211,6 +204,7 @@ console.log(pedidoData)
   const {
     generateOrdenPDF,
     savePDFToDrive,
+    createRegisterAndUpdatePedido,
     generateFileName,
     isGenerating,
     isSaving,
@@ -355,9 +349,15 @@ console.log(pedidoData)
 
     try {
       setStep("saving");
-
       const fileName = generateFileName(tipoOrden, formData, pedidoData);
-      await savePDFToDrive(pdfBlob, fileName);
+      const urlFile = await savePDFToDrive(pdfBlob, fileName, tipoOrden);
+      // Crear registro en Google Sheets y actualizar pedido
+      await createRegisterAndUpdatePedido(
+        urlFile,
+        pedidoData?.id || '',
+        tipoOrden,
+        formData.responsable
+      );
 
       setStep("success");
     } catch (error) {

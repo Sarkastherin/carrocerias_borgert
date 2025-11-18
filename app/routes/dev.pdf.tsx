@@ -48,6 +48,7 @@ export default function PDFDev() {
         tipo_piso: "liso",
         color_carrozado_id: "41f02df1-fc51-42c7-b110-d4c0adbea7a7",
         color_zocalo_id: "1d3c61aa-1a4c-44b4-87c4-8247d37d5ce6",
+        color_lona_nombre: "A CONFIRMAR",
         notas_color: "NO LLEVA LONA - COLOR CAROCERÍA MARFIL 011 - NO HAY ESPESOR DE CHAPA",
         boquillas: 0,
         med_cajon_herramientas: 0,
@@ -57,7 +58,9 @@ export default function PDFDev() {
         cintas_reflectivas: "nacionales",
         med_alargue: 0,
         quiebre_alargue: false,
-        observaciones: "VER PLANO - DECIDIR ESPESOR DE CHAPA",
+        observaciones: `SEGUROS EN BARANDAS 
+        DOBLE TRABA INFERIOR EN BARANDAS CHASIS 
+        Y ACCESORIOS EN COLOR GRIS SCANIA OSCURO (7016) BOQUILLAS TIPO GUILLOTIN`,
         carrozado_nombre: "VOLCADORA BILATERAL",
         puerta_trasera_nombre: "LIBRO CON CEREALERA",
         color_carrozado_nombre: "A CONFIRMAR",

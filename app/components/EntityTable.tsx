@@ -72,31 +72,51 @@ export function EntityTable<T>({
 }: EntityTableProps<T>) {
   const { theme } = useUI();
   const location = useLocation();
-  const storageKey = alternativeStorageKey || `entityTableFilters_${location.pathname}`;
+  const storageKey =
+    alternativeStorageKey || `entityTableFilters_${location.pathname}`;
 
   // Función para crear un componente de estado con colores
-  const StatusCell = ({ row, originalSelector }: { row: T; originalSelector: (row: T) => any }) => {
+  const StatusCell = ({
+    row,
+    originalSelector,
+  }: {
+    row: T;
+    originalSelector: (row: T) => any;
+  }) => {
     const status = originalSelector(row);
     const isActive = status === "Activo" || status === "Sí" || status === true;
-    
+
     return (
-      <span className={`font-medium text-xs px-2 py-1 rounded-full ${
-        isActive 
-          ? 'text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/30' 
-          : 'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/30'
-      }`}>
-        {typeof status === 'boolean' ? (status ? 'Activo' : 'Inactivo') : status}
+      <span
+        className={`font-medium text-xs px-2 py-1 rounded-full ${
+          isActive
+            ? "text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/30"
+            : "text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/30"
+        }`}
+      >
+        {typeof status === "boolean"
+          ? status
+            ? "Activo"
+            : "Inactivo"
+          : status}
       </span>
     );
   };
 
   // Procesar columnas para aplicar formato especial a columnas de estado
-  const processedColumns = columns.map(column => {
+  const processedColumns = columns.map((column) => {
     // Detectar si es una columna de estado por el nombre
-    if ((column.name === "Activo" || column.name === "Estado" || column.name === "Status") && column.selector) {
+    if (
+      (column.name === "Activo" ||
+        column.name === "Estado" ||
+        column.name === "Status") &&
+      column.selector
+    ) {
       return {
         ...column,
-        cell: (row: T) => <StatusCell row={row} originalSelector={column.selector!} />
+        cell: (row: T) => (
+          <StatusCell row={row} originalSelector={column.selector!} />
+        ),
       };
     }
     return column;
@@ -116,15 +136,27 @@ export function EntityTable<T>({
     const value = getNestedValue(row, inactiveField);
     // Si el campo es booleano, verificamos que sea false
     // Si es string, verificamos valores como "No", "Inactivo", etc.
-    return value === false || value === "No" || value === "Inactivo" || value === "no" || value === "false";
+    return (
+      value === false ||
+      value === "No" ||
+      value === "Inactivo" ||
+      value === "no" ||
+      value === "false"
+    );
   };
 
   // Función para obtener estilos condicionales de fila
   const getInactiveRowStyles = () => {
     return {
-      opacity: '0.6',
-      backgroundColor: theme === 'dark' ? 'rgba(107, 114, 128, 0.1)' : 'rgba(156, 163, 175, 0.1)',
-      borderLeft: theme === 'dark' ? '3px solid rgb(107, 114, 128)' : '3px solid rgb(156, 163, 175)',
+      opacity: "0.6",
+      backgroundColor:
+        theme === "dark"
+          ? "rgba(107, 114, 128, 0.1)"
+          : "rgba(156, 163, 175, 0.1)",
+      borderLeft:
+        theme === "dark"
+          ? "3px solid rgb(107, 114, 128)"
+          : "3px solid rgb(156, 163, 175)",
     };
   };
   function removeAccents(str: string) {
@@ -263,13 +295,24 @@ export function EntityTable<T>({
         pointerOnHover
         highlightOnHover
         paginationComponentOptions={options}
-        noDataComponent={noDataComponent || <div className="py-6 text-text-secondary">No se encontraron registros</div>}
-        conditionalRowStyles={inactiveField ? [
-          {
-            when: (row: T) => isRowInactive(row),
-            style: getInactiveRowStyles(),
-          }
-        ] : undefined}
+        noDataComponent={
+          noDataComponent || (
+            <div className="py-6 text-text-secondary">
+              No se encontraron registros
+            </div>
+          )
+        }
+        conditionalRowStyles={
+          inactiveField
+            ? [
+                {
+                  when: (row: T) => isRowInactive(row),
+                  style: getInactiveRowStyles(),
+                },
+              ]
+            : undefined
+        }
+        defaultSortAsc={true}
       />
     </>
   );

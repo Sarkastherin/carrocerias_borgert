@@ -5,6 +5,7 @@ import type {
   PedidosBD,
   CamionBD,
   TrabajoChasisBD,
+  OrdenesBD,
 } from "~/types/pedidos";
 import type {
   ColoresBD,
@@ -81,4 +82,9 @@ export const controlCarrozadoAPI = createCrud<ControlCarrozadoDB>({
   sheetId: import.meta.env.VITE_SHEET_ID_ESPECIALES,
   nameSheet: "Ítems de Control",
   nameFile: "Parámetros Especiales: carrozados",
+});
+export const ordenesAPI =  createCrud<OrdenesBD>({
+  sheetId: import.meta.env.VITE_SHEET_ID_ORDENES,
+  nameSheet: "Ordenes",
+  nameFile: "Órdenes de Trabajo",
 });

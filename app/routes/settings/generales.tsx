@@ -377,7 +377,9 @@ export default function SettingsLayout() {
                         key={item.title}
                         alternativeStorageKey={`entityTableFilters_settings_${item.title}`}
                         columns={[...item.columns, actionColumn]}
-                        data={item.data}
+                        data={item.data.sort((a: any, b: any) =>
+                          a.nombre.localeCompare(b.nombre)
+                        )}
                         filterFields={item.filterFields}
                         onRowClick={handleOnRowClick}
                         inactiveField="activo"

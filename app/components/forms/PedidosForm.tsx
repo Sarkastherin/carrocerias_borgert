@@ -13,12 +13,12 @@ import LoadingComponent from "../LoadingComponent";
 import { formaPagoOptions, statusOptions } from "~/types/pedidos";
 
 export default function PedidosForm() {
-  const { vendedores, getPersonal } = useData();
+  const { personal, getPersonal } = useData();
   const { openModal } = useUIModals();
 
   const { isLoading: isLoadingData } = useDataLoader({
     loaders: getPersonal,
-    dependencies: [vendedores],
+    dependencies: [personal],
     errorMessage: "Error loading vendedores",
   });
   const {
@@ -105,11 +105,11 @@ export default function PedidosForm() {
                     requiredField={true}
                   >
                     <option value="">Seleccione un vendedor</option>
-                    {vendedores
-                      ?.filter((item) => item.activo)
-                      .map((vendedor) => (
-                        <option key={vendedor.id} value={vendedor.id}>
-                          {`${vendedor.nombre} ${vendedor.apellido}`}
+                    {personal
+                      ?.filter((item) => item.activo && item.sector === "ventas")
+                      .map((empleado) => (
+                        <option key={empleado.id} value={empleado.id}>
+                          {`${empleado.nombre} ${empleado.apellido}`}
                         </option>
                       ))}
                   </Select>

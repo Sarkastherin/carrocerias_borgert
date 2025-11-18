@@ -6,6 +6,7 @@ import {
   View,
   StyleSheet,
   Image,
+  Line,
 } from "@react-pdf/renderer";
 import type { PedidosUI } from "~/types/pedidos";
 import { formatDateUStoES } from "~/utils/formatDate";
@@ -24,7 +25,7 @@ const styles = StyleSheet.create({
     color: "#434343",
   },
   title: {
-    fontSize: 22,
+    fontSize: 20,
     textAlign: "center",
     fontFamily: "Helvetica-Bold", // Título en negrita
     color: "#000000",
@@ -33,9 +34,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    borderBottom: "1px solid #333",
+    borderBottom: "1px solid #444",
     marginBottom: 20,
-    paddingBottom: 10,
+    paddingBottom: 5,
   },
   cell: {
     flex: 1,
@@ -56,11 +57,11 @@ const styles = StyleSheet.create({
 const Subtitle = ({ children }: { children: React.ReactNode }) => (
   <Text
     style={{
-      fontSize: 14,
+      fontSize: 12,
       fontFamily: "Helvetica",
       fontWeight: "bold",
       paddingBottom: 6,
-      paddingTop: 10,
+      paddingTop: 12,
     }}
   >
     {children}
@@ -72,9 +73,8 @@ const Box = ({ children }: { children: React.ReactNode }) => (
       fontSize: 10,
       fontFamily: "Helvetica",
       lineHeight: 1.4,
-      border: "1px dashed red",
+      border: "1px solid #ccc",
       borderRadius: 4,
-      marginBottom: 12,
     }}
   >
     {children}
@@ -89,7 +89,7 @@ const Row = ({
 }) => (
   <View
     style={{
-      borderBottom: isLast ? "none" : "1px dashed blue",
+      borderBottom: isLast ? "none" : "1px dashed #ccc",
       display: "flex",
       flexDirection: "row",
     }}
@@ -110,7 +110,7 @@ const Cell = ({
     style={{
       flex: 1,
       padding: "4px 6px",
-      borderLeft: isFirst ? "none" : "1px dashed purple",
+      borderLeft: isFirst ? "none" : "1px dashed #ccc",
     }}
   >
     <Text style={{ fontWeight: "bold" }}>{title}: </Text>
@@ -138,7 +138,7 @@ export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
         <Text style={styles.title}>Orden de Fabricación</Text>
-        <Image src="/logo.jpeg" style={{ width: 150 }} />
+        <Image src="/logo.jpeg" style={{ width: 130 }} />
       </View>
       <View>
         <View>
@@ -152,7 +152,11 @@ export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
               />
               <Cell
                 title="Fecha de Pedido"
-                value={formatDateUStoES(pedidoData?.fecha_pedido)}
+                value={new Date().toLocaleDateString("es-ES", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })}
               />
             </Row>
             <Row isLast>
@@ -191,159 +195,214 @@ export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
         </View>
         <View>
           <Subtitle>Detalles de la Carrocería</Subtitle>
-          <Box>
-            <TitleBox title="Detalles generales" />
-            <Row>
-              <Cell
-                title="Tipo de Carrocería"
-                value={pedidoData?.carroceria?.carrozado_nombre}
-                isFirst
-              />
-            </Row>
-            <Row>
-              <Cell
-                title="Material"
-                value={pedidoData?.carroceria?.material}
-                isFirst
-              />
-              <Cell
-                title="Espesor"
-                value={pedidoData?.carroceria?.espesor_chapa + " mm"}
-              />
-            </Row>
-            <Row>
-              <Cell
-                title="Largo Int."
-                value={pedidoData?.carroceria?.largo_int + " mm"}
-                isFirst
-              />
-              <Cell
-                title="Largo Ext."
-                value={pedidoData?.carroceria?.largo_ext + " mm"}
-              />
-            </Row>
-            <Row isLast>
-              <Cell
-                title="Alto"
-                value={pedidoData?.carroceria?.alto + " mm"}
-                isFirst
-              />
-              <Cell
-                title="Ancho Ext."
-                value={pedidoData?.carroceria?.ancho_ext + " mm"}
-              />
-            </Row>
-          </Box>
-          <Box>
-            <TitleBox title="Estructura" />
-            <Row>
-              <Cell
-                title="Puerta Trasera"
-                value={pedidoData?.carroceria?.puerta_trasera_nombre}
-                isFirst
-              />
-            </Row>
-            <Row>
-              <Cell
-                title="Altura baranda"
-                value={pedidoData?.carroceria?.alt_baranda}
-                isFirst
-              />
-              <Cell
-                title="Puertas por lado"
-                value={pedidoData?.carroceria?.ptas_por_lado}
-              />
-              <Cell
-                title="Arcos por puerta"
-                value={pedidoData?.carroceria?.arcos_por_puerta}
-              />
-            </Row>
-            <Row>
-              <Cell
-                title="Corte en guardabarros"
-                value={pedidoData?.carroceria?.corte_guardabarros ? "Sí" : "No"}
-                isFirst
-              />
-              <Cell
-                title="Cumbreras"
-                value={pedidoData?.carroceria?.cumbreras ? "Sí" : "No"}
-              />
-              <Cell
-                title="Refuerzos laterales"
-                value={
-                  pedidoData?.carroceria?.lineas_refuerzo === 0
-                    ? "No"
-                    : pedidoData?.carroceria?.lineas_refuerzo + " líneas"
-                }
-              />
-            </Row>
-            <Row isLast>
-              <Cell
-                title="Tipo de Zócalo"
-                value={pedidoData?.carroceria?.tipo_zocalo
-                  ?.toUpperCase()
-                  .split("_")
-                  .join(" ")}
-                isFirst
-              />
-              <Cell
-                title="Tipo de piso"
-                value={pedidoData?.carroceria?.tipo_piso?.toUpperCase()}
-              />
-            </Row>
-          </Box>
-          <Box>
-            <TitleBox title="Cuchetín" />
-            <Row isLast>
-              <Cell
-                title="Con chuchetín"
-                value={pedidoData?.carroceria?.cuchetin ? "Sí" : "No"}
-                isFirst
-              />
-              <Cell
-                title="Medida"
-                value={
-                  pedidoData?.carroceria?.med_cuchetin === 0
-                    ? "N/A"
-                    : pedidoData?.carroceria?.med_cuchetin + " mm"
-                }
-              />
-              <Cell
-                title="Alto puerta"
-                value={
-                  pedidoData?.carroceria?.alt_pta_cuchetin === 0
-                    ? "N/A"
-                    : pedidoData?.carroceria?.alt_pta_cuchetin + " mm"
-                }
-              />
-              <Cell
-                title="Altura techo"
-                value={
-                  pedidoData?.carroceria?.alt_techo_cuchetin === 0
-                    ? "N/A"
-                    : pedidoData?.carroceria?.alt_techo_cuchetin + " mm"
-                }
-              />
-            </Row>
-          </Box>
-          <Box>
-            <TitleBox title="Colores" />
-            <Row isLast>
-              <Cell
-                title="Carrozado"
-                value={pedidoData?.carroceria?.color_carrozado_nombre}
-                isFirst
-              />
-              <Cell
-                title="Zócalo"
-                value={pedidoData?.carroceria?.color_zocalo_nombre}
-              />
-              <Cell
-                title="Lona"
-                value={pedidoData?.carroceria?.color_lona_nombre}
-              />
-            </Row>
-          </Box>
+          <View style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <Box>
+              <TitleBox title="Detalles generales" />
+              <Row>
+                <Cell
+                  title="Tipo de Carrocería"
+                  value={pedidoData?.carroceria?.carrozado_nombre}
+                  isFirst
+                />
+              </Row>
+              <Row>
+                <Cell
+                  title="Material"
+                  value={pedidoData?.carroceria?.material}
+                  isFirst
+                />
+                <Cell
+                  title="Espesor"
+                  value={pedidoData?.carroceria?.espesor_chapa + " mm"}
+                />
+              </Row>
+              <Row>
+                <Cell
+                  title="Largo Int."
+                  value={pedidoData?.carroceria?.largo_int + " mm"}
+                  isFirst
+                />
+                <Cell
+                  title="Largo Ext."
+                  value={pedidoData?.carroceria?.largo_ext + " mm"}
+                />
+              </Row>
+              <Row isLast>
+                <Cell
+                  title="Alto"
+                  value={pedidoData?.carroceria?.alto + " mm"}
+                  isFirst
+                />
+                <Cell
+                  title="Ancho Ext."
+                  value={pedidoData?.carroceria?.ancho_ext + " mm"}
+                />
+              </Row>
+            </Box>
+            <Box>
+              <TitleBox title="Estructura" />
+              <Row>
+                <Cell
+                  title="Puerta Trasera"
+                  value={pedidoData?.carroceria?.puerta_trasera_nombre}
+                  isFirst
+                />
+              </Row>
+              <Row>
+                <Cell
+                  title="Altura baranda"
+                  value={pedidoData?.carroceria?.alt_baranda}
+                  isFirst
+                />
+                <Cell
+                  title="Puertas por lado"
+                  value={pedidoData?.carroceria?.ptas_por_lado}
+                />
+                <Cell
+                  title="Arcos por puerta"
+                  value={pedidoData?.carroceria?.arcos_por_puerta}
+                />
+              </Row>
+              <Row>
+                <Cell
+                  title="Corte en guardabarros"
+                  value={
+                    pedidoData?.carroceria?.corte_guardabarros ? "Sí" : "No"
+                  }
+                  isFirst
+                />
+                <Cell
+                  title="Cumbreras"
+                  value={pedidoData?.carroceria?.cumbreras ? "Sí" : "No"}
+                />
+                <Cell
+                  title="Refuerzos laterales"
+                  value={
+                    pedidoData?.carroceria?.lineas_refuerzo === 0
+                      ? "No"
+                      : pedidoData?.carroceria?.lineas_refuerzo + " líneas"
+                  }
+                />
+              </Row>
+              <Row isLast>
+                <Cell
+                  title="Tipo de Zócalo"
+                  value={pedidoData?.carroceria?.tipo_zocalo
+                    ?.toUpperCase()
+                    .split("_")
+                    .join(" ")}
+                  isFirst
+                />
+                <Cell
+                  title="Tipo de piso"
+                  value={pedidoData?.carroceria?.tipo_piso?.toUpperCase()}
+                />
+              </Row>
+            </Box>
+            <Box>
+              <TitleBox title="Cuchetín" />
+              <Row isLast>
+                <Cell
+                  title="Con chuchetín"
+                  value={pedidoData?.carroceria?.cuchetin ? "Sí" : "No"}
+                  isFirst
+                />
+                <Cell
+                  title="Medida"
+                  value={
+                    pedidoData?.carroceria?.med_cuchetin === 0
+                      ? "N/A"
+                      : pedidoData?.carroceria?.med_cuchetin + " mm"
+                  }
+                />
+                <Cell
+                  title="Alto puerta"
+                  value={
+                    pedidoData?.carroceria?.alt_pta_cuchetin === 0
+                      ? "N/A"
+                      : pedidoData?.carroceria?.alt_pta_cuchetin + " mm"
+                  }
+                />
+                <Cell
+                  title="Altura techo"
+                  value={
+                    pedidoData?.carroceria?.alt_techo_cuchetin === 0
+                      ? "N/A"
+                      : pedidoData?.carroceria?.alt_techo_cuchetin + " mm"
+                  }
+                />
+              </Row>
+            </Box>
+            <Box>
+              <TitleBox title="Colores" />
+              <Row>
+                <Cell
+                  title="Carrozado"
+                  value={pedidoData?.carroceria?.color_carrozado_nombre}
+                  isFirst
+                />
+                <Cell
+                  title="Zócalo"
+                  value={pedidoData?.carroceria?.color_zocalo_nombre}
+                />
+                <Cell
+                  title="Lona"
+                  value={pedidoData?.carroceria?.color_lona_nombre}
+                />
+              </Row>
+              <Row isLast>
+                <Cell
+                  title="Observaciones de color"
+                  value={pedidoData?.carroceria?.notas_color}
+                  isFirst
+                />
+              </Row>
+            </Box>
+            <Box>
+              <Row isLast>
+                <Cell
+                  title="Observaciones generales"
+                  value={pedidoData?.carroceria?.observaciones}
+                  isFirst
+                />
+              </Row>
+            </Box>
+            {/* <View style={{borderBottom: "1px solid #ccc", marginVertical: 2}}></View> */}
+            <View
+              style={{
+                fontSize: 10,
+                fontFamily: "Helvetica",
+                border: "1px solid #ccc",
+                borderRadius: 4,
+                height: 60,
+              }}
+            >
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  padding: "8px",
+                  fontWeight: "bold",
+                }}
+              >
+                <Text>Firma Responsable</Text>
+                <Text>Fecha ejecución</Text>
+              </View>
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  padding: "8px",
+                  fontWeight: "bold",
+                }}
+              >
+                <Text>____________________</Text>
+                <Text>_____/_____/_______</Text>
+              </View>
+            </View>
+          </View>
         </View>
       </View>
     </Page>

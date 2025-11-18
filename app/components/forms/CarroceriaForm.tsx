@@ -210,10 +210,7 @@ export default function CarroceriaForm() {
                 />
                 <Select
                   label="Arcos por puerta"
-                  {...register("arcos_por_puerta", {
-                    required: "Este campo es obligatorio",
-                  })}
-                  requiredField
+                  {...register("arcos_por_puerta")}
                   error={errors.arcos_por_puerta?.message}
                 >
                   <option value="">Seleccione una opción</option>
@@ -405,6 +402,13 @@ export default function CarroceriaForm() {
                   requiredField
                   error={errors.alt_techo_cuchetin?.message}
                 />
+                <div className="col-span-4">
+                <Textarea
+                  disabled={!watch("cuchetin")}
+                  label="Observaciones cuchetín"
+                  {...register("notas_cuchetin")}
+                  rows={2}
+                /></div>
               </fieldset>
             </CardToggle>
             <CardToggle title="Accessorios">
@@ -412,39 +416,27 @@ export default function CarroceriaForm() {
                 <InputWithIcon
                   type="number"
                   label="Cantidad de boquillas"
-                  {...register("boquillas", {
-                    required: "Este campo es obligatorio",
-                  })}
+                  {...register("boquillas")}
                   icon={RulerDimensionLine}
-                  requiredField
                   error={errors.boquillas?.message}
                 />
                 <InputWithIcon
                   type="number"
                   label="Medida cajón de herramientas"
-                  {...register("med_cajon_herramientas", {
-                    required: "Este campo es obligatorio",
-                  })}
+                  {...register("med_cajon_herramientas")}
                   icon={RulerDimensionLine}
-                  requiredField
                   error={errors.med_cajon_herramientas?.message}
                 />
                 <InputWithIcon
                   type="number"
                   label="Cantidad de luces"
-                  {...register("luces", {
-                    required: "Este campo es obligatorio",
-                  })}
+                  {...register("luces")}
                   icon={RulerDimensionLine}
-                  requiredField
                   error={errors.luces?.message}
                 />
                 <Select
                   label="Cintas reflectivas"
-                  {...register("cintas_reflectivas", {
-                    required: "Este campo es obligatorio",
-                  })}
-                  requiredField
+                  {...register("cintas_reflectivas")}
                   error={errors.cintas_reflectivas?.message}
                 >
                   <option value="">Seleccione una opción</option>
@@ -470,11 +462,8 @@ export default function CarroceriaForm() {
                 <InputWithIcon
                   type="number"
                   label="Medida alargue (mm)"
-                  {...register("med_alargue", {
-                    required: "Este campo es obligatorio",
-                  })}
+                  {...register("med_alargue")}
                   icon={RulerDimensionLine}
-                  requiredField
                   error={errors.med_alargue?.message}
                 />
                 <ToggleCheckbox

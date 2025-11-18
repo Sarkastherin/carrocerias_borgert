@@ -29,8 +29,6 @@ export function usePedidosForm() {
           forma_pago: "",
           valor_tasacion: 0,
           status: "nuevo",
-          fecha_entrega: "",
-          notas_entrega: "",
           vendedor_id: "",
         },
   });

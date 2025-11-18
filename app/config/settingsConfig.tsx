@@ -243,7 +243,7 @@ export const createSettingsConfig = (loaders: SettingsDataLoaders): ConfigItem[]
     reloadData: loaders.getConfigTrabajosChasis,
     columns: [
       {
-        name: "Descripción del trabajo",
+        name: "Nombre",
         selector: (row: any) => row.nombre,
         sortable: true,
       },
