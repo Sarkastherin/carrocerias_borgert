@@ -5,8 +5,10 @@ import { ContainerToForms } from "~/components/Containers";
 import { GlassCard } from "~/components/GlassCard";
 import { getIcon } from "~/components/IconComponent";
 import { useOrdenTrabajoModal } from "~/hooks/useOrdenTrabajoModal";
-import type { TipoOrden } from "~/components/modals/customs/OrdenTrabajoModal";
 import { useData } from "~/context/DataContext";
+import { useEffect } from "react";
+import { Badge } from "~/components/Badge";
+import { tipoOrdenOptions } from "~/types/pedidos";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Órdenes de Trabajo" },
@@ -14,30 +16,57 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 export default function OrdenesPedidos() {
-  const { pedido } = useData();
+  const { pedido, getOrdenesByPedidoId, ordenesByPedido } = useData();
   const { openOrdenModal } = useOrdenTrabajoModal();
 
-  const ordenes = [
+  // Cargar las órdenes del pedido actual
+  useEffect(() => {
+    if (pedido?.id) {
+      getOrdenesByPedidoId(pedido.id);
+    }
+  }, [pedido?.id, getOrdenesByPedidoId]);
+  const tipoOrdenes = [
     {
       name: "Fabricación de Carrocerías",
       description:
         "Generar órden de trabajo para la fabricación de la carrocería según las especificaciones del pedido.",
       icon: Hammer,
-      tipo: "fabricacion" as TipoOrden,
+      tipo: "fabricacion" as typeof tipoOrdenOptions[number]["value"],
+      isCreated: ordenesByPedido
+        ? ordenesByPedido.some((orden) => orden.tipo_orden === "fabricacion")
+        : false,
+      urlFile: ordenesByPedido?.find(
+        (order) => order.tipo_orden === "fabricacion"
+      )?.url_archivo,
+      order: ordenesByPedido?.find(
+        (order) => order.tipo_orden === "fabricacion"
+      ),
     },
     {
       name: "Pintura y Acabados",
       description:
         "Generar órden de trabajo para la pintura y acabados de componentes de la carrocería",
       icon: BrushCleaning,
-      tipo: "pintura" as TipoOrden,
+      tipo: "pintura" as typeof tipoOrdenOptions[number]["value"],
+      isCreated: ordenesByPedido
+        ? ordenesByPedido.some((orden) => orden.tipo_orden === "pintura")
+        : false,
+      urlFile: ordenesByPedido?.find((order) => order.tipo_orden === "pintura")
+        ?.url_archivo,
+      order: ordenesByPedido?.find((order) => order.tipo_orden === "pintura"),
     },
     {
       name: "Colocación y trabajos en chasis",
       description:
         "Generar órden de trabajo para la colocación y ensamblaje de componentes de la carrocería",
       icon: ToolCase,
-      tipo: "chasis" as TipoOrden,
+      tipo: "montaje" as typeof tipoOrdenOptions[number]["value"],
+      isCreated: ordenesByPedido
+        ? ordenesByPedido.some((orden) => orden.tipo_orden === "montaje")
+        : false,
+      urlFile: ordenesByPedido?.find((order) => order.tipo_orden === "montaje")
+        ?.url_archivo,
+      order: ordenesByPedido?.find((order) => order.tipo_orden === "montaje"),
     },
   ];
   return (
@@ -50,7 +79,7 @@ export default function OrdenesPedidos() {
         }}
       />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {ordenes.map((orden) => {
+        {tipoOrdenes.map((orden) => {
           const IconComponent = getIcon({
             icon: orden.icon as any,
             size: 6,
@@ -68,7 +97,7 @@ export default function OrdenesPedidos() {
               <div
                 className="flex flex-col items-start h-full cursor-pointer"
                 onClick={() => {
-                  if (pedido) openOrdenModal(orden.tipo, pedido);
+                  if (pedido) openOrdenModal(orden.tipo, pedido, orden.order);
                 }}
               >
                 <div className="mb-3 sm:mb-4 p-2.5 sm:p-3 rounded-xl bg-gray-500/20 dark:bg-white/20 backdrop-blur-sm group-hover:bg-white/30  transition-colors">
@@ -80,6 +109,21 @@ export default function OrdenesPedidos() {
                 <p className="text-sm text-text-secondary group-hover:text-gray-100 transition-colors leading-relaxed flex-1">
                   {orden.description}
                 </p>
+                {orden.order && (
+                  <>
+                    {orden.order.status && orden.order.status ? (
+                      <Badge
+                        variant={
+                          orden.order.status === "completada" ? "green" : "red"
+                        }
+                      >
+                        {orden.order.status}
+                      </Badge>
+                    ) : (
+                      <Badge variant={"blue"}>Orden generada</Badge>
+                    )}
+                  </>
+                )}
               </div>
             </GlassCard>
           );

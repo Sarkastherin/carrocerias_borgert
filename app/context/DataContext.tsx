@@ -13,11 +13,18 @@ import {
   configItemsControlAPI,
   defaultAPI,
   controlCarrozadoAPI,
+  ordenesAPI,
 } from "~/backend/sheetServices";
 import type { ClientesBD } from "~/types/clientes";
 import { useUIModals } from "./ModalsContext";
 import { getFormattedError, logDetailedError } from "~/utils/errorMessage";
-import type { PedidosBD, PedidosTable, PedidosUI, TrabajoChasisBD } from "~/types/pedidos";
+import type {
+  PedidosBD,
+  PedidosTable,
+  PedidosUI,
+  TrabajoChasisBD,
+  OrdenesBD,
+} from "~/types/pedidos";
 import type {
   ColoresBD,
   CarrozadosBD,
@@ -66,6 +73,14 @@ type DataContextType = {
     React.SetStateAction<DefaultDB[] | null>
   >;
   getCarrozadoByID: (id: string) => Promise<void>;
+  ordenes: OrdenesBD[] | null;
+  getOrdenes: () => Promise<OrdenesBD[]>;
+  getOrdenesByPedidoId: (
+    pedidoId: string,
+    refresh?: boolean
+  ) => Promise<OrdenesBD[]>;
+  ordenesByPedido: OrdenesBD[] | null;
+  setOrdenesByPedido: React.Dispatch<React.SetStateAction<OrdenesBD[] | null>>;
 };
 const DataContext = createContext<DataContextType | undefined>(undefined);
 export const DataProvider = ({ children }: { children: React.ReactNode }) => {
@@ -93,6 +108,10 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const [selectedCarrozado, setSelectedCarrozado] = useState<
     DefaultDB[] | null
   >(null);
+  const [ordenes, setOrdenes] = useState<OrdenesBD[] | null>(null);
+  const [ordenesByPedido, setOrdenesByPedido] = useState<OrdenesBD[] | null>(
+    null
+  );
   const getClientes = async () => {
     const response = await clientesAPI.read();
     if (!response.success) {
@@ -186,44 +205,47 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       const formattedError = getFormattedError(responseCarroceria.error);
       throw new Error(formattedError);
     }
-    const carroceriaId = Array.isArray(responseCarroceria.data) 
+    const carroceriaId = Array.isArray(responseCarroceria.data)
       ? responseCarroceria.data[0]?.tipo_carrozado_id || ""
       : responseCarroceria.data?.tipo_carrozado_id || "";
     /* Obtener datos de las referencias (id's) */
-    const getCarrozado=async (id: string) => {
-      if(!carrozados) {
+    const getCarrozado = async (id: string) => {
+      if (!carrozados) {
         //Si no hay carrozados cargados, cargarlos
         const carrozadosData = await getCarrozados();
         const carrozadoPedido = carrozadosData.find((c) => c.id === id);
-        if(!carrozadoPedido) return null;
+        if (!carrozadoPedido) return null;
         return carrozadoPedido;
-      }
-      else {
+      } else {
         const carrozadoPedido = carrozados.find((c) => c.id === id);
-        if(!carrozadoPedido) return null;
+        if (!carrozadoPedido) return null;
         return carrozadoPedido;
       }
-    }
+    };
     const carrozado = await getCarrozado(carroceriaId);
     if (carrozado) {
       //Agregar carrozado_nombre al objeto carroceria
       if (Array.isArray(responseCarroceria.data)) {
-        (responseCarroceria.data[0] as any).carrozado_nombre = carrozado.nombre || "";
+        (responseCarroceria.data[0] as any).carrozado_nombre =
+          carrozado.nombre || "";
       } else if (responseCarroceria.data) {
-        (responseCarroceria.data as any).carrozado_nombre = carrozado.nombre || "";
+        (responseCarroceria.data as any).carrozado_nombre =
+          carrozado.nombre || "";
       }
     }
-    
+
     /* Obtener puerta trasera */
-    const puertaTraseraId = Array.isArray(responseCarroceria.data) 
+    const puertaTraseraId = Array.isArray(responseCarroceria.data)
       ? responseCarroceria.data[0]?.puerta_trasera_id || ""
       : responseCarroceria.data?.puerta_trasera_id || "";
-      
+
     const getPuertaTrasera = async (id: string) => {
       if (!puertasTraseras) {
         // Si no hay puertas traseras cargadas, cargarlas
         const puertasTraserasData = await getPuertasTraseras();
-        const puertaTraseraPedido = puertasTraserasData.find((p) => p.id === id);
+        const puertaTraseraPedido = puertasTraserasData.find(
+          (p) => p.id === id
+        );
         if (!puertaTraseraPedido) return null;
         return puertaTraseraPedido;
       } else {
@@ -232,29 +254,31 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         return puertaTraseraPedido;
       }
     };
-    
+
     const puertaTrasera = await getPuertaTrasera(puertaTraseraId);
     if (puertaTrasera) {
       // Agregar puerta_trasera_nombre al objeto carroceria
       if (Array.isArray(responseCarroceria.data)) {
-        (responseCarroceria.data[0] as any).puerta_trasera_nombre = puertaTrasera.nombre || "";
+        (responseCarroceria.data[0] as any).puerta_trasera_nombre =
+          puertaTrasera.nombre || "";
       } else if (responseCarroceria.data) {
-        (responseCarroceria.data as any).puerta_trasera_nombre = puertaTrasera.nombre || "";
+        (responseCarroceria.data as any).puerta_trasera_nombre =
+          puertaTrasera.nombre || "";
       }
     }
-    
+
     /* Obtener colores */
-    const colorCarrozadoId = Array.isArray(responseCarroceria.data) 
+    const colorCarrozadoId = Array.isArray(responseCarroceria.data)
       ? responseCarroceria.data[0]?.color_carrozado_id || ""
       : responseCarroceria.data?.color_carrozado_id || "";
-      
-    const colorZocaloId = Array.isArray(responseCarroceria.data) 
+
+    const colorZocaloId = Array.isArray(responseCarroceria.data)
       ? responseCarroceria.data[0]?.color_zocalo_id || ""
       : responseCarroceria.data?.color_zocalo_id || "";
     const colorLonaId = Array.isArray(responseCarroceria.data)
       ? responseCarroceria.data[0]?.color_lona_id || ""
       : responseCarroceria.data?.color_lona_id || "";
-    
+
     const getColor = async (id: string) => {
       if (!colores) {
         // Si no hay colores cargados, cargarlos
@@ -268,34 +292,40 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         return colorPedido;
       }
     };
-    
+
     const colorCarrozado = await getColor(colorCarrozadoId);
     const colorZocalo = await getColor(colorZocaloId);
     const colorLona = await getColor(colorLonaId);
-    
+
     if (colorCarrozado) {
       // Agregar color_carrozado_nombre al objeto carroceria
       if (Array.isArray(responseCarroceria.data)) {
-        (responseCarroceria.data[0] as any).color_carrozado_nombre = colorCarrozado.nombre || "";
+        (responseCarroceria.data[0] as any).color_carrozado_nombre =
+          colorCarrozado.nombre || "";
       } else if (responseCarroceria.data) {
-        (responseCarroceria.data as any).color_carrozado_nombre = colorCarrozado.nombre || "";
+        (responseCarroceria.data as any).color_carrozado_nombre =
+          colorCarrozado.nombre || "";
       }
     }
-    
+
     if (colorZocalo) {
       // Agregar color_zocalo_nombre al objeto carroceria
       if (Array.isArray(responseCarroceria.data)) {
-        (responseCarroceria.data[0] as any).color_zocalo_nombre = colorZocalo.nombre || "";
+        (responseCarroceria.data[0] as any).color_zocalo_nombre =
+          colorZocalo.nombre || "";
       } else if (responseCarroceria.data) {
-        (responseCarroceria.data as any).color_zocalo_nombre = colorZocalo.nombre || "";
+        (responseCarroceria.data as any).color_zocalo_nombre =
+          colorZocalo.nombre || "";
       }
     }
     if (colorLona) {
       // Agregar color_lona_nombre al objeto carroceria
       if (Array.isArray(responseCarroceria.data)) {
-        (responseCarroceria.data[0] as any).color_lona_nombre = colorLona.nombre || "";
+        (responseCarroceria.data[0] as any).color_lona_nombre =
+          colorLona.nombre || "";
       } else if (responseCarroceria.data) {
-        (responseCarroceria.data as any).color_lona_nombre = colorLona.nombre || "";
+        (responseCarroceria.data as any).color_lona_nombre =
+          colorLona.nombre || "";
       }
     }
     const responseTrabajoChasis = await trabajoChasisAPI.read({
@@ -313,11 +343,13 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     /* Agregar nombres a los trabajos de chassis */
-    let trabajosConNombres: (TrabajoChasisBD & { tipo_trabajo_nombre: string })[] = [];
-    
+    let trabajosConNombres: (TrabajoChasisBD & {
+      tipo_trabajo_nombre: string;
+    })[] = [];
+
     if (responseTrabajoChasis.data) {
-      const trabajosArray = Array.isArray(responseTrabajoChasis.data) 
-        ? responseTrabajoChasis.data 
+      const trabajosArray = Array.isArray(responseTrabajoChasis.data)
+        ? responseTrabajoChasis.data
         : [responseTrabajoChasis.data];
 
       const getTipoTrabajo = async (id: string) => {
@@ -339,7 +371,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         const tipoTrabajo = await getTipoTrabajo(trabajo.tipo_trabajo_id);
         trabajosConNombres.push({
           ...trabajo,
-          tipo_trabajo_nombre: tipoTrabajo?.nombre || "Trabajo no encontrado"
+          tipo_trabajo_nombre: tipoTrabajo?.nombre || "Trabajo no encontrado",
         });
       }
     }
@@ -637,6 +669,56 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       return false;
     }
   };
+  const getOrdenes = async () => {
+    const response = await ordenesAPI.read();
+    if (!response.success) {
+      logDetailedError(response.error);
+      const formattedError = getFormattedError(response.error);
+      showError(formattedError);
+      throw new Error(formattedError);
+    }
+    setOrdenes((response.data as OrdenesBD[]) || []);
+    return response.data as OrdenesBD[];
+  };
+  const getOrdenesByPedidoId = async (
+    pedidoId: string,
+    refresh?: boolean 
+  ) => {
+    if (
+      ordenesByPedido &&
+      ordenesByPedido.length > 0 &&
+      ordenesByPedido[0].pedido_id === pedidoId
+      && !refresh
+    ) {
+      //Si ya se cargaron las ordenes para este pedido, devolverlas
+      return ordenesByPedido;
+    }
+    if (!ordenes || refresh) {
+      //Si no hay ordenes cargadas, cargarlas
+      const ordensData = await getOrdenes();
+      // Buscar las ordenes del pedido especifico
+      const existeingOrdenes = ordensData.filter(
+        (orden) => orden.pedido_id === pedidoId
+      );
+      if (!existeingOrdenes || existeingOrdenes.length === 0) {
+        setOrdenesByPedido(null);
+        return [];
+      }
+      setOrdenesByPedido(existeingOrdenes);
+      return existeingOrdenes;
+    } else {
+      //Si ya hay ordenes cargadas, buscar en el cache
+      const existeingOrdenes = ordenes.filter(
+        (orden) => orden.pedido_id === pedidoId
+      );
+      if (!existeingOrdenes || existeingOrdenes.length === 0) {
+        setOrdenesByPedido(null);
+        return [];
+      }
+      setOrdenesByPedido(existeingOrdenes);
+      return existeingOrdenes;
+    }
+  };
 
   return (
     <DataContext.Provider
@@ -675,6 +757,11 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         selectedCarrozado,
         getCarrozadoByID,
         setSelectedCarrozado,
+        ordenes,
+        getOrdenes,
+        getOrdenesByPedidoId,
+        ordenesByPedido,
+        setOrdenesByPedido,
       }}
     >
       {children}

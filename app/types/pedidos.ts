@@ -8,7 +8,6 @@ import {
   pisoOptions,
   cintasOptions,
 } from "~/config/atributosMetadata";
-import type { ClientesBD } from "./clientes";
 export const statusOptions = [
   { value: "nuevo", label: "🆕 Nuevo" },
   { value: "en_produccion", label: "🏭 En Producción" },
@@ -34,6 +33,11 @@ export const formaPagoOptions = [
     label: "Carrocería usada",
   },
   { value: "Otros", label: "Otros" },
+];
+export const tipoOrdenOptions = [
+  { value: "fabricacion", label: "Orden de Fabricación" },
+  { value: "pintura", label: "Orden de Pintura" },
+  { value: "montaje", label: "Orden de Montaje" },
 ];
 export type PedidosBD = {
   id: string;
@@ -107,7 +111,7 @@ export type CamionBD = {
   med_larguero: number;
   centro_eje: number;
   voladizo_trasero: number;
-  observaciones: string;
+  observaciones?: string;
 };
 export type TrabajoChasisBD = {
   id: string;
@@ -123,7 +127,7 @@ export type PedidosUI = PedidosTable & {
         puerta_trasera_nombre: string;
         color_carrozado_nombre: string;
         color_zocalo_nombre: string;
-        color_lona_nombre: string;
+        color_lona_nombre?: string;
       })
     | null;
 } & {
@@ -133,8 +137,10 @@ export type OrdenesBD = {
   id: string;
   fecha_creacion: string;
   pedido_id: string;
-  tipo_orden: "fabricacion" | "pintura" | "chasis";
-  responsable_id: string;
+  tipo_orden: (typeof tipoOrdenOptions)[number]["value"];
+  responsable: string;
   fecha_ejecucion: string;
   url_archivo: string;
+  status?: string;
+  notas?: string;
 }

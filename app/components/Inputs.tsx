@@ -64,7 +64,7 @@ function Label({
   requiredField?: boolean;
 }) {
   return (
-    <span className={`block mb-2 text-sm  ${label ? "" : "sr-only"}`}>
+    <span className={`block mb-2 text-sm ${label ? "" : "sr-only"}`}>
       {label}
       <span className="text-red-500">{requiredField ? " *" : ""}</span>
     </span>
@@ -79,12 +79,11 @@ export function Input({
   requiredField,
   ...props
 }: InputProps) {
-  const { ref } = props;
   if (label === "Razón Social") {
   }
   return (
     <label htmlFor={id} className={hidden ? "sr-only" : ""}>
-      <Label label={label ?? ""} requiredField={requiredField} />
+      <Label label={label ?? ""} requiredField={requiredField}/>
       <input
         type={type ? type : "text"}
         {...props}
@@ -112,7 +111,7 @@ export function InputWithIcon({
   const IconComponent = getIcon({ icon, size: 5 });
   return (
     <label htmlFor={id} className={hidden ? "sr-only" : ""}>
-      <Label label={label ?? ""} requiredField={requiredField} />
+      <Label label={label ?? ""} requiredField={requiredField}/>
       <div className="relative">
         <input
           type={type ? type : "text"}
@@ -162,7 +161,7 @@ export function Select({
 }: SelectProps) {
   return (
     <label htmlFor={id} className={hidden ? "sr-only" : ""}>
-      <Label label={label ?? ""} requiredField={requiredField} />
+      <Label label={label ?? ""} requiredField={requiredField}/>
       <div className="relative">
         <select
           {...props}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ChevronDown, Search, Check, X } from "lucide-react";
+import { Z_INDEX, getZIndexClass } from "~/config/zIndexConfig";
 
 interface Option {
   id: string;
@@ -165,7 +166,7 @@ export function SelectField({
 
         {/* Dropdown */}
         {isOpen && (
-          <div className="absolute z-50 mt-1 w-full rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5">
+          <div className={`absolute ${getZIndexClass(Z_INDEX.DROPDOWN)} mt-1 w-full rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5`}>
             {/* Campo de búsqueda */}
             <div className="p-2 border-b border-gray-200 dark:border-gray-600">
               <div className="relative">

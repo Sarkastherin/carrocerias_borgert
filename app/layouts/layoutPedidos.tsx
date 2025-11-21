@@ -18,6 +18,7 @@ import { Button } from "~/components/Buttons";
 import { useUIModals } from "~/context/ModalsContext";
 import type { IconType } from "~/components/IconComponent";
 import { getIcon } from "~/components/IconComponent";
+import { Z_INDEX, getZIndexClass } from "~/config/zIndexConfig";
 
 export default function PedidosLayout() {
   const navigate = useNavigate();
@@ -81,7 +82,7 @@ export default function PedidosLayout() {
         href: `/pedidos/trabajo-chasis/${id}`,
         icon: Drill,
       },
-      /* {
+      {
         title: "Órdenes de Trabajo",
         href: `/pedidos/ordenes-trabajo/${id}`,
         icon: FileBox,
@@ -90,7 +91,7 @@ export default function PedidosLayout() {
         title: "Controles de Calidad",
         href: `/pedidos/controles-calidad/${id}`,
         icon: ShieldCheck,
-      } */
+      }
     ];
   };
   const menu = menuItems(pedidoId);
@@ -105,14 +106,14 @@ export default function PedidosLayout() {
         <>
           {/* Sidebar */}
           <div
-            className={`z-20 flex flex-col justify-between border-e border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 transition-all duration-300 ease-in-out relative ${
+            className={`${getZIndexClass(Z_INDEX.SIDEBAR)} flex flex-col justify-between border-e border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 transition-all duration-300 ease-in-out relative ${
               sidebarOpen ? "w-64" : "w-16"
             }`}
           >
             {/* Botón toggle integrado en el sidebar */}
             <button
               onClick={toggleSidebar}
-              className="absolute -right-3 top-4 z-30 p-1.5 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out"
+              className={`absolute -right-3 top-4 ${getZIndexClass(Z_INDEX.SIDEBAR_TOGGLE)} p-1.5 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out`}
               aria-label={sidebarOpen ? "Contraer sidebar" : "Expandir sidebar"}
             >
               {sidebarOpen ? (
@@ -217,7 +218,7 @@ export default function PedidosLayout() {
           {/* Overlay para móvil cuando el sidebar está abierto */}
           {sidebarOpen && (
             <div
-              className="fixed inset-0 bg-black bg-opacity-50 z-10 md:hidden"
+              className={`fixed inset-0 bg-black bg-opacity-50 ${getZIndexClass(Z_INDEX.MOBILE_OVERLAY)} md:hidden`}
               onClick={toggleSidebar}
             />
           )}

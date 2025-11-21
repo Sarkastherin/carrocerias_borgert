@@ -1,5 +1,6 @@
 import type React from "react";
 import { Button, variants } from "../Buttons";
+import { Z_INDEX, getZIndexClass } from "~/config/zIndexConfig";
 export type ButtonsFooter = {
   label: string;
   handleOnClick: () => void;
@@ -29,11 +30,13 @@ export default function ModalBase({
   icon,
   width = "max-w-md",
 }: ModalProps) {
-  const safeZIndex = typeof zIndex === "number" ? `z-[${zIndex}]` : "z-[50]";
+  // Usar z-index predefinido o el valor personalizado
+  const modalZIndex = typeof zIndex === "number" ? getZIndexClass(zIndex) : getZIndexClass(Z_INDEX.MODAL_BACKDROP);
+  
   return (
     <div
-      className={`fixed inset-0 ${safeZIndex} flex justify-center items-start bg-slate-800/50 p-4 transition-opacity duration-300 ease-out ${
-        open ? "opacity-100 z-[zIndex]" : "opacity-0 pointer-events-none"
+      className={`fixed inset-0 ${modalZIndex} flex justify-center items-start bg-slate-800/50 p-4 transition-opacity duration-300 ease-out ${
+        open ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
       role="dialog"
       aria-modal="true"

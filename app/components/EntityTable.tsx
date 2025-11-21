@@ -129,6 +129,13 @@ export function EntityTable<T>({
   });
   const [filteredData, setFilteredData] = useState<T[]>(data);
   const [showFilterInfo, setShowFilterInfo] = useState(false);
+  
+  // Estado para la página actual
+  const [currentPage, setCurrentPage] = useState<number>(() => {
+    // Recupera la página guardada
+    const savedPage = localStorage.getItem(`${storageKey}_page`);
+    return savedPage ? parseInt(savedPage, 10) : 1;
+  });
 
   // Función para determinar si una fila está inactiva
   const isRowInactive = (row: T): boolean => {
@@ -198,7 +205,18 @@ export function EntityTable<T>({
     const updated = { ...filters, [key]: value };
     setFilters(updated);
     localStorage.setItem(storageKey, JSON.stringify(updated)); // Guarda filtros
+    
+    // Resetear a la primera página cuando se aplican filtros
+    setCurrentPage(1);
+    localStorage.setItem(`${storageKey}_page`, "1");
+    
     if (auto) onFilter(updated);
+  };
+
+  // Función para manejar el cambio de página
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    localStorage.setItem(`${storageKey}_page`, page.toString());
   };
   useEffect(() => {
     setFilteredData(data);
@@ -291,6 +309,8 @@ export function EntityTable<T>({
         theme={theme}
         pagination
         paginationPerPage={30}
+        paginationDefaultPage={currentPage}
+        onChangePage={handlePageChange}
         onRowClicked={onRowClick}
         pointerOnHover
         highlightOnHover

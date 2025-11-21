@@ -15,9 +15,7 @@ export function meta({}: Route.MetaArgs) {
     },
   ];
 }
-
-export default function HomePage() {
-  const modules: CardLinkProps[] = [
+export const modules: CardLinkProps[] = [
     {
       name: "Pedidos",
       description: "Gestiona tus pedidos y controla tus avances.",
@@ -37,6 +35,9 @@ export default function HomePage() {
       path: "/settings",
     },
   ];
+
+export default function HomePage() {
+  
   //
   return (
     <div

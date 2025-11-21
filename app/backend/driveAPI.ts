@@ -1,3 +1,5 @@
+import type { OrdenesBD } from "~/types/pedidos";
+
 // Tipos para Google Drive API
 interface DriveFileMetadata {
   name: string;
@@ -112,7 +114,6 @@ export async function createFolder(
       fields: "id,name,parents,createdTime,modifiedTime",
     });
 
-    console.log("Carpeta creada exitosamente:", response.result);
     return response.result;
   } catch (error) {
     console.error("Error al crear la carpeta:", error);
@@ -168,7 +169,6 @@ export async function createFolderIfNotExists(
     const existingFolder = await findFolder(name, parentId);
 
     if (existingFolder) {
-      console.log("La carpeta ya existe:", existingFolder);
       return existingFolder;
     }
 
@@ -327,32 +327,22 @@ export async function createOrderFolderStructure(
   year: number
 ): Promise<string> {
   try {
-    console.log(
-      `📁 Creando estructura de carpetas para ${tipoOrden} - ${year}`
-    );
-
     // 1. Crear/encontrar carpeta principal "Órdenes de Trabajo"
-    console.log("🔍 Buscando/creando carpeta principal...");
     const mainFolder = await createFolderIfNotExists("Órdenes de Trabajo");
-    console.log("✅ Carpeta principal:", mainFolder);
 
     // 2. Crear/encontrar carpeta del año
-    console.log("🔍 Buscando/creando carpeta del año...");
     const yearFolder = await createFolderIfNotExists(
       year.toString(),
       mainFolder.id
     );
-    console.log("✅ Carpeta del año:", yearFolder);
 
     // 3. Crear/encontrar carpeta del tipo de orden
     const tipoFormateado =
       tipoOrden.charAt(0).toUpperCase() + tipoOrden.slice(1);
-    console.log(`🔍 Buscando/creando carpeta del tipo: ${tipoFormateado}`);
     const typeFolder = await createFolderIfNotExists(
       tipoFormateado,
       yearFolder.id
     );
-    console.log("✅ Carpeta del tipo:", typeFolder);
 
     const folderStructure = {
       main: { name: mainFolder.name, id: mainFolder.id },
@@ -360,8 +350,6 @@ export async function createOrderFolderStructure(
       type: { name: typeFolder.name, id: typeFolder.id },
       finalId: typeFolder.id,
     };
-
-    console.log("🏗️ Estructura de carpetas completada:", folderStructure);
 
     // Verificar que el ID final sea válido
     if (!typeFolder.id) {
@@ -395,8 +383,6 @@ export async function verifyFileExists(
       fileId: fileId,
       fields: "id,name,parents,mimeType,size,webViewLink",
     });
-
-    console.log("✅ Archivo verificado:", response.result);
     return response.result;
   } catch (error) {
     console.error("❌ Error verificando archivo:", error);
@@ -407,12 +393,14 @@ export async function verifyFileExists(
 export async function uploadOrderPDF(
   pdfBlob: Blob,
   fileName: string,
-  tipoOrden: string
+  tipoOrden: string,
+  existingOrder?: OrdenesBD
 ): Promise<DriveFile & { webViewLink?: string; webContentLink?: string }> {
   try {
     const currentYear = new Date().getFullYear();
     // Crear estructura de carpetas
     const folderId = await createOrderFolderStructure(tipoOrden, currentYear);
+    if (existingOrder && existingOrder.url_archivo) {}
     // Subir el archivo
     const uploadedFile = await uploadPDFToDrive(pdfBlob, fileName, folderId);
     const verification = await verifyFileExists(uploadedFile.id);

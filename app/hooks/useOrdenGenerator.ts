@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
-import { pdf } from '@react-pdf/renderer';
-import type { TipoOrden } from '~/components/modals/customs/OrdenTrabajoModal';
-import type { PedidosUI } from '~/types/pedidos';
-import { OrdenFabricacionTemplate } from '~/components/pdf/OrdenFabricacionTemplate';
-import { uploadOrderPDF} from '~/backend/driveAPI';
-import { ordenesAPI, pedidosAPI } from '~/backend/sheetServices';
+import React, { useState } from "react";
+import { pdf } from "@react-pdf/renderer";
+import type { OrdenesBD, PedidosUI } from "~/types/pedidos";
+import { OrdenFabricacionTemplate } from "~/components/pdf/OrdenFabricacionTemplate";
+import { OrdenPinturaTemplate } from "~/components/pdf/OrdenPinturaTemplate";
+import { OrdenMontajeTemplate } from "~/components/pdf/OrdenMontajeTemplate";
+import { uploadOrderPDF } from "~/backend/driveAPI";
+import { ordenesAPI, pedidosAPI } from "~/backend/sheetServices";
+import { tipoOrdenOptions } from "~/types/pedidos";
 interface OrdenData {
   [key: string]: any;
 }
 
 interface PDFGenerationOptions {
-  tipoOrden: TipoOrden;
-  formData: OrdenData;
+  tipoOrden: (typeof tipoOrdenOptions)[number]["value"];
+  formData: Partial<OrdenesBD>;
   pedidoData?: PedidosUI;
 }
 
@@ -20,7 +22,11 @@ export const useOrdenGenerator = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const generateOrdenPDF = async ({ tipoOrden, formData, pedidoData }: PDFGenerationOptions): Promise<Blob> => {
+  const generateOrdenPDF = async ({
+    tipoOrden,
+    formData,
+    pedidoData,
+  }: PDFGenerationOptions): Promise<Blob> => {
     setIsGenerating(true);
     setError(null);
 
@@ -29,44 +35,42 @@ export const useOrdenGenerator = () => {
 
       // Seleccionar el template según el tipo de orden
       switch (tipoOrden) {
-        case 'fabricacion':
-          pdfDocument = React.createElement(OrdenFabricacionTemplate, { 
-            pedidoData, 
-            formData 
+        case "fabricacion":
+          pdfDocument = React.createElement(OrdenFabricacionTemplate, {
+            pedidoData,
+            formData,
           });
           break;
-        case 'pintura':
-          // TODO: Crear template de pintura
-          throw new Error('Template de pintura no implementado aún');
-        case 'chasis':
-          // TODO: Crear template de chasis
-          throw new Error('Template de chasis no implementado aún');
+        case "pintura":
+          pdfDocument = React.createElement(OrdenPinturaTemplate, {
+            pedidoData,
+            formData,
+          });
+          break;
+        case "montaje":
+          pdfDocument = React.createElement(OrdenMontajeTemplate, {
+            pedidoData,
+            formData,
+          });
+          break;
         default:
-          throw new Error('Tipo de orden no reconocido');
+          throw new Error("Tipo de orden no reconocido");
       }
 
-      // Generar el PDF usando react-pdf
-      console.log('📄 Generando PDF con react-pdf...');
-      console.log('📋 Datos del documento:', { tipoOrden, formData, pedidoData });
-      
       const pdfInstance = pdf(pdfDocument);
-      console.log('✅ Instancia de PDF creada');
-      
+
       const blob = await pdfInstance.toBlob();
-      console.log('📦 Blob generado:', { 
-        size: blob.size, 
-        type: blob.type,
-        isEmpty: blob.size === 0 
-      });
-      
+
       if (blob.size === 0) {
-        throw new Error('El PDF generado está vacío. Puede ser un problema con los datos o el template.');
+        throw new Error(
+          "El PDF generado está vacío. Puede ser un problema con los datos o el template."
+        );
       }
-      
+
       return blob;
-      
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error generando PDF';
+      const errorMessage =
+        err instanceof Error ? err.message : "Error generando PDF";
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -74,23 +78,36 @@ export const useOrdenGenerator = () => {
     }
   };
 
-  const savePDFToDrive = async (pdfBlob: Blob, fileName: string, tipoOrden: string): Promise<string> => {
+  const savePDFToDrive = async (
+    pdfBlob: Blob,
+    fileName: string,
+    tipoOrden: string,
+    existingOrder?: OrdenesBD
+  ): Promise<string> => {
     setIsSaving(true);
     setError(null);
 
     try {
       // Verificar si el blob está vacío antes de subirlo
       if (pdfBlob.size === 0) {
-        throw new Error('El PDF que se va a subir está vacío');
-      }      
+        throw new Error("El PDF que se va a subir está vacío");
+      }
       // Subir el PDF con estructura de carpetas automática
-      const uploadedFile = await uploadOrderPDF(pdfBlob, fileName, tipoOrden);
-      
+      const uploadedFile = await uploadOrderPDF(
+        pdfBlob,
+        fileName,
+        tipoOrden,
+        existingOrder
+      );
+
       // Devolver el enlace para ver el archivo
-      return uploadedFile.webViewLink || `https://drive.google.com/file/d/${uploadedFile.id}/view`;
-      
+      return (
+        uploadedFile.webViewLink ||
+        `https://drive.google.com/file/d/${uploadedFile.id}/view`
+      );
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error guardando archivo';
+      const errorMessage =
+        err instanceof Error ? err.message : "Error guardando archivo";
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -98,124 +115,108 @@ export const useOrdenGenerator = () => {
     }
   };
   const createRegisterAndUpdatePedido = async (
-    urlFile: string, 
-    pedidoId: string, 
-    tipoOrden: TipoOrden, 
-    responsableId?: string
+    urlFile: string,
+    pedidoId: string,
+    tipoOrden: (typeof tipoOrdenOptions)[number]["value"],
+    responsable?: string,
+    order?: OrdenesBD
   ) => {
     try {
-      console.log('📝 Creando registro de orden en Google Sheets...');
-      
       // Preparar datos para el registro de orden según la estructura OrdenesBD
       const ordenData = {
         pedido_id: pedidoId,
         tipo_orden: tipoOrden, // campo correcto según el tipo
-        responsable_id: responsableId || 'sistema', // valor por defecto si no se proporciona
-        fecha_ejecucion: new Date().toISOString().split('T')[0], // fecha de ejecución en formato YYYY-MM-DD
+        responsable: responsable || "sistema", // valor por defecto si no se proporciona
+        fecha_ejecucion: "", // dejar vacío para que se llene luego
         url_archivo: urlFile,
-        fecha_creacion: new Date().toISOString().split('T')[0] // formato YYYY-MM-DD
+        fecha_creacion: new Date().toISOString().split("T")[0], // formato YYYY-MM-DD
       };
-      
-      // Guardar registro en sheet de ordenes
-      const ordenCreated = await ordenesAPI.create(ordenData);
-      console.log('✅ Registro de orden creado:', ordenCreated);
-      
-      // Preparar datos para actualizar pedido
-      const pedidoUpdate = {
-        fecha_fabricacion: new Date().toISOString().split('T')[0], // formato YYYY-MM-DD
-        url_orden_fabricacion: urlFile
-      };
-      
-      console.log('📝 Actualizando pedido con fecha de fabricación...');
-      
-      // Actualizar pedido con link de orden y fecha
-      const pedidoUpdated = await pedidosAPI.update(pedidoId, pedidoUpdate);
-      console.log('✅ Pedido actualizado:', pedidoUpdated);
-      
-      return {
-        orden: ordenCreated,
-        pedido: pedidoUpdated
-      };
-      
-    } catch (error) {
-      console.error('❌ Error en createRegisterAndUpdatePedido:', error);
-      throw new Error(`Error registrando orden: ${error instanceof Error ? error.message : 'Error desconocido'}`);
-    }
-  }
 
-  const generateFileName = (tipoOrden: TipoOrden, formData: OrdenData, pedidoData?: PedidosUI): string => {
+      // Guardar registro en sheet de ordenes
+      if (order) {
+        await ordenesAPI.update(order.id, ordenData);
+      } else {
+        await ordenesAPI.create(ordenData);
+      }
+
+      // Actualizar pedido con link de orden y fecha
+      if (ordenData.tipo_orden === "fabricacion") {
+        const pedidoUpdated = await pedidosAPI.update(pedidoId, {
+          fecha_fabricacion: new Date().toISOString().split("T")[0],
+          status: "en_produccion",
+        });
+      }
+    } catch (error) {
+      console.error("❌ Error en createRegisterAndUpdatePedido:", error);
+      throw new Error(
+        `Error registrando orden: ${error instanceof Error ? error.message : "Error desconocido"}`
+      );
+    }
+  };
+  const closeOrder = async (orderId: string, formData: Partial<OrdenesBD>, tipoOrden: (typeof tipoOrdenOptions)[number]["value"], pedidoId: string) => {
+    try {
+      const result = await ordenesAPI.update(orderId, formData);
+      if (!result.success) {
+        throw new Error("Fallo al cerrar la orden en la base de datos");
+      }
+      // Actualizar pedido con link de orden y fecha
+      if (tipoOrden === "montaje" && formData.status === "completada") {
+        const pedidoUpdated = await pedidosAPI.update(pedidoId, {
+          status: "finalizado",
+        });
+      }
+      return result;
+      // Lógica para cerrar la orden
+    } catch (error) {
+      console.error("❌ Error cerrando la orden:", error);
+      throw new Error(
+        `Error cerrando la orden: ${error instanceof Error ? error.message : "Error desconocido"}`
+      );
+    }
+  };
+
+  const generateFileName = (
+    tipoOrden: (typeof tipoOrdenOptions)[number]["value"],
+    pedidoData?: PedidosUI
+  ): string => {
     const now = new Date();
     const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    
-    const tipoPrefix = {
-      fabricacion: 'OT-FAB',
-      pintura: 'OT-PIN', 
-      chasis: 'OT-CHA'
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+
+    const tipoPrefix: Record<
+      (typeof tipoOrdenOptions)[number]["value"],
+      string
+    > = {
+      fabricacion: "OT-FAB",
+      pintura: "OT-PIN",
+      montaje: "OT-MON",
     };
 
-    const clienteNombre = pedidoData?.cliente_nombre ? 
-      pedidoData.cliente_nombre.replace(/[^a-zA-Z0-9]/g, '').substring(0, 15) : 'SinCliente';
-
-    const pedidoNum = pedidoData?.numero_pedido ? 
-      `-${pedidoData.numero_pedido}` : '';
+    const pedidoNum = pedidoData?.numero_pedido
+      ? `-${pedidoData.numero_pedido}`
+      : "";
 
     return `${tipoPrefix[tipoOrden]}-${year}${month}${day}${pedidoNum}.pdf`;
   };
 
-  const generateAndSaveOrderPDF = async ({ tipoOrden, formData, pedidoData }: PDFGenerationOptions): Promise<string> => {
+  const generateAndSaveOrderPDF = async ({
+    tipoOrden,
+    formData,
+    pedidoData,
+  }: PDFGenerationOptions): Promise<string> => {
     try {
-      console.log('📄 Generando PDF...');
-      const pdfBlob = await generateOrdenPDF({ tipoOrden, formData, pedidoData });
-      
-      console.log('📁 Generando nombre de archivo...');
-      const fileName = generateFileName(tipoOrden, formData, pedidoData);
-      
-      console.log('☁️ Guardando en Google Drive...');
+      const pdfBlob = await generateOrdenPDF({
+        tipoOrden,
+        formData,
+        pedidoData,
+      });
+      const fileName = generateFileName(tipoOrden, pedidoData);
       const driveLink = await savePDFToDrive(pdfBlob, fileName, tipoOrden);
-      
+
       return driveLink;
     } catch (error) {
-      console.error('Error en generateAndSaveOrderPDF:', error);
-      throw error;
-    }
-  };
-
-  const generateCompleteOrder = async (
-    { tipoOrden, formData, pedidoData }: PDFGenerationOptions,
-    responsableId?: string
-  ): Promise<{ driveLink: string; orden: any; pedido: any }> => {
-    try {
-      // Validar que tenemos pedidoData
-      if (!pedidoData?.id) {
-        throw new Error('Se requiere información del pedido para crear la orden completa');
-      }
-
-      console.log('🚀 Iniciando proceso completo de generación de orden...');
-      
-      // 1. Generar y subir PDF a Google Drive
-      const driveLink = await generateAndSaveOrderPDF({ tipoOrden, formData, pedidoData });
-      
-      // 2. Crear registro en sheet de órdenes y actualizar pedido
-      console.log('📋 Registrando orden y actualizando pedido...');
-      const { orden, pedido } = await createRegisterAndUpdatePedido(
-        driveLink, 
-        pedidoData.id, 
-        tipoOrden, 
-        responsableId
-      );
-      
-      console.log('✅ Proceso completo de orden finalizado exitosamente');
-      
-      return {
-        driveLink,
-        orden,
-        pedido
-      };
-      
-    } catch (error) {
-      console.error('❌ Error en generateCompleteOrder:', error);
+      console.error("Error en generateAndSaveOrderPDF:", error);
       throw error;
     }
   };
@@ -232,7 +233,7 @@ export const useOrdenGenerator = () => {
     generateFileName,
     generateAndSaveOrderPDF,
     createRegisterAndUpdatePedido,
-    generateCompleteOrder,
+    closeOrder,
     isGenerating,
     isSaving,
     error,

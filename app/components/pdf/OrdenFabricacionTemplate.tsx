@@ -1,145 +1,28 @@
 import React from "react";
+import { Document, View } from "@react-pdf/renderer";
+import type { OrdenesBD, PedidosUI } from "~/types/pedidos";
 import {
-  Document,
-  Page,
-  Text,
-  View,
-  StyleSheet,
-  Image,
-  Line,
-} from "@react-pdf/renderer";
-import type { PedidosUI } from "~/types/pedidos";
-import { formatDateUStoES } from "~/utils/formatDate";
+  Subtitle,
+  Box,
+  Row,
+  Cell,
+  TitleBox,
+  PageTemplate,
+  HeaderTemplate,
+  FooterTemplate
+} from "./pdfComponents";
 
 interface OrdenFabricacionProps {
   pedidoData?: PedidosUI;
-  formData: Record<string, any>;
+  formData: Partial<OrdenesBD>;
 }
-
-const styles = StyleSheet.create({
-  page: {
-    flexDirection: "column",
-    backgroundColor: "#FFFFFF",
-    padding: 30,
-    fontFamily: "Helvetica", // Fuente base del documento
-    color: "#434343",
-  },
-  title: {
-    fontSize: 20,
-    textAlign: "center",
-    fontFamily: "Helvetica-Bold", // Título en negrita
-    color: "#000000",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderBottom: "1px solid #444",
-    marginBottom: 20,
-    paddingBottom: 5,
-  },
-  cell: {
-    flex: 1,
-    padding: "4px 6px",
-  },
-  codeText: {
-    fontSize: 9,
-    fontFamily: "Courier",
-    backgroundColor: "#f5f5f5",
-    padding: 4,
-  },
-  emphasis: {
-    fontSize: 12,
-    fontFamily: "Times-Italic",
-    color: "#666",
-  },
-});
-const Subtitle = ({ children }: { children: React.ReactNode }) => (
-  <Text
-    style={{
-      fontSize: 12,
-      fontFamily: "Helvetica",
-      fontWeight: "bold",
-      paddingBottom: 6,
-      paddingTop: 12,
-    }}
-  >
-    {children}
-  </Text>
-);
-const Box = ({ children }: { children: React.ReactNode }) => (
-  <View
-    style={{
-      fontSize: 10,
-      fontFamily: "Helvetica",
-      lineHeight: 1.4,
-      border: "1px solid #ccc",
-      borderRadius: 4,
-    }}
-  >
-    {children}
-  </View>
-);
-const Row = ({
-  children,
-  isLast,
-}: {
-  children: React.ReactNode;
-  isLast?: boolean;
-}) => (
-  <View
-    style={{
-      borderBottom: isLast ? "none" : "1px dashed #ccc",
-      display: "flex",
-      flexDirection: "row",
-    }}
-  >
-    {children}
-  </View>
-);
-const Cell = ({
-  title,
-  value,
-  isFirst,
-}: {
-  title: string;
-  value: string | number | boolean | undefined;
-  isFirst?: boolean;
-}) => (
-  <Text
-    style={{
-      flex: 1,
-      padding: "4px 6px",
-      borderLeft: isFirst ? "none" : "1px dashed #ccc",
-    }}
-  >
-    <Text style={{ fontWeight: "bold" }}>{title}: </Text>
-    {value || "N/A"}
-  </Text>
-);
-const TitleBox = ({ title }: { title: string }) => (
-  <Text
-    style={{
-      backgroundColor: "#f0f0f0",
-      padding: 5,
-      fontWeight: "bold",
-      borderBottom: "1px solid #ccc",
-    }}
-  >
-    {title}
-  </Text>
-);
-
 export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
   pedidoData,
   formData,
 }) => (
   <Document>
-    <Page size="A4" style={styles.page}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Orden de Fabricación</Text>
-        <Image src="/logo.jpeg" style={{ width: 130 }} />
-      </View>
+    <PageTemplate>
+      <HeaderTemplate title="Orden de Fabricación" />
       <View>
         <View>
           <Subtitle>Datos del Pedido</Subtitle>
@@ -227,7 +110,7 @@ export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
                   value={pedidoData?.carroceria?.largo_ext + " mm"}
                 />
               </Row>
-              <Row isLast>
+              <Row>
                 <Cell
                   title="Alto"
                   value={pedidoData?.carroceria?.alto + " mm"}
@@ -238,9 +121,7 @@ export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
                   value={pedidoData?.carroceria?.ancho_ext + " mm"}
                 />
               </Row>
-            </Box>
-            <Box>
-              <TitleBox title="Estructura" />
+
               <Row>
                 <Cell
                   title="Puerta Trasera"
@@ -334,31 +215,6 @@ export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
               </Row>
             </Box>
             <Box>
-              <TitleBox title="Colores" />
-              <Row>
-                <Cell
-                  title="Carrozado"
-                  value={pedidoData?.carroceria?.color_carrozado_nombre}
-                  isFirst
-                />
-                <Cell
-                  title="Zócalo"
-                  value={pedidoData?.carroceria?.color_zocalo_nombre}
-                />
-                <Cell
-                  title="Lona"
-                  value={pedidoData?.carroceria?.color_lona_nombre}
-                />
-              </Row>
-              <Row isLast>
-                <Cell
-                  title="Observaciones de color"
-                  value={pedidoData?.carroceria?.notas_color}
-                  isFirst
-                />
-              </Row>
-            </Box>
-            <Box>
               <Row isLast>
                 <Cell
                   title="Observaciones generales"
@@ -367,44 +223,11 @@ export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
                 />
               </Row>
             </Box>
-            {/* <View style={{borderBottom: "1px solid #ccc", marginVertical: 2}}></View> */}
-            <View
-              style={{
-                fontSize: 10,
-                fontFamily: "Helvetica",
-                border: "1px solid #ccc",
-                borderRadius: 4,
-                height: 60,
-              }}
-            >
-              <View
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  padding: "8px",
-                  fontWeight: "bold",
-                }}
-              >
-                <Text>Firma Responsable</Text>
-                <Text>Fecha ejecución</Text>
-              </View>
-              <View
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  padding: "8px",
-                  fontWeight: "bold",
-                }}
-              >
-                <Text>____________________</Text>
-                <Text>_____/_____/_______</Text>
-              </View>
-            </View>
           </View>
         </View>
       </View>
-    </Page>
+      {/* Footer */}
+      <FooterTemplate />
+    </PageTemplate>
   </Document>
 );
