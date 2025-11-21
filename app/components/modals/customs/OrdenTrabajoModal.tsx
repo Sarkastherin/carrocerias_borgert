@@ -15,7 +15,7 @@ import { useOrdenGenerator } from "~/hooks/useOrdenGenerator";
 import { Input, Textarea, Select } from "~/components/Inputs";
 import { useData } from "~/context/DataContext";
 import { Badge } from "~/components/Badge";
-import PDFIcon from "~/components/icons/pdfIcon";
+import PDFIcon from "~/components/icons/PDFIcon";
 import { formatDateUStoES } from "~/utils/formatDate";
 
 interface OrdenTrabajoModalProps {
