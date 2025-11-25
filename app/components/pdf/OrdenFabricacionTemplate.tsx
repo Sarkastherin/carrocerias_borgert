@@ -132,7 +132,7 @@ export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
               <Row>
                 <Cell
                   title="Altura baranda"
-                  value={pedidoData?.carroceria?.alt_baranda}
+                  value={pedidoData?.carroceria?.alt_baranda + " mm"}
                   isFirst
                 />
                 <Cell
@@ -157,7 +157,7 @@ export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
                   value={pedidoData?.carroceria?.cumbreras ? "Sí" : "No"}
                 />
                 <Cell
-                  title="Refuerzos laterales"
+                  title="Líneas de refuerzo"
                   value={
                     pedidoData?.carroceria?.lineas_refuerzo === 0
                       ? "No"

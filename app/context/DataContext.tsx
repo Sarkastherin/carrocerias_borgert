@@ -14,6 +14,7 @@ import {
   defaultAPI,
   controlCarrozadoAPI,
   ordenesAPI,
+  controlesAPI,
 } from "~/backend/sheetServices";
 import type { ClientesBD } from "~/types/clientes";
 import { useUIModals } from "./ModalsContext";
@@ -24,6 +25,7 @@ import type {
   PedidosUI,
   TrabajoChasisBD,
   OrdenesBD,
+  ControlesBD,
 } from "~/types/pedidos";
 import type {
   ColoresBD,
@@ -65,7 +67,7 @@ type DataContextType = {
   configItemsControl: ConfigItemsControlBD[] | null;
   getConfigItemsControl: () => Promise<ConfigItemsControlBD[]>;
   controlCarrozado: ControlCarrozadoDB[] | null;
-  getControles: () => Promise<ControlCarrozadoDB[]>;
+  getControlesItems: () => Promise<ControlCarrozadoDB[]>;
   getDefaults: () => Promise<DefaultDB[]>;
   defaults: DefaultDB[] | null;
   selectedCarrozado: DefaultDB[] | null;
@@ -81,6 +83,9 @@ type DataContextType = {
   ) => Promise<OrdenesBD[]>;
   ordenesByPedido: OrdenesBD[] | null;
   setOrdenesByPedido: React.Dispatch<React.SetStateAction<OrdenesBD[] | null>>;
+  getControlesByPedidoId: (pedidoId: string, refresh?: boolean) => Promise<ControlesBD[]>;
+  controlesByPedido: ControlesBD[] | null;
+  setControlesByPedido: React.Dispatch<React.SetStateAction<ControlesBD[] | null>>;
 };
 const DataContext = createContext<DataContextType | undefined>(undefined);
 export const DataProvider = ({ children }: { children: React.ReactNode }) => {
@@ -110,6 +115,10 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   >(null);
   const [ordenes, setOrdenes] = useState<OrdenesBD[] | null>(null);
   const [ordenesByPedido, setOrdenesByPedido] = useState<OrdenesBD[] | null>(
+    null
+  );
+  const [controles, setControles] = useState<ControlesBD[] | null>(null);
+  const [controlesByPedido, setControlesByPedido] = useState<ControlesBD[] | null>(
     null
   );
   const getClientes = async () => {
@@ -617,7 +626,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     setDefaults((response.data as DefaultDB[]) || []);
     return response.data as DefaultDB[];
   };
-  const getControles = async () => {
+  const getControlesItems = async () => {
     const response = await controlCarrozadoAPI.read();
     if (!response.success) {
       logDetailedError(response.error);
@@ -680,6 +689,17 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     setOrdenes((response.data as OrdenesBD[]) || []);
     return response.data as OrdenesBD[];
   };
+  const getControles = async () => {
+    const response = await controlesAPI.read();
+    if (!response.success) {
+      logDetailedError(response.error);
+      const formattedError = getFormattedError(response.error);
+      showError(formattedError);
+      throw new Error(formattedError);
+    }
+    setControles((response.data as ControlesBD[]) || []);
+    return response.data as ControlesBD[];
+  };
   const getOrdenesByPedidoId = async (
     pedidoId: string,
     refresh?: boolean 
@@ -719,6 +739,45 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       return existeingOrdenes;
     }
   };
+  const getControlesByPedidoId = async (
+    pedidoId: string,
+    refresh?: boolean 
+  ) => {
+    if (
+      controlesByPedido &&
+      controlesByPedido.length > 0 &&
+      controlesByPedido[0].pedido_id === pedidoId
+      && !refresh
+    ) {
+      //Si ya se cargaron los controles para este pedido, devolverlos
+      return controlesByPedido;
+    }
+    if (!controles || refresh) {
+      //Si no hay controles cargados, cargarlos
+      const controlesData = await getControles();
+      // Buscar los controles del pedido especifico
+      const existeingControles = controlesData.filter(
+        (control) => control.pedido_id === pedidoId
+      );
+      if (!existeingControles || existeingControles.length === 0) {
+        setControlesByPedido(null);
+        return [];
+      }
+      setControlesByPedido(existeingControles);
+      return existeingControles;
+    } else {
+      //Si ya hay controles cargados, buscar en el cache
+      const existeingControles = controles.filter(
+        (control) => control.pedido_id === pedidoId
+      );
+      if (!existeingControles || existeingControles.length === 0) {
+        setControlesByPedido(null);
+        return [];
+      }
+      setControlesByPedido(existeingControles);
+      return existeingControles;
+    }
+  };
 
   return (
     <DataContext.Provider
@@ -750,7 +809,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         checkCuitExists,
         getConfigItemsControl,
         configItemsControl,
-        getControles,
+        getControlesItems,
         controlCarrozado,
         getDefaults,
         defaults,
@@ -762,6 +821,9 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         getOrdenesByPedidoId,
         ordenesByPedido,
         setOrdenesByPedido,
+        getControlesByPedidoId,
+        controlesByPedido,
+        setControlesByPedido,
       }}
     >
       {children}

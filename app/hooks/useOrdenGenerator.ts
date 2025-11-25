@@ -4,6 +4,7 @@ import type { OrdenesBD, PedidosUI } from "~/types/pedidos";
 import { OrdenFabricacionTemplate } from "~/components/pdf/OrdenFabricacionTemplate";
 import { OrdenPinturaTemplate } from "~/components/pdf/OrdenPinturaTemplate";
 import { OrdenMontajeTemplate } from "~/components/pdf/OrdenMontajeTemplate";
+import { OrdenCarrozadoTemplate } from "~/components/pdf/OrdenCarrozadoTemplate";
 import { uploadOrderPDF } from "~/backend/driveAPI";
 import { ordenesAPI, pedidosAPI } from "~/backend/sheetServices";
 import { tipoOrdenOptions } from "~/types/pedidos";
@@ -49,6 +50,12 @@ export const useOrdenGenerator = () => {
           break;
         case "montaje":
           pdfDocument = React.createElement(OrdenMontajeTemplate, {
+            pedidoData,
+            formData,
+          });
+          break;
+        case "carrozado":
+          pdfDocument = React.createElement(OrdenCarrozadoTemplate, {
             pedidoData,
             formData,
           });

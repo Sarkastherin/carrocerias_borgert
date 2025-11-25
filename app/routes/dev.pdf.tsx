@@ -2,7 +2,7 @@ import React from "react";
 import { PDFViewer } from "@react-pdf/renderer";
 import { OrdenFabricacionTemplate } from "~/components/pdf/OrdenFabricacionTemplate";
 import { OrdenPinturaTemplate } from "~/components/pdf/OrdenPinturaTemplate";
-import { OrdenMontajeTemplate } from "~/components/pdf/OrdenMontajeTemplate";
+import { OrdenCarrozadoTemplate } from "~/components/pdf/OrdenCarrozadoTemplate";
 import type { PedidosUI } from "~/types/pedidos";
 
 export default function PDFDev() {
@@ -145,7 +145,7 @@ export default function PDFDev() {
           border: "none",
         }}
       >
-        <OrdenMontajeTemplate
+        <OrdenCarrozadoTemplate
           pedidoData={mockPedidoData}
           formData={mockFormData}
         />

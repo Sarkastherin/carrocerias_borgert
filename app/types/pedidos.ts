@@ -39,6 +39,11 @@ export const tipoOrdenOptions = [
   { value: "pintura", label: "Orden de Pintura" },
   { value: "montaje", label: "Orden de Montaje" },
 ];
+export const tipoControlOptions = [
+  { value: "carrozado", label: "Control de Carrozado" },
+  { value: "pintura", label: "Control de Pintura" },
+  { value: "final", label: "Control Final" },
+];
 export type PedidosBD = {
   id: string;
   fecha_creacion: string;
@@ -142,5 +147,16 @@ export type OrdenesBD = {
   fecha_ejecucion: string;
   url_archivo: string;
   status?: string;
+  notas?: string;
+}
+export type ControlesBD = {
+  id: string;
+  fecha_creacion: string;
+  pedido_id: string;
+  tipo_control: (typeof tipoControlOptions)[number]["value"];
+  responsable: string;
+  fecha_ejecucion: string;
+  url_archivo: string;
+  resultado?: string;
   notas?: string;
 }

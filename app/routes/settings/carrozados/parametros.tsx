@@ -68,14 +68,6 @@ export default function SettingsLayoutCarrozado() {
           default:
             return true;
         }
-        // Los datos ya están filtrados por carrozadoId, solo verificar si el atributo existe
-        /* const exists = currentData.some(
-          (item) =>
-            item.atributo &&
-            item.atributo.trim().toLowerCase() === normalizedAtributo
-        ); */
-
-        console.log("¿Existe el atributo?", exists);
         return !exists; // Retorna true si NO existe (validación exitosa)
       } catch (error) {
         console.error("Error validando nombre único:", error);
@@ -117,7 +109,6 @@ export default function SettingsLayoutCarrozado() {
             { reset, setSuccessMessage, setErrorMessage }: any
           ) => {
             if (mode === "create") {
-              console.log(data);
               const itemToValidate =
                 configTitle === "valores por defecto"
                   ? data.atributo
