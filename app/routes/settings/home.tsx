@@ -17,16 +17,17 @@ export default function ParametrosGenerales() {
   const parametersModules = [
     {
       name: "Parámetros Generales",
-      description: "Gestión de colores, carrozado y puertas traseras. Ítems de control.",
+      description:
+        "Gestión de colores, carrozado y puertas traseras. Ítems de control.",
       icon: Settings,
       path: "generales",
-    },
+    },/* 
     {
       name: "Configuración Avanzada",
       description: "Ajustes avanzados por tipo de carrozados.",
       icon: Wrench,
       path: "carrozados",
-    },
+    }, */
   ];
 
   return (
