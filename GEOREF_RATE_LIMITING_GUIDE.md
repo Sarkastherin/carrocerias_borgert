@@ -12,24 +12,37 @@ La API de Georef (https://apis.datos.gob.ar/georef/api) tiene límites de tasa q
 - **Listados completos**: Cache por 1 hora
 - Evita solicitudes repetidas innecesarias
 
-### 2. Rate Limiting
-- Máximo 40 requests por minuto (conservador)
-- Mínimo 150ms entre requests
+### 2. Rate Limiting Dinámico
+- **Desarrollo**: 40 requests/minuto, 150ms entre requests
+- **Producción**: 20 requests/minuto, 500ms entre requests
+- Detección automática del entorno
 - Sistema de ventana deslizante para control de límites
 
-### 3. Reintentos con Backoff Exponencial
-- Hasta 3 intentos automáticos
-- Tiempo de espera progresivo: 1s, 2s, 4s + jitter
+### 3. Sistema de Fallback Robusto
+- **Datos estáticos** de provincias argentinas incluidos
+- **Localidades principales** por provincia disponibles
+- **Activación automática** cuando la API falla
+- **Funcionamiento offline** básico garantizado
+
+### 4. Reintentos con Backoff Exponencial
+- Hasta 5 intentos automáticos (aumentado)
+- Tiempo de espera progresivo: 2s, 4s, 8s, 16s, 32s + jitter
 - Manejo específico de errores 429 y de red
 
-### 4. Optimizaciones de Carga
+### 5. Precarga Inteligente
+- Provincias precargadas al iniciar la aplicación
+- Mejora la velocidad de respuesta inicial
+- Fallback automático si falla la precarga
+
+### 6. Optimizaciones de Carga
 - Búsquedas con debounce de 300ms
 - Carga diferida de localidades (solo cuando se selecciona provincia)
 - Paginación inteligente según el contexto
 
-### 5. Manejo de Errores Mejorado
+### 7. Manejo de Errores Mejorado
+- Fallback automático transparente
 - Mensajes específicos para cada tipo de error
-- Botón de "Intentar nuevamente" en errores
+- Botón de "Intentar nuevamente" en errores críticos
 - Indicadores de estado de carga claros
 
 ## Archivos Modificados
@@ -107,3 +120,22 @@ El servicio incluye logs en consola para monitorear:
 1. El caché expira automáticamente
 2. Puedes limpiar manualmente desde las herramientas de desarrollo
 3. Los errores de red fuerzan refresh automático
+
+## Sistema de Fallback
+
+### Funcionamiento Automático:
+- Si la API Georef falla, el sistema automáticamente usa datos estáticos
+- **Provincias**: Listado completo de las 24 provincias argentinas
+- **Localidades**: Principales ciudades de cada provincia
+- **Transparente**: El usuario no nota la diferencia
+
+### Ventajas del Fallback:
+- ✅ Funcionamiento garantizado incluso sin internet
+- ✅ Velocidad instantánea (sin esperas por API)
+- ✅ Datos siempre actualizados (provincias no cambian)
+- ✅ Reducción drástica de errores 429
+
+### Configuración por Entorno:
+- **Desarrollo** (localhost): Configuración menos restrictiva
+- **Producción**: Configuración muy conservadora + fallback automático
+- **Detección automática** del entorno

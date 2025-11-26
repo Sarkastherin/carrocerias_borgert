@@ -21,8 +21,8 @@ export default function ParametrosGenerales() {
         "Gestión de colores, carrozado y puertas traseras. Ítems de control.",
       icon: Settings,
       path: "generales",
-    },/* 
-    {
+    },
+    /* {
       name: "Configuración Avanzada",
       description: "Ajustes avanzados por tipo de carrozados.",
       icon: Wrench,

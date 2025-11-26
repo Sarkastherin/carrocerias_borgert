@@ -1,7 +1,8 @@
 // Servicio para la API Georef del estado argentino
 // Documentación: https://apis.datos.gob.ar/georef/api/v2.0
 
-import { GEOREF_CONFIG } from "~/config/georefConfig";
+import { GEOREF_CONFIG, getRateLimitConfig } from "~/config/georefConfig";
+import { getProvinciasFallback, getLocalidadesFallback } from "~/config/fallbackData";
 
 // Sistema de caché para evitar solicitudes repetidas
 interface CacheEntry<T> {
@@ -44,30 +45,31 @@ class RateLimitManager {
   private lastRequestTime = 0;
   private requestCount = 0;
   private requestTimes: number[] = [];
+  private config = getRateLimitConfig();
 
   async waitIfNeeded(): Promise<void> {
     const now = Date.now();
     
     // Limpiar requests antiguos
     this.requestTimes = this.requestTimes.filter(
-      time => now - time < GEOREF_CONFIG.RATE_LIMIT.WINDOW_SIZE
+      time => now - time < this.config.WINDOW_SIZE
     );
 
     // Verificar si hemos excedido el límite
-    if (this.requestTimes.length >= GEOREF_CONFIG.RATE_LIMIT.MAX_REQUESTS_PER_MINUTE) {
+    if (this.requestTimes.length >= this.config.MAX_REQUESTS_PER_MINUTE) {
       const oldestRequest = this.requestTimes[0];
-      const waitTime = GEOREF_CONFIG.RATE_LIMIT.WINDOW_SIZE - (now - oldestRequest);
+      const waitTime = this.config.WINDOW_SIZE - (now - oldestRequest);
       if (waitTime > 0) {
-        console.log(`Rate limit alcanzado, esperando ${waitTime}ms`);
+        console.log(`🚀 Rate limit alcanzado, esperando ${waitTime}ms (producción: ${this.config.MIN_INTERVAL}ms interval)`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
       }
     }
 
     // Esperar el intervalo mínimo entre requests
     const timeSinceLastRequest = now - this.lastRequestTime;
-    if (timeSinceLastRequest < GEOREF_CONFIG.RATE_LIMIT.MIN_INTERVAL) {
+    if (timeSinceLastRequest < this.config.MIN_INTERVAL) {
       await new Promise(resolve => 
-        setTimeout(resolve, GEOREF_CONFIG.RATE_LIMIT.MIN_INTERVAL - timeSinceLastRequest)
+        setTimeout(resolve, this.config.MIN_INTERVAL - timeSinceLastRequest)
       );
     }
 
@@ -206,6 +208,7 @@ interface DireccionesResponse extends GeorefResponse<DireccionNormalizada> {
 class GeorefService {
   private cache = new CacheManager();
   private rateLimitManager = new RateLimitManager();
+  private pendingRequests = new Map<string, Promise<any>>();
 
   private async request<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
     const url = new URL(`${GEOREF_CONFIG.BASE_URL}${endpoint}`);
@@ -255,23 +258,62 @@ class GeorefService {
   }
 
   /**
+   * Evita llamadas duplicadas usando una clave de cache
+   */
+  private async deduplicateRequest<T>(key: string, fn: () => Promise<T>): Promise<T> {
+    // Si ya hay una petición pendiente con esta clave, esperar su resultado
+    if (this.pendingRequests.has(key)) {
+      console.log(`🔄 Evitando llamada duplicada para: ${key}`);
+      return this.pendingRequests.get(key) as Promise<T>;
+    }
+
+    // Crear nueva petición
+    const promise = fn().finally(() => {
+      // Limpiar la petición pendiente cuando termine
+      this.pendingRequests.delete(key);
+    });
+
+    // Guardar la petición pendiente
+    this.pendingRequests.set(key, promise);
+    
+    return promise;
+  }
+
+  /**
    * Obtiene todas las provincias argentinas
    * @param nombre Filtro opcional por nombre de provincia
    * @param max Cantidad máxima de resultados
    */
   async getProvincias(nombre?: string, max: number = GEOREF_CONFIG.PAGINATION.DEFAULT_PROVINCIAS): Promise<Provincia[]> {
-    const params: Record<string, string> = {
-      campos: 'estandar',
-      max: max.toString(),
-      orden: 'nombre'
-    };
+    const cacheKey = `provincias_${nombre || 'all'}_${max}`;
+    
+    return this.deduplicateRequest(cacheKey, async () => {
+      try {
+        const params: Record<string, string> = {
+          campos: 'estandar',
+          max: max.toString(),
+          orden: 'nombre'
+        };
 
-    if (nombre) {
-      params.nombre = nombre;
-    }
+        if (nombre) {
+          params.nombre = nombre;
+        }
 
-    const response = await this.request<ProvinciasResponse>('/provincias', params);
-    return response.provincias;
+        const response = await this.request<ProvinciasResponse>('/provincias', params);
+        return response.provincias;
+      } catch (error) {
+        console.warn('⚠️  API Georef no disponible, usando datos de fallback para provincias');
+        const fallbackData = getProvinciasFallback();
+        
+        if (nombre) {
+          return fallbackData.filter(p => 
+            p.nombre.toLowerCase().includes(nombre.toLowerCase())
+          );
+        }
+        
+        return fallbackData;
+      }
+    });
   }
 
   /**
@@ -289,20 +331,43 @@ class GeorefService {
     if (!provinciaId || provinciaId.trim() === '') {
       throw new Error('El ID de provincia es requerido');
     }
+
+    const cacheKey = `localidades_${provinciaId}_${nombre || 'all'}_${max}`;
     
-    const params: Record<string, string> = {
-      provincia: provinciaId,
-      campos: 'estandar',
-      max: max.toString(),
-      orden: 'nombre'
-    };
+    return this.deduplicateRequest(cacheKey, async () => {
+      try {
+        const params: Record<string, string> = {
+          provincia: provinciaId,
+          campos: 'estandar',
+          max: max.toString(),
+          orden: 'nombre'
+        };
 
-    if (nombre) {
-      params.nombre = nombre;
-    }
+        if (nombre) {
+          params.nombre = nombre;
+        }
 
-    const response = await this.request<LocalidadesResponse>('/localidades', params);
-    return response.localidades;
+        const response = await this.request<LocalidadesResponse>('/localidades', params);
+        return response.localidades;
+      } catch (error) {
+        console.warn(`⚠️  API Georef no disponible para búsqueda, usando datos de fallback para provincia ${provinciaId}`);
+        
+        const fallbackLocalidades = getLocalidadesFallback(provinciaId);
+        const localidadesCompletas: Localidad[] = fallbackLocalidades
+          .filter(loc => !nombre || loc.nombre.toLowerCase().includes(nombre.toLowerCase()))
+          .map(loc => ({
+            id: loc.id,
+            nombre: loc.nombre,
+            departamento: { id: '', nombre: '' },
+            provincia: { id: provinciaId, nombre: '' },
+            municipio: { id: '', nombre: '' },
+            categoria: 'Localidad',
+            centroide: { lat: 0, lon: 0 }
+          }));
+        
+        return localidadesCompletas;
+      }
+    });
   }
 
   /**
@@ -323,19 +388,39 @@ class GeorefService {
       return cached;
     }
 
-    const params: Record<string, string> = {
-      provincia: provinciaId,
-      campos: 'estandar',
-      max: GEOREF_CONFIG.PAGINATION.MAX_ALL_LOCALIDADES.toString(),
-      orden: 'nombre'
-    };
+    try {
+      const params: Record<string, string> = {
+        provincia: provinciaId,
+        campos: 'estandar',
+        max: GEOREF_CONFIG.PAGINATION.MAX_ALL_LOCALIDADES.toString(),
+        orden: 'nombre'
+      };
 
-    const response = await this.request<LocalidadesResponse>('/localidades', params);
-    
-    // Caché específico para listados completos
-    this.cache.set(cacheKey, response.localidades, GEOREF_CONFIG.CACHE.ALL_LOCALIDADES_TTL);
-    
-    return response.localidades;
+      const response = await this.request<LocalidadesResponse>('/localidades', params);
+      
+      // Caché específico para listados completos
+      this.cache.set(cacheKey, response.localidades, GEOREF_CONFIG.CACHE.ALL_LOCALIDADES_TTL);
+      
+      return response.localidades;
+    } catch (error) {
+      console.warn(`⚠️  API Georef no disponible, usando datos de fallback para localidades de provincia ${provinciaId}`);
+      
+      const fallbackLocalidades = getLocalidadesFallback(provinciaId);
+      const localidadesCompletas: Localidad[] = fallbackLocalidades.map(loc => ({
+        id: loc.id,
+        nombre: loc.nombre,
+        departamento: { id: '', nombre: '' },
+        provincia: { id: provinciaId, nombre: '' },
+        municipio: { id: '', nombre: '' },
+        categoria: 'Localidad',
+        centroide: { lat: 0, lon: 0 }
+      }));
+      
+      // Cachear datos de fallback también
+      this.cache.set(cacheKey, localidadesCompletas, GEOREF_CONFIG.CACHE.ALL_LOCALIDADES_TTL);
+      
+      return localidadesCompletas;
+    }
   }
 
   /**
@@ -399,6 +484,31 @@ class GeorefService {
 
 // Instancia singleton del servicio
 export const georefService = new GeorefService();
+
+// Función para precargar provincias al inicio de la aplicación
+export async function precargarProvincias(): Promise<void> {
+  try {
+    console.log('🚀 Precargando provincias al inicio...');
+    await georefService.getProvincias();
+    console.log('✅ Provincias precargadas correctamente');
+  } catch (error) {
+    console.warn('⚠️ No se pudieron precargar provincias desde la API, se usarán datos de fallback cuando sea necesario');
+  }
+}
+
+// Función para obtener información del estado del sistema
+export function getGeorefSystemInfo() {
+  const config = getRateLimitConfig();
+  const isProduction = config.MIN_INTERVAL >= 500;
+  
+  return {
+    isProduction,
+    minInterval: config.MIN_INTERVAL,
+    maxRequestsPerMinute: config.MAX_REQUESTS_PER_MINUTE,
+    fallbackAvailable: true,
+    cacheEnabled: true
+  };
+}
 
 // Función utilitaria para formatear nombres de localidades
 export function formatearLocalidad(localidad: Localidad): string {

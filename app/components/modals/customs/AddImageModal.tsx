@@ -32,12 +32,9 @@ export function AddImageModal({ onClose, carrozadoId }: AddImageModalProps) {
         const response = await carrozadoAPI.update(carrozadoId, {
           imagen: imageUrl,
         });
-        if (!response.success) {
-          console.error(
-            "Error updating carrozado with image URL:",
-            response.message
-          );
-        }
+        if (!response.success)
+          throw new Error("Error updating carrozado with image URL");
+        setSuccessMessage("Imagen subida exitosamente.");
       }
     } catch (error) {
       console.error("Error uploading image to Cloudinary:", error);
@@ -57,7 +54,6 @@ export function AddImageModal({ onClose, carrozadoId }: AddImageModalProps) {
       );
       const data = await response.json();
       if (data.error) throw new Error(data.error.message);
-      console.log("Cloudinary response:", data);
       return data.url;
     } catch (error) {
       console.error("Error uploading image to Cloudinary:", error);

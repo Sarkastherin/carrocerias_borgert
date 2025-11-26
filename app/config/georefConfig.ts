@@ -3,11 +3,18 @@ export const GEOREF_CONFIG = {
   // URL base de la API
   BASE_URL: 'https://apis.datos.gob.ar/georef/api',
   
-  // Límites de rate limiting (conservadores para evitar 429)
+  // Límites de rate limiting (ULTRA conservadores para producción)
   RATE_LIMIT: {
-    MIN_INTERVAL: 150, // 150ms entre requests (más conservador)
-    MAX_REQUESTS_PER_MINUTE: 40, // Máximo 40 requests por minuto (más conservador)
+    MIN_INTERVAL: 3000, // 3 segundos entre requests (ULTRA conservador)
+    MAX_REQUESTS_PER_MINUTE: 8, // Máximo 8 requests por minuto (ULTRA conservador)
     WINDOW_SIZE: 60000, // Ventana de 1 minuto
+  },
+
+  // Configuración para desarrollo (conservadora)
+  RATE_LIMIT_DEV: {
+    MIN_INTERVAL: 2000, // 2 segundos entre requests para desarrollo
+    MAX_REQUESTS_PER_MINUTE: 15, // 15 requests por minuto para desarrollo
+    WINDOW_SIZE: 60000,
   },
   
   // Configuración de cache
@@ -18,12 +25,12 @@ export const GEOREF_CONFIG = {
     ALL_LOCALIDADES_TTL: 60 * 60 * 1000, // 1 hora para listados completos
   },
   
-  // Configuración de reintentos
+  // Configuración de reintentos (más conservadora)
   RETRY: {
-    MAX_ATTEMPTS: 3,
-    BASE_BACKOFF: 1000, // 1 segundo base
-    MAX_BACKOFF: 30000, // Máximo 30 segundos
-    JITTER: 1000, // Random hasta 1 segundo
+    MAX_ATTEMPTS: 3, // Menos intentos para activar fallback más rápido
+    BASE_BACKOFF: 5000, // 5 segundos base (más tiempo)
+    MAX_BACKOFF: 120000, // Máximo 2 minutos
+    JITTER: 3000, // Random hasta 3 segundos
   },
   
   // Límites de paginación
@@ -45,3 +52,12 @@ export const GEOREF_CONFIG = {
 } as const;
 
 export type GeorefConfig = typeof GEOREF_CONFIG;
+
+// Función para obtener configuración según el entorno
+export function getRateLimitConfig() {
+  const isProduction = typeof window !== 'undefined' 
+    ? window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+    : process.env.NODE_ENV === 'production';
+    
+  return isProduction ? GEOREF_CONFIG.RATE_LIMIT : GEOREF_CONFIG.RATE_LIMIT_DEV;
+}

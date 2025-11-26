@@ -128,15 +128,35 @@ export function useAddressForm(options: UseAddressFormOptions = {}) {
     direccion: initialValues.direccion || "",
   });
 
-  // Cargar provincias al montar el componente
+  // Cargar provincias al montar el componente (solo una vez)
   useEffect(() => {
-    loadProvincias();
-  }, []);
+    let isMounted = true;
+    
+    const loadInitialProvincias = async () => {
+      if (isMounted && provincias.length === 0) {
+        await loadProvincias();
+      }
+    };
+    
+    loadInitialProvincias();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Sin dependencias para evitar re-ejecuciones
 
-  // Cargar localidades cuando cambia la provincia
+  // Cargar localidades cuando cambia la provincia (con debounce)
   useEffect(() => {
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout;
+    
     if (addressData.provinciaId) {
-      loadLocalidades(addressData.provinciaId);
+      // Debounce para evitar múltiples llamadas
+      timeoutId = setTimeout(async () => {
+        if (isMounted) {
+          await loadLocalidades(addressData.provinciaId);
+        }
+      }, 300); // 300ms debounce
     } else {
       setLocalidades([]);
       setAddressData((prev) => ({
@@ -145,6 +165,13 @@ export function useAddressForm(options: UseAddressFormOptions = {}) {
         localidad: undefined,
       }));
     }
+    
+    return () => {
+      isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [addressData.provinciaId]);
 
   // Notificar cambios al padre
@@ -162,16 +189,10 @@ export function useAddressForm(options: UseAddressFormOptions = {}) {
       const data = await georefService.getProvincias(searchTerm, 25);
       setProvincias(data);
     } catch (error: any) {
-      console.error("Error loading provincias:", error);
+      console.error("Error crítico loading provincias:", error);
       
-      // Manejar errores específicos
-      if (error.message?.includes('429')) {
-        setProvinciasError("Demasiadas solicitudes. Por favor, espera unos segundos e intenta nuevamente.");
-      } else if (error.message?.includes('400')) {
-        setProvinciasError("Error en la solicitud. Por favor, contacta al soporte técnico.");
-      } else {
-        setProvinciasError("Error al cargar las provincias. Verifica tu conexión a internet.");
-      }
+      // Si llegamos aquí es porque incluso el fallback falló (muy raro)
+      setProvinciasError("Error crítico al cargar provincias. Por favor, contacta al soporte técnico.");
     } finally {
       setProvinciasLoading(false);
     }
@@ -202,17 +223,14 @@ export function useAddressForm(options: UseAddressFormOptions = {}) {
         
         setLocalidades(data);
       } catch (error: any) {
-        console.error("Error loading localidades:", error);
+        console.error("Error crítico loading localidades:", error);
         
-        // Manejar errores específicos
-        if (error.message?.includes('429')) {
-          setLocalidadesError("Demasiadas solicitudes. Por favor, espera unos segundos e intenta nuevamente.");
-        } else if (error.message?.includes('400')) {
-          setLocalidadesError("Error en la solicitud. Por favor, contacta al soporte técnico.");
-        } else if (error.message?.includes('ID de provincia es requerido')) {
+        // Manejar errores específicos que no deberían tener fallback
+        if (error.message?.includes('ID de provincia es requerido')) {
           setLocalidadesError("Selecciona una provincia válida primero.");
         } else {
-          setLocalidadesError("Error al cargar las localidades. Verifica tu conexión a internet.");
+          // Si llegamos aquí es porque incluso el fallback falló (muy raro)
+          setLocalidadesError("Error crítico al cargar localidades. Por favor, contacta al soporte técnico.");
         }
       } finally {
         setLocalidadesLoading(false);
