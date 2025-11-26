@@ -1,7 +1,123 @@
 // Servicio para la API Georef del estado argentino
 // Documentación: https://apis.datos.gob.ar/georef/api/v2.0
 
-const GEOREF_BASE_URL = 'https://apis.datos.gob.ar/georef/api';
+import { GEOREF_CONFIG } from "~/config/georefConfig";
+
+// Sistema de caché para evitar solicitudes repetidas
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+  expiresIn: number;
+}
+
+class CacheManager {
+  private cache = new Map<string, CacheEntry<any>>();
+
+  set<T>(key: string, data: T, ttl: number = GEOREF_CONFIG.CACHE.DEFAULT_TTL): void {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      expiresIn: ttl
+    });
+  }
+
+  get<T>(key: string): T | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+
+    const now = Date.now();
+    if (now - entry.timestamp > entry.expiresIn) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return entry.data as T;
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
+// Gestor de rate limiting
+class RateLimitManager {
+  private lastRequestTime = 0;
+  private requestCount = 0;
+  private requestTimes: number[] = [];
+
+  async waitIfNeeded(): Promise<void> {
+    const now = Date.now();
+    
+    // Limpiar requests antiguos
+    this.requestTimes = this.requestTimes.filter(
+      time => now - time < GEOREF_CONFIG.RATE_LIMIT.WINDOW_SIZE
+    );
+
+    // Verificar si hemos excedido el límite
+    if (this.requestTimes.length >= GEOREF_CONFIG.RATE_LIMIT.MAX_REQUESTS_PER_MINUTE) {
+      const oldestRequest = this.requestTimes[0];
+      const waitTime = GEOREF_CONFIG.RATE_LIMIT.WINDOW_SIZE - (now - oldestRequest);
+      if (waitTime > 0) {
+        console.log(`Rate limit alcanzado, esperando ${waitTime}ms`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
+    }
+
+    // Esperar el intervalo mínimo entre requests
+    const timeSinceLastRequest = now - this.lastRequestTime;
+    if (timeSinceLastRequest < GEOREF_CONFIG.RATE_LIMIT.MIN_INTERVAL) {
+      await new Promise(resolve => 
+        setTimeout(resolve, GEOREF_CONFIG.RATE_LIMIT.MIN_INTERVAL - timeSinceLastRequest)
+      );
+    }
+
+    this.lastRequestTime = Date.now();
+    this.requestTimes.push(this.lastRequestTime);
+  }
+
+  async retryWithBackoff<T>(
+    operation: () => Promise<T>, 
+    maxRetries: number = GEOREF_CONFIG.RETRY.MAX_ATTEMPTS
+  ): Promise<T> {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        await this.waitIfNeeded();
+        return await operation();
+      } catch (error: any) {
+        const is429 = error.message?.includes('429') || error.status === 429;
+        const is400 = error.message?.includes('400') || error.status === 400;
+        const isNetworkError = error.message?.includes('Failed to fetch') || error.name === 'TypeError';
+        
+        // No reintentar en errores 400 (Bad Request) ya que son problemas de parámetros
+        if (is400) {
+          console.error('Error 400 - Parámetros incorrectos:', error);
+          throw new Error(GEOREF_CONFIG.ERROR_MESSAGES[400]);
+        }
+        
+        if ((is429 || isNetworkError) && attempt < maxRetries) {
+          const baseBackoff = Math.pow(2, attempt) * GEOREF_CONFIG.RETRY.BASE_BACKOFF;
+          const jitter = Math.random() * GEOREF_CONFIG.RETRY.JITTER;
+          const backoffTime = Math.min(baseBackoff + jitter, GEOREF_CONFIG.RETRY.MAX_BACKOFF);
+          
+          console.log(`Error detectado (${is429 ? '429' : 'red'}), reintentando en ${Math.round(backoffTime)}ms (intento ${attempt + 1}/${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, backoffTime));
+          continue;
+        }
+        
+        // Mejorar el mensaje de error
+        if (is429) {
+          throw new Error(GEOREF_CONFIG.ERROR_MESSAGES[429]);
+        } else if (isNetworkError) {
+          throw new Error(GEOREF_CONFIG.ERROR_MESSAGES.NETWORK);
+        }
+        
+        throw error;
+      }
+    }
+    
+    throw new Error(GEOREF_CONFIG.ERROR_MESSAGES.GENERIC);
+  }
+}
 
 // Tipos para la respuesta de la API Georef
 export interface Provincia {
@@ -88,8 +204,11 @@ interface DireccionesResponse extends GeorefResponse<DireccionNormalizada> {
 }
 
 class GeorefService {
+  private cache = new CacheManager();
+  private rateLimitManager = new RateLimitManager();
+
   private async request<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
-    const url = new URL(`${GEOREF_BASE_URL}${endpoint}`);
+    const url = new URL(`${GEOREF_CONFIG.BASE_URL}${endpoint}`);
     
     // Agregar parámetros de consulta
     Object.entries(params).forEach(([key, value]) => {
@@ -98,21 +217,49 @@ class GeorefService {
       }
     });
 
-    const response = await fetch(url.toString());
+    // Generar clave de caché
+    const cacheKey = url.toString();
     
-    if (!response.ok) {
-      throw new Error(`Error en la API Georef: ${response.status} ${response.statusText}`);
+    // Verificar caché primero
+    const cachedData = this.cache.get<T>(cacheKey);
+    if (cachedData) {
+      console.log('Datos obtenidos desde caché:', endpoint);
+      return cachedData;
     }
 
-    return response.json();
+    // Si no está en caché, hacer la solicitud con rate limiting
+    return this.rateLimitManager.retryWithBackoff(async () => {
+      console.log(`🌐 Georef API Request: ${url.toString()}`);
+      const response = await fetch(url.toString());
+      
+      if (!response.ok) {
+        console.error(`❌ Georef API Error: ${response.status} - ${url.toString()}`);
+        throw new Error(`Error en la API Georef: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(`✅ Georef API Success: ${endpoint} - ${data.cantidad || 0} resultados`);
+      
+      // Guardar en caché con TTL apropiado según el tipo de datos
+      let ttl = GEOREF_CONFIG.CACHE.DEFAULT_TTL;
+      if (endpoint.includes('provincias')) {
+        ttl = GEOREF_CONFIG.CACHE.PROVINCIAS_TTL;
+      } else if (endpoint.includes('localidades')) {
+        ttl = GEOREF_CONFIG.CACHE.LOCALIDADES_TTL;
+      }
+      
+      this.cache.set(cacheKey, data, ttl);
+      
+      return data;
+    });
   }
 
   /**
    * Obtiene todas las provincias argentinas
    * @param nombre Filtro opcional por nombre de provincia
-   * @param max Cantidad máxima de resultados (default: 25, máximo: 5000)
+   * @param max Cantidad máxima de resultados
    */
-  async getProvincias(nombre?: string, max: number = 25): Promise<Provincia[]> {
+  async getProvincias(nombre?: string, max: number = GEOREF_CONFIG.PAGINATION.DEFAULT_PROVINCIAS): Promise<Provincia[]> {
     const params: Record<string, string> = {
       campos: 'estandar',
       max: max.toString(),
@@ -131,13 +278,18 @@ class GeorefService {
    * Obtiene localidades filtradas por provincia
    * @param provinciaId ID de la provincia (requerido)
    * @param nombre Filtro opcional por nombre de localidad
-   * @param max Cantidad máxima de resultados (default: 50, máximo: 5000)
+   * @param max Cantidad máxima de resultados
    */
   async getLocalidades(
     provinciaId: string, 
     nombre?: string, 
-    max: number = 50
+    max: number = GEOREF_CONFIG.PAGINATION.DEFAULT_LOCALIDADES
   ): Promise<Localidad[]> {
+    // Validar que el provinciaId sea válido
+    if (!provinciaId || provinciaId.trim() === '') {
+      throw new Error('El ID de provincia es requerido');
+    }
+    
     const params: Record<string, string> = {
       provincia: provinciaId,
       campos: 'estandar',
@@ -150,6 +302,39 @@ class GeorefService {
     }
 
     const response = await this.request<LocalidadesResponse>('/localidades', params);
+    return response.localidades;
+  }
+
+  /**
+   * Obtiene todas las localidades de una provincia (para casos donde se necesita el listado completo)
+   * Usa caché agresivo para evitar requests repetidos
+   */
+  async getAllLocalidades(provinciaId: string): Promise<Localidad[]> {
+    // Validar que el provinciaId sea válido
+    if (!provinciaId || provinciaId.trim() === '') {
+      throw new Error('El ID de provincia es requerido');
+    }
+    
+    const cacheKey = `all_localidades_${provinciaId}`;
+    
+    // Verificar caché específico para localidades completas (TTL más largo)
+    const cached = this.cache.get<Localidad[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const params: Record<string, string> = {
+      provincia: provinciaId,
+      campos: 'estandar',
+      max: GEOREF_CONFIG.PAGINATION.MAX_ALL_LOCALIDADES.toString(),
+      orden: 'nombre'
+    };
+
+    const response = await this.request<LocalidadesResponse>('/localidades', params);
+    
+    // Caché específico para listados completos
+    this.cache.set(cacheKey, response.localidades, GEOREF_CONFIG.CACHE.ALL_LOCALIDADES_TTL);
+    
     return response.localidades;
   }
 

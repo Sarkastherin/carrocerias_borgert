@@ -157,7 +157,7 @@ export function ConfigGlassCard({
   const IconComponent = getIcon({ icon, size: 8, color: "text-gray-800 dark:text-white" });
 
   return (
-    <Link to={path} className="block group">
+    <Link to={path} className="flex">
       <GlassCard
         size="md"
         blur="lg"
@@ -188,7 +188,8 @@ export function ConfigGlassCard({
 
           {/* Contenido */}
           <div className="px-2 pb-2 flex flex-col flex-1">
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-100 transition-colors">
+            <p className="text-text-secondary text-sm italic">Modelo:</p>
+            <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-100 transition-colors">
               {name}
             </h3>
             <p className="text-sm text-gray-700 dark:text-gray-200 group-hover:text-gray-600 dark:group-hover:text-gray-100 transition-colors leading-relaxed">

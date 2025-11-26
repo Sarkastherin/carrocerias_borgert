@@ -35,7 +35,7 @@ export const formaPagoOptions = [
   { value: "Otros", label: "Otros" },
 ];
 export const tipoOrdenOptions = [
-  { value: "fabricacion", label: "Orden de Fabricación" },
+  { value: "fabricacion", label: "Pedido de Fabricación" },
   { value: "pintura", label: "Orden de Pintura" },
   { value: "montaje", label: "Orden de Montaje" },
 ];

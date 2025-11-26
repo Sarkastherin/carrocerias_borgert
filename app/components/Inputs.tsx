@@ -5,7 +5,7 @@ import type {
   TextareaHTMLAttributes,
   SelectHTMLAttributes,
 } from "react";
-import { ChevronDown, IdCard, Phone, Banknote } from "lucide-react";
+import { ChevronDown, IdCard, Phone, Banknote, Upload } from "lucide-react";
 import type { IconType } from "./IconComponent";
 import { getIcon } from "./IconComponent";
 type CommonInputsProps = {
@@ -83,7 +83,7 @@ export function Input({
   }
   return (
     <label htmlFor={id} className={hidden ? "sr-only" : ""}>
-      <Label label={label ?? ""} requiredField={requiredField}/>
+      <Label label={label ?? ""} requiredField={requiredField} />
       <input
         type={type ? type : "text"}
         {...props}
@@ -111,7 +111,7 @@ export function InputWithIcon({
   const IconComponent = getIcon({ icon, size: 5 });
   return (
     <label htmlFor={id} className={hidden ? "sr-only" : ""}>
-      <Label label={label ?? ""} requiredField={requiredField}/>
+      <Label label={label ?? ""} requiredField={requiredField} />
       <div className="relative">
         <input
           type={type ? type : "text"}
@@ -161,7 +161,7 @@ export function Select({
 }: SelectProps) {
   return (
     <label htmlFor={id} className={hidden ? "sr-only" : ""}>
-      <Label label={label ?? ""} requiredField={requiredField}/>
+      <Label label={label ?? ""} requiredField={requiredField} />
       <div className="relative">
         <select
           {...props}
@@ -570,5 +570,66 @@ export function PhoneInput({
       placeholder="Ej: 011 1234-5678"
       icon={Phone}
     />
+  );
+}
+
+export function FileInput({
+  id,
+  label,
+  error,
+  requiredField,
+  hidden,
+  accept,
+  onChange,
+  multiple,
+  ...props
+}: InputProps & { accept?: string; multiple?: boolean }) {
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedFiles(files.map(file => file.name));
+    onChange?.(e);
+  };
+
+  const displayText = selectedFiles.length > 0 
+    ? multiple 
+      ? `${selectedFiles.length} archivo(s) seleccionado(s)`
+      : selectedFiles[0]
+    : multiple 
+      ? "Subir archivos" 
+      : "Subir archivo";
+
+  return (
+    <div className={hidden ? "sr-only" : ""}>
+      <Label label={label ?? ""} requiredField={requiredField} />
+      <label 
+        htmlFor={id} 
+        className={`flex flex-col items-center rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 p-4 text-text-primary shadow-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200 focus-within:ring-2 focus-within:ring-blue-400 focus-within:border-blue-500 sm:p-6 ${
+          error ? "border-red-500 ring-2 ring-red-500" : ""
+        }`}
+      >
+        <Upload className="w-6 h-6 text-text-secondary" />
+        
+        <span className="mt-4 font-medium text-text-primary text-center">
+          {displayText}
+        </span>
+        
+        <span className="mt-2 inline-block rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-center text-xs font-medium text-text-secondary shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+          Explorar archivos
+        </span>
+        
+        <input
+          id={id}
+          type="file"
+          accept={accept}
+          multiple={multiple}
+          onChange={handleFileChange}
+          className="sr-only"
+          {...props}
+        />
+      </label>
+      {error && <SpanError error={error} />}
+    </div>
   );
 }

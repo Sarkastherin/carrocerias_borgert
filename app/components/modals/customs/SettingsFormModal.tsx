@@ -13,7 +13,7 @@ export default function SettingsFormModal({
   fields,
   onClose,
   onSubmit,
-  data,
+  data, 
 }: {
   title: string;
   fields: Field[];

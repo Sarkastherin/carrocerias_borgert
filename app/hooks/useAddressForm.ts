@@ -161,9 +161,17 @@ export function useAddressForm(options: UseAddressFormOptions = {}) {
 
       const data = await georefService.getProvincias(searchTerm, 25);
       setProvincias(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading provincias:", error);
-      setProvinciasError("Error al cargar las provincias");
+      
+      // Manejar errores específicos
+      if (error.message?.includes('429')) {
+        setProvinciasError("Demasiadas solicitudes. Por favor, espera unos segundos e intenta nuevamente.");
+      } else if (error.message?.includes('400')) {
+        setProvinciasError("Error en la solicitud. Por favor, contacta al soporte técnico.");
+      } else {
+        setProvinciasError("Error al cargar las provincias. Verifica tu conexión a internet.");
+      }
     } finally {
       setProvinciasLoading(false);
     }
@@ -171,20 +179,41 @@ export function useAddressForm(options: UseAddressFormOptions = {}) {
 
   const loadLocalidades = useCallback(
     async (provinciaId: string, searchTerm?: string) => {
+      // Validar provinciaId antes de hacer la solicitud
+      if (!provinciaId || provinciaId.trim() === '') {
+        setLocalidades([]);
+        setLocalidadesError("");
+        return;
+      }
+      
       try {
         setLocalidadesLoading(true);
         setLocalidadesError("");
 
-        // Traer todas las localidades (máximo 1000 para asegurar cobertura completa)
-        const data = await georefService.getLocalidades(
-          provinciaId,
-          searchTerm,
-          1000
-        );
+        let data: Localidad[];
+        
+        if (searchTerm) {
+          // Si hay término de búsqueda, usar búsqueda filtrada
+          data = await georefService.getLocalidades(provinciaId, searchTerm);
+        } else {
+          // Sin término de búsqueda, usar método optimizado con caché
+          data = await georefService.getAllLocalidades(provinciaId);
+        }
+        
         setLocalidades(data);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error loading localidades:", error);
-        setLocalidadesError("Error al cargar las localidades");
+        
+        // Manejar errores específicos
+        if (error.message?.includes('429')) {
+          setLocalidadesError("Demasiadas solicitudes. Por favor, espera unos segundos e intenta nuevamente.");
+        } else if (error.message?.includes('400')) {
+          setLocalidadesError("Error en la solicitud. Por favor, contacta al soporte técnico.");
+        } else if (error.message?.includes('ID de provincia es requerido')) {
+          setLocalidadesError("Selecciona una provincia válida primero.");
+        } else {
+          setLocalidadesError("Error al cargar las localidades. Verifica tu conexión a internet.");
+        }
       } finally {
         setLocalidadesLoading(false);
       }
@@ -223,14 +252,36 @@ export function useAddressForm(options: UseAddressFormOptions = {}) {
     }));
   }, []);
 
+  // Debounce para búsquedas
+  const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+
   const handleLocalidadSearch = useCallback(
     (searchTerm: string) => {
       if (addressData.provinciaId) {
-        loadLocalidades(addressData.provinciaId, searchTerm);
+        // Limpiar timer anterior
+        if (searchDebounceTimer) {
+          clearTimeout(searchDebounceTimer);
+        }
+        
+        // Establecer nuevo timer
+        const timer = setTimeout(() => {
+          loadLocalidades(addressData.provinciaId, searchTerm);
+        }, 300); // 300ms de delay
+        
+        setSearchDebounceTimer(timer);
       }
     },
-    [addressData.provinciaId, loadLocalidades]
+    [addressData.provinciaId, loadLocalidades, searchDebounceTimer]
   );
+
+  // Limpiar timer al desmontar
+  useEffect(() => {
+    return () => {
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+      }
+    };
+  }, [searchDebounceTimer]);
 
   // Formatear opciones para los SelectField
   const provinciaOptions = provincias.map((provincia) => ({
@@ -252,6 +303,16 @@ export function useAddressForm(options: UseAddressFormOptions = {}) {
 
   const isFormValid =
     isProvinciaSelected && isLocalidadSelected && isDireccionComplete;
+
+  // Función para recargar datos manualmente
+  const retryLoadData = useCallback(async () => {
+    if (provinciasError) {
+      await loadProvincias();
+    }
+    if (localidadesError && addressData.provinciaId) {
+      await loadLocalidades(addressData.provinciaId);
+    }
+  }, [provinciasError, localidadesError, addressData.provinciaId, loadProvincias, loadLocalidades]);
 
   // Función para limpiar todo el formulario
   const resetForm = useCallback(() => {
@@ -431,6 +492,7 @@ export function useAddressForm(options: UseAddressFormOptions = {}) {
     handleDireccionChange,
     handleLocalidadSearch,
     loadProvincias,
+    retryLoadData,
 
     // Validaciones
     isProvinciaSelected,

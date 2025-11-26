@@ -135,7 +135,7 @@ export default function PDFDev() {
           fontWeight: "bold",
         }}
       >
-        🔧 Modo Desarrollo PDF - Orden de Fabricación
+        🔧 Modo Desarrollo PDF - Pedido de Fabricación
       </div>
 
       <PDFViewer

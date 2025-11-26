@@ -55,6 +55,7 @@ type DataContextType = {
   getColores: () => Promise<ColoresBD[]>;
   carrozados: CarrozadosBD[] | null;
   getCarrozados: () => Promise<CarrozadosBD[]>;
+  updateCarrozado: (id: string, data: Partial<CarrozadosBD>) => Promise<void>;
   puertasTraseras: PuertasTraserasBD[] | null;
   getPuertasTraseras: () => Promise<PuertasTraserasBD[]>;
   personal: PersonalBD[] | null;
@@ -571,6 +572,23 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     setCarrozados((response.data as CarrozadosBD[]) || []);
     return response.data as CarrozadosBD[];
   };
+
+  const updateCarrozado = async (id: string, data: Partial<CarrozadosBD>) => {
+    const response = await carrozadoAPI.update(id, data);
+    if (!response.success) {
+      logDetailedError(response.error);
+      const formattedError = getFormattedError(response.error);
+      showError(formattedError);
+      throw new Error(formattedError);
+    }
+    // Actualizar el estado local
+    setCarrozados(prev => {
+      if (!prev) return prev;
+      return prev.map(carrozado => 
+        carrozado.id === id ? { ...carrozado, ...data } : carrozado
+      );
+    });
+  };
   const getPuertasTraseras = async () => {
     const response = await puertasTraserasAPI.read();
     if (!response.success) {
@@ -797,6 +815,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         getColores,
         colores,
         getCarrozados,
+        updateCarrozado,
         carrozados,
         getPuertasTraseras,
         puertasTraseras,

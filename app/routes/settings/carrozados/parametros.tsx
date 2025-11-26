@@ -3,7 +3,7 @@ import SidebarConfig from "~/components/SidebarConfig";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { capitalize } from "~/config/settingsConfig";
 import { EntityTable } from "~/components/EntityTable";
-import { IconButton } from "~/components/Buttons";
+import { Button, IconButton } from "~/components/Buttons";
 import { Trash2Icon } from "lucide-react";
 import NoDataComponent from "~/components/NoDataComponent";
 import { ButtonAdd } from "~/components/Buttons";
@@ -11,10 +11,11 @@ import LoadingComponent from "~/components/LoadingComponent";
 import { useUIModals } from "~/context/ModalsContext";
 import SettingsFormModal from "~/components/modals/customs/SettingsFormModal";
 import { useParams } from "react-router";
-import { useData } from "~/context/DataContext";
 import { carrozadoAPI } from "~/backend/sheetServices";
+import { ImageUp } from "lucide-react";
+import { Input, InputWithIcon } from "~/components/Inputs";
+import { AddImageModal } from "~/components/modals/customs/AddImageModal";
 export default function SettingsLayoutCarrozado() {
-  const { carrozados, getCarrozados } = useData();
   const { carrozadoId } = useParams();
   const [activeTab, setActiveTab] = useState("valores por defecto");
   const { isLoading, itemsConfiguraciones, controlCarrozado, defaults } =
@@ -101,8 +102,8 @@ export default function SettingsLayoutCarrozado() {
         props: {
           title:
             mode === "create"
-              ? `Agregar ${configTitle.slice(0, -1)} a ${carrozadoNombre}`
-              : `Editar ${configTitle.slice(0, -1)} de ${carrozadoNombre}`,
+              ? `Agregar ${configTitle}`
+              : `Editar ${configTitle}`,
           fields: form,
           onSubmit: async (
             data: any,
@@ -157,6 +158,12 @@ export default function SettingsLayoutCarrozado() {
     },
     [validateUniqueItemOnCarrozado, carrozadoId, openModal]
   );
+  const handleOpenModalImage = () => {
+    openModal("CUSTOM", {
+      component: AddImageModal,
+      props: {carrozadoId}
+    });
+  }
   const handleDelete = useCallback((row: any) => {
     // Lógica para eliminar el registro
     openModal("CONFIRMATION", {
@@ -247,14 +254,20 @@ export default function SettingsLayoutCarrozado() {
                 return (
                   activeTab === item.title && (
                     <div key={item.title}>
-                      <div className="px-10 pb-6 flex items-center">
-                        <span className="scale-125 flex items-center gap-2 font-semibold text-text-primary dark:text-white">
-                          {item.icon}
+                      <div className="flex justify-between items-center mb-6">
+                        <span className="inline-flex items-center gap-2 font-bold text-xl text-text-primary dark:text-white">
+                          <span className="scale-125">{item.icon}</span>
                           <h2 className="">
                             {carrozadoNombre} -{" "}
                             <code>{capitalize(item.title)}</code>
                           </h2>
                         </span>
+                        <div className="w-fit">
+                          <Button variant="blue" onClick={handleOpenModalImage}>
+                            <ImageUp className="inline mr-2 h-5 w-5" />
+                            Agregar Imagen
+                          </Button>
+                        </div>
                       </div>
                       <EntityTable
                         key={item.title}

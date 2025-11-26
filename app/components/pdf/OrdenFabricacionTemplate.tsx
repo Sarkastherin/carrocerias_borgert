@@ -22,7 +22,7 @@ export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
 }) => (
   <Document>
     <PageTemplate>
-      <HeaderTemplate title="Orden de Fabricación" />
+      <HeaderTemplate title="Pedido de Fabricación" />
       <View>
         <View>
           <Subtitle>Datos del Pedido</Subtitle>

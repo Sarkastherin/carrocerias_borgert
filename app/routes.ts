@@ -9,6 +9,7 @@ export default [
   route("login", "routes/login.tsx"),
   // Ruta de desarrollo para PDF (sin layout para pantalla completa)
   route("dev/pdf", "routes/dev.pdf.tsx"),
+
   layout("layouts/main.tsx", [
     index("routes/home.tsx"),
     ...prefix("clientes", [
