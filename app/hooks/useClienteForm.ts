@@ -53,6 +53,7 @@ export function useClienteForm({
   );
   const [hasAddressChanged, setHasAddressChanged] = useState(false);
   const [isFormInitialized, setIsFormInitialized] = useState(false);
+  const [initializationTimestamp, setInitializationTimestamp] = useState<number>(0);
   const [hasBeenSubmittedSuccessfully, setHasBeenSubmittedSuccessfully] = useState(false);
 
   const { showLoading, showSuccess, showError, showInfo } = useUIModals();
@@ -120,12 +121,14 @@ export function useClienteForm({
         });
         
         // Marcar como inicializado después de un delay adicional
+        setInitializationTimestamp(Date.now());
         setTimeout(() => {
           setIsFormInitialized(true);
         }, 500); // Incrementar el delay para dar más tiempo a la inicialización completa
       }, 200); // También incrementar este delay
     } else {
       // Para formularios nuevos, marcar como inicializado después de un pequeño delay
+      setInitializationTimestamp(Date.now());
       setTimeout(() => {
         setIsFormInitialized(true);
         setHasBeenSubmittedSuccessfully(false);
@@ -410,24 +413,29 @@ export function useClienteForm({
       };
 
       // Detección más precisa de inicialización vs cambio de usuario
-      const isLikelyInitialization = !isFormInitialized || (isEditMode && 
-        !hasAddressChanged && 
-        existingCliente &&
-        (
-          // Caso 1: Ambas direcciones son nulas/vacías
-          (isEmptyOrNull(direccion) && 
-           isEmptyOrNull(existingCliente.direccion) && 
-           isEmptyOrNull(existingCliente.localidad) && 
-           isEmptyOrNull(existingCliente.provincia)) ||
-          
-          // Caso 2: Las direcciones coinciden exactamente
-          (direccion && 
-           isSameValue(direccion.direccion, existingCliente.direccion) &&
-           isSameValue(direccion.localidadNombre, existingCliente.localidad) &&
-           isSameValue(direccion.provinciaNombre, existingCliente.provincia) &&
-           isSameValue(direccion.provinciaId, existingCliente.provincia_id) &&
-           isSameValue(direccion.localidadId, existingCliente.localidad_id))
-        ));
+      const timeElapsed = Date.now() - (initializationTimestamp || 0);
+      const isWithinInitializationWindow = timeElapsed < 3000; // 3 segundos de ventana
+      
+      const isLikelyInitialization = !isFormInitialized || 
+        isWithinInitializationWindow || 
+        (isEditMode && 
+          !hasAddressChanged && 
+          existingCliente &&
+          (
+            // Caso 1: Ambas direcciones son nulas/vacías
+            (isEmptyOrNull(direccion) && 
+             isEmptyOrNull(existingCliente.direccion) && 
+             isEmptyOrNull(existingCliente.localidad) && 
+             isEmptyOrNull(existingCliente.provincia)) ||
+            
+            // Caso 2: Las direcciones coinciden exactamente
+            (direccion && 
+             isSameValue(direccion.direccion, existingCliente.direccion) &&
+             isSameValue(direccion.localidadNombre, existingCliente.localidad) &&
+             isSameValue(direccion.provinciaNombre, existingCliente.provincia) &&
+             isSameValue(direccion.provinciaId, existingCliente.provincia_id) &&
+             isSameValue(direccion.localidadId, existingCliente.localidad_id))
+          ));
       
       // Solo marcar como cambio si definitivamente NO es inicialización
       if (!isLikelyInitialization && isFormInitialized) {
@@ -453,7 +461,7 @@ export function useClienteForm({
         }
       }
     },
-    [form, isEditMode, hasAddressChanged, existingCliente, isFormInitialized]
+    [form, isEditMode, hasAddressChanged, existingCliente, isFormInitialized, initializationTimestamp]
   );
 
   // Función para validar dirección en tiempo real
