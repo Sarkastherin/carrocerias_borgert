@@ -14,7 +14,7 @@ export const Z_INDEX = {
   MOBILE_OVERLAY: 5,
   
   // Elementos de interfaz
-  DROPDOWN: 50,
+  DROPDOWN: 9999,
   TOOLTIP: 60,
   
   // Elementos flotantes

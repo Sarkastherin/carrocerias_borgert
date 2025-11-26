@@ -95,7 +95,7 @@ export function AddressFields({
   ]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Campo Provincia */}
       <SelectField
         label="Provincia"

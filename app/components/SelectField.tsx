@@ -42,8 +42,10 @@ export function SelectField({
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
+  const [dropdownPosition, setDropdownPosition] = useState<{top: number, left: number, width: number, placement: 'above' | 'below'} | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   // Encontrar la opción seleccionada
   const selectedOption = options.find(option => option.id === value);
@@ -86,6 +88,7 @@ export function SelectField({
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
         setSearchQuery("");
+        setDropdownPosition(null);
       }
     }
 
@@ -102,8 +105,76 @@ export function SelectField({
     }
   }, [isOpen]);
 
+  // Recalcular posición en resize o scroll
+  useEffect(() => {
+    if (!isOpen || !triggerRef.current) return;
+
+    const handleResize = () => {
+      if (triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom - 10;
+        const spaceAbove = rect.top - 10;
+        const dropdownHeight = 300;
+        
+        let top: number;
+        let placement: 'above' | 'below';
+        
+        if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+          top = rect.top - Math.min(dropdownHeight, spaceAbove);
+          placement = 'above';
+        } else {
+          top = rect.bottom + 4;
+          placement = 'below';
+        }
+        
+        setDropdownPosition({
+          top,
+          left: rect.left,
+          width: rect.width,
+          placement
+        });
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleResize, true);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleResize, true);
+    };
+  }, [isOpen]);
+
   const handleToggle = () => {
     if (!disabled) {
+      if (!isOpen && triggerRef.current) {
+        // Calcular posición exacta del dropdown
+        const rect = triggerRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom - 10; // 10px margen
+        const spaceAbove = rect.top - 10;
+        const dropdownHeight = 300; // Altura estimada del dropdown
+        
+        let top: number;
+        let placement: 'above' | 'below';
+        
+        if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+          // Mostrar arriba
+          top = rect.top - Math.min(dropdownHeight, spaceAbove);
+          placement = 'above';
+        } else {
+          // Mostrar abajo
+          top = rect.bottom + 4;
+          placement = 'below';
+        }
+        
+        setDropdownPosition({
+          top,
+          left: rect.left,
+          width: rect.width,
+          placement
+        });
+      }
+      
       setIsOpen(!isOpen);
       setSearchQuery("");
     }
@@ -113,11 +184,13 @@ export function SelectField({
     onChange(option.id, option);
     setIsOpen(false);
     setSearchQuery("");
+    setDropdownPosition(null);
   };
 
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
     onChange("", { id: "", label: "" });
+    setDropdownPosition(null);
   };
 
   return (
@@ -127,9 +200,10 @@ export function SelectField({
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       
-      <div className="relative" ref={dropdownRef}>
+      <div className="relative isolate" ref={dropdownRef} style={{ zIndex: 9999 }}>
         {/* Campo principal */}
         <button
+          ref={triggerRef}
           type="button"
           className={`
             relative w-full cursor-default text-left
@@ -164,9 +238,18 @@ export function SelectField({
           />
         </div>
 
-        {/* Dropdown */}
-        {isOpen && (
-          <div className={`absolute ${getZIndexClass(Z_INDEX.DROPDOWN)} mt-1 w-full rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5`}>
+        {/* Dropdown con posición fixed */}
+        {isOpen && dropdownPosition && (
+          <div 
+            className={`fixed ${getZIndexClass(Z_INDEX.DROPDOWN)} rounded-md bg-white dark:bg-gray-800 shadow-2xl border border-gray-200 dark:border-gray-600 ring-1 ring-black ring-opacity-5`}
+            style={{ 
+              zIndex: 9999,
+              top: dropdownPosition.top,
+              left: dropdownPosition.left,
+              width: dropdownPosition.width,
+              maxHeight: '300px'
+            }}
+          >
             {/* Campo de búsqueda */}
             <div className="p-2 border-b border-gray-200 dark:border-gray-600">
               <div className="relative">
