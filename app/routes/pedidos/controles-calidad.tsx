@@ -60,10 +60,10 @@ export default function ControlesCalidad() {
   return (
     <ContainerToForms>
       <Subheader
-        title="Controles de Calidad"
+        title="Controles de Calidad (En Pruebas)"
         icon={{ component: FileBox, color: "text-pink-600 dark:text-pink-400" }}
       />
-      <div className="flex flex-col items-center justify-center py-16 px-4">
+      {/* <div className="flex flex-col items-center justify-center py-16 px-4">
         <div className="text-center">
           <div className="mb-6">
             <FileBox className="mx-auto h-16 w-16 text-gray-400 dark:text-gray-500" />
@@ -76,8 +76,8 @@ export default function ControlesCalidad() {
             estarán disponibles muy pronto.
           </p>
         </div>
-      </div>
-      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      </div> */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {tipoControles.map((control) => {
           const IconComponent = getIcon({
             icon: control.icon as any,
@@ -114,7 +114,7 @@ export default function ControlesCalidad() {
             </GlassCard>
           );
         })}
-      </div> */}
+      </div>
     </ContainerToForms>
   );
 }

@@ -22,12 +22,12 @@ export default function ParametrosGenerales() {
       icon: Settings,
       path: "generales",
     },
-    /* {
+    {
       name: "Configuración Avanzada",
       description: "Ajustes avanzados por tipo de carrozados.",
       icon: Wrench,
       path: "carrozados",
-    }, */
+    },
   ];
 
   return (

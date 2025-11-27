@@ -56,7 +56,7 @@ const basesClass = (error: string) => {
 function SpanError({ error }: { error: string }) {
   return <span className="block mt-0.5 text-red-500 text-xs">{error}</span>;
 }
-function Label({
+export function Label({
   label,
   requiredField,
 }: {

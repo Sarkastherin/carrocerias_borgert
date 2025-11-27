@@ -17,13 +17,13 @@ type ClienteFormProps = {
   isLoading?: boolean;
 };
 
-export default function ClienteForm({ 
-  modal, 
-  onSuccess, 
-  onError, 
-  onLoadingStart, 
+export default function ClienteForm({
+  modal,
+  onSuccess,
+  onError,
+  onLoadingStart,
   onLoadingEnd,
-  isLoading: externalIsLoading
+  isLoading: externalIsLoading,
 }: ClienteFormProps) {
   const navigate = useNavigate();
   const { showConfirmation } = useUIModals();
@@ -36,12 +36,9 @@ export default function ClienteForm({
     onSubmit,
     isLoading: internalIsLoading,
     submitButtonText,
-    handleDireccionChange,
-    initialAddress,
     setValue,
     watch,
-    validateAddress,
-  } = useClienteForm({ 
+  } = useClienteForm({
     modal: modal,
     onSuccess,
     onError,
@@ -50,7 +47,8 @@ export default function ClienteForm({
   });
 
   // Usar el loading externo si está disponible, sino usar el interno
-  const isLoading = externalIsLoading !== undefined ? externalIsLoading : internalIsLoading;
+  const isLoading =
+    externalIsLoading !== undefined ? externalIsLoading : internalIsLoading;
 
   // Determinar si estamos en modo edición
   const isEditMode = Boolean(cliente);
@@ -96,7 +94,7 @@ export default function ClienteForm({
     required: "El CUIT/CUIL es obligatorio",
   });
   // Obtener errores de validación de dirección en tiempo real
-  const addressErrors = validateAddress();
+  //const addressErrors = validateAddress();
   return (
     <>
       {personal && (
@@ -166,21 +164,10 @@ export default function ClienteForm({
           <CardToggle title="Información de Dirección">
             <fieldset>
               <AddressFields
-                provinciaId={initialAddress.provinciaId}
-                localidadId={initialAddress.localidadId}
-                direccion={initialAddress.direccion}
-                provinciaNombre={initialAddress.provinciaNombre}
-                localidadNombre={initialAddress.localidadNombre}
-                onChange={handleDireccionChange}
-                errors={{
-                  provincia:
-                    errors.provincia_nombre?.message || addressErrors.provincia,
-                  localidad:
-                    errors.localidad_nombre?.message || addressErrors.localidad,
-                  direccion:
-                    errors.direccion?.message || addressErrors.direccion,
-                }}
-                required={true}
+                register={register}
+                watch={watch}
+                setValue={setValue}
+                errors={errors}
               />
             </fieldset>
           </CardToggle>
@@ -207,11 +194,13 @@ export default function ClienteForm({
                 error={errors.vendedor_id?.message}
               >
                 <option value="">Seleccione un vendedor</option>
-                {personal?.filter(item => item.sector === "ventas").map((empleado) => (
-                  <option key={empleado.id} value={empleado.id}>
-                    {`${empleado.nombre} ${empleado.apellido}`}
-                  </option>
-                ))}
+                {personal
+                  ?.filter((item) => item.sector === "ventas")
+                  .map((empleado) => (
+                    <option key={empleado.id} value={empleado.id}>
+                      {`${empleado.nombre} ${empleado.apellido}`}
+                    </option>
+                  ))}
               </Select>
 
               <Select label="Activo" {...register("activo")}>

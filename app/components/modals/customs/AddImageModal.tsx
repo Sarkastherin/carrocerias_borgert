@@ -62,7 +62,7 @@ export function AddImageModal({ onClose, carrozadoId }: AddImageModalProps) {
   return (
     <ModalBase
       open={true}
-      title={"Agregar Imagen"}
+      title={"Agregar imagen"}
       onClose={onClose}
       zIndex={50}
       width="max-w-md"
