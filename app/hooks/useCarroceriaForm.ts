@@ -51,8 +51,8 @@ export function useCarroceriaForm() {
           boquillas: 0,
           med_cajon_herramientas: 0,
           luces: 0,
-          med_alargue: 0,
-          quiebre_alargue: false,
+          med_alargue_1: 0,
+          quiebre_alargue_1: false,
           observaciones: "",
         },
   });

@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import type { Route } from "../+types/home";
 import { useData } from "~/context/DataContext";
-import { Spinning } from "~/components/Spinning";
 import { Button, ButtonLink, ButtonLinkAdd } from "~/components/Buttons";
 import { PlusIcon } from "lucide-react";
 import { EntityTable } from "~/components/EntityTable";
@@ -11,6 +10,7 @@ import { useNavigate } from "react-router";
 import { formatDateUStoES } from "~/utils/formatDate";
 import { BadgeStatus } from "~/components/Badge";
 import LoadingComponent from "~/components/LoadingComponent";
+import { statusOptions } from "~/types/pedidos";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Pedidos" },
@@ -22,36 +22,43 @@ const pedidoColumns: TableColumn<PedidosTable>[] = [
     name: "Núm. Pedido",
     selector: (row) => row.numero_pedido,
     width: "150px",
+    sortable: true,
   },
   {
     name: "Cliente",
     selector: (row) => row.cliente_nombre|| "",
+    sortable: true,
   },
   {
     name: "Fecha prevista",
     selector: (row) => formatDateUStoES(row.fecha_entrega_estimada),
     width: "150px",
+    sortable: true,
   },
   {
     name: "Fecha de pedido",
     selector: (row) => formatDateUStoES(row.fecha_pedido),
     width: "150px",
+    sortable: true,
   },
 
   {
     name: "Precio Total",
     selector: (row) => row.precio_total.toLocaleString("es-AR", { style: "currency", currency: "ARS" }),
     width: "180px",
+    sortable: true,
   },
   {
     name: "Vendedor",
     selector: (row) => row.vendedor_nombre || "",
     width: "200px",
+    sortable: true,
   },
   {
     name: "Estado",
     cell: (row) => <BadgeStatus status={row.status}>{row.status.slice(0, 1).toUpperCase() + row.status.replaceAll("_", " ").slice(1)}</BadgeStatus>,
     width: "150px",
+    sortable: true,
   },
 ];
 export default function PedidosHome() {
@@ -100,7 +107,12 @@ export default function PedidosHome() {
       ) : (
         <div className="p-6">
           <EntityTable
-            data={pedidos}
+            data={pedidos.sort((a,b) => {
+              //ordenear por numero de pedido desc
+              const numA = parseInt(a.numero_pedido.slice(4));
+              const numB = parseInt(b.numero_pedido.slice(4));
+              return numB - numA;
+            })}
             columns={pedidoColumns}
             onRowClick={(row) => handleRowClick(row)}
             filterFields={[
@@ -109,6 +121,7 @@ export default function PedidosHome() {
                 label: "Número de Pedido",
                 autoFilter: true,
               },
+              { key: "cliente_nombre", label: "Cliente", autoFilter: true },
               { key: "vendedor_id", label: "Vendedor", autoFilter: true },
               {
                 key: "status",
@@ -118,11 +131,11 @@ export default function PedidosHome() {
                 options: (
                   <>
                     <option value="">Seleccione un status</option>
-                    <option value="nuevo">🆕 Nuevo</option>
-                    <option value="en_produccion">🛠️ En Producción</option>
-                    <option value="finalizado">✅ Finalizado</option>
-                    <option value="entregado">📦 Entregado</option>
-                    <option value="cancelado">🚫 Cancelado</option>
+                    {statusOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </>
                 ),
               },

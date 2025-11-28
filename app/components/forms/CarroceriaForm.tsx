@@ -486,15 +486,15 @@ export default function CarroceriaForm() {
                 <InputWithIcon
                   type="number"
                   label="Medida alargue (mm)"
-                  {...register("med_alargue")}
+                  {...register("med_alargue_1")}
                   icon={RulerDimensionLine}
-                  error={errors.med_alargue?.message}
+                  error={errors.med_alargue_1?.message}
                 />
                 <ToggleCheckbox
-                  id="quiebre_alargue"
+                  id="quiebre_alargue_1"
                   label="Quiebre en alargue"
-                  checked={watch("quiebre_alargue")}
-                  onChange={(checked) => setValue("quiebre_alargue", checked)}
+                  checked={watch("quiebre_alargue_1")}
+                  onChange={(checked) => setValue("quiebre_alargue_1", checked)}
                 />
               </fieldset>
             </CardToggle>

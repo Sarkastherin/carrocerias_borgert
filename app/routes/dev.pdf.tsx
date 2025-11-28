@@ -2,7 +2,7 @@ import React from "react";
 import { PDFViewer } from "@react-pdf/renderer";
 import { OrdenFabricacionTemplate } from "~/components/pdf/OrdenFabricacionTemplate";
 import { OrdenPinturaTemplate } from "~/components/pdf/OrdenPinturaTemplate";
-import { OrdenCarrozadoTemplate } from "~/components/pdf/OrdenCarrozadoTemplate";
+import { OrdenMontajeTemplate } from "~/components/pdf/OrdenMontajeTemplate";
 import type { PedidosUI } from "~/types/pedidos";
 
 export default function PDFDev() {
@@ -37,6 +37,7 @@ export default function PDFDev() {
       ptas_por_lado: 2,
       puerta_trasera_id: "d8f19370-a628-4a78-af15-b252f5229df1",
       arcos_por_puerta: 2,
+      tipos_arcos: "Estándar",
       corte_guardabarros: false,
       cumbreras: false,
       espesor_chapa: "2.2",
@@ -52,14 +53,24 @@ export default function PDFDev() {
       color_carrozado_id: "71cc1e1b-b92f-48f2-bf65-17130ba12818",
       color_zocalo_id: "1a9f29ac-b58e-4d8d-b6c2-a8acea10c427",
       notas_color: "ZÓCALO GRIS IVECO OSCURO ? - PUERTA TRASERA BLANCA",
-      boquillas: 0,
-      med_cajon_herramientas: 0,
-      luces: 0,
+      boquillas: 2,
+      tipo_boquillas: "Común",
+      ubicacion_boquillas: "Delantera",
+      med_cajon_herramientas: 600,
+      ubicacion_cajon_herramientas: "LADO CONDUCTOR",
+      luces: 6,
       guardabarros: true,
       dep_agua: true,
-      cintas_reflectivas: "",
-      med_alargue: 0,
-      quiebre_alargue: false,
+      ubicacion_dep_agua: "LADO ACOMPAÑANTE",
+      cintas_reflectivas: "nacionales",
+      alargue_tipo_1: "baranda a cumbrera",
+      cant_alargue_1: 2,
+      med_alargue_1: 300,
+      quiebre_alargue_1: false,
+      alargue_tipo_2: "sobre cumbrera",
+      cant_alargue_2: 1,
+      med_alargue_2: 200,
+      quiebre_alargue_2: true,
       observaciones: "NO COLOCAR ESCALERAS LATERALES",
       carrozado_nombre: "BARANDA VOLCABLE",
       puerta_trasera_nombre: "LIBRO CON CEREALERA",
@@ -145,7 +156,7 @@ export default function PDFDev() {
           border: "none",
         }}
       >
-        <OrdenCarrozadoTemplate
+        <OrdenMontajeTemplate
           pedidoData={mockPedidoData}
           formData={mockFormData}
         />

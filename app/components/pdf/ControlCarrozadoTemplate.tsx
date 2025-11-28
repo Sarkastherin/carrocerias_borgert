@@ -16,7 +16,7 @@ interface OrdenMontajeProps {
   pedidoData?: PedidosUI;
   formData: Partial<OrdenesBD>;
 }
-export const OrdenCarrozadoTemplate: React.FC<OrdenMontajeProps> = ({
+export const ControlCarrozadoTemplate: React.FC<OrdenMontajeProps> = ({
   pedidoData,
   formData,
 }) => (
@@ -61,7 +61,7 @@ export const OrdenCarrozadoTemplate: React.FC<OrdenMontajeProps> = ({
             <Row>
               <Cell
                 title="Modelo"
-                value={pedidoData?.carroceria?.carrozado_nombre.toLocaleUpperCase()}
+                value={pedidoData?.carroceria?.carrozado_nombre?.toLocaleUpperCase() || ""}
                 isFirst
               />
               <Cell

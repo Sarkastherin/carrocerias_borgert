@@ -22,7 +22,7 @@ export const OrdenMontajeTemplate: React.FC<OrdenMontajeProps> = ({
 }) => (
   <Document>
     <PageTemplate>
-      <HeaderTemplate title="Orden de Montaje" />
+      <HeaderTemplate title="Datos de Colocación" />
       <View>
         <View>
           <Subtitle>Datos del Pedido</Subtitle>
@@ -78,69 +78,158 @@ export const OrdenMontajeTemplate: React.FC<OrdenMontajeProps> = ({
         </View>
         <View>
           <Subtitle>Accesorios</Subtitle>
-          <View style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <View style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <Box>
-              <TitleBox title="Accesorios" />
               <Row>
                 <Cell
-                  title="Medida de cajón de herramientas"
-                  value={pedidoData?.carroceria?.med_cajon_herramientas + " mm"}
+                  title="Cajón de herramientas"
+                  value={
+                    (pedidoData?.carroceria?.med_cajon_herramientas ?? 0) > 0
+                      ? "Sí"
+                      : "No"
+                  }
                   isFirst
                 />
                 <Cell
-                  title="Depósito de agua"
-                  value={pedidoData?.carroceria?.dep_agua ? "Sí" : "No"}
+                  title="Medida"
+                  value={pedidoData?.carroceria?.med_cajon_herramientas + " mm"}
+                />
+                <Cell
+                  title="Ubicación"
+                  value={pedidoData?.carroceria?.ubicacion_cajon_herramientas}
                 />
               </Row>
               <Row>
                 <Cell
-                  title="Arcos por puerta"
-                  value={pedidoData?.carroceria?.arcos_por_puerta}
+                  title="Arcos"
+                  value={
+                    (pedidoData?.carroceria?.arcos_por_puerta ?? 0) > 0
+                      ? "Sí"
+                      : "No"
+                  }
                   isFirst
                 />
                 <Cell
-                  title="Cantidad Boquillas"
+                  title="Arcos por puerta"
+                  value={pedidoData?.carroceria?.arcos_por_puerta}
+                />
+                <Cell
+                  title="Tipos de arcos"
+                  value={pedidoData?.carroceria?.tipos_arcos.toUpperCase()}
+                />
+              </Row>
+              <Row>
+                <Cell
+                  title="Boquillas"
+                  value={
+                    (pedidoData?.carroceria?.boquillas ?? 0) > 0 ? "Sí" : "No"
+                  }
+                  isFirst
+                />
+                <Cell
+                  title="Cantidad"
                   value={pedidoData?.carroceria?.boquillas}
+                />
+                <Cell
+                  title="Tipo"
+                  value={pedidoData?.carroceria?.tipo_boquillas}
+                />
+                <Cell
+                  title="Ubicación"
+                  value={pedidoData?.carroceria?.ubicacion_boquillas}
+                  flex={1.565}
+                />
+              </Row>
+              <Row>
+                <Cell
+                  title="Alargues"
+                  value={pedidoData?.carroceria?.alargue_tipo_1?.toUpperCase()}
+                  isFirst
+                  flex={2}
+                />
+                <Cell
+                  title="Cantidad"
+                  value={pedidoData?.carroceria?.cant_alargue_1}
+                />
+                <Cell
+                  title="Medida"
+                  value={pedidoData?.carroceria?.med_alargue_1 + " mm"}
+                />
+                <Cell
+                  title="Tipo"
+                  value={
+                    pedidoData?.carroceria?.quiebre_alargue_1
+                      ? "Con quiebre"
+                      : "Común"
+                  }
+                />
+              </Row>
+              <Row>
+                <Cell
+                  title="Alargues"
+                  value={pedidoData?.carroceria?.alargue_tipo_2?.toUpperCase()}
+                  isFirst
+                  flex={"2"}
+                />
+                <Cell
+                  title="Cantidad"
+                  value={pedidoData?.carroceria?.cant_alargue_2}
+                />
+                <Cell
+                  title="Medida"
+                  value={pedidoData?.carroceria?.med_alargue_2 + " mm"}
+                />
+                <Cell
+                  title="Tipo"
+                  value={
+                    pedidoData?.carroceria?.quiebre_alargue_2
+                      ? "Con quiebre"
+                      : "Común"
+                  }
+                />
+              </Row>
+              <Row>
+                <Cell
+                  title="Depósito de agua"
+                  value={pedidoData?.carroceria?.dep_agua ? "Sí" : "No"}
+                  isFirst
+                />
+                <Cell
+                  title="Ubicación"
+                  value={pedidoData?.carroceria?.ubicacion_dep_agua}
+                />
+              </Row>
+              <Row isLast>
+                <Cell
+                  title="Cintas reflectivas"
+                  value={pedidoData?.carroceria?.cintas_reflectivas.toUpperCase()}
+                  isFirst
                 />
                 <Cell
                   title="Cantidad Luces"
                   value={pedidoData?.carroceria?.luces}
                 />
               </Row>
-              <Row isLast>
-                <Cell
-                  title="Cintas reflectivas"
-                  value={pedidoData?.carroceria?.cintas_reflectivas}
-                  isFirst
-                />
-                <Cell
-                  title="Alargue"
-                  value={pedidoData?.carroceria?.med_alargue + " mm"}
-                />
-                <Cell
-                  title="Quiebre de alargue"
-                  value={pedidoData?.carroceria?.quiebre_alargue ? "Sí" : "No"}
-                />
-              </Row>
             </Box>
-            {pedidoData?.trabajo_chasis && pedidoData.trabajo_chasis.length > 0 && (
-              <Box>
-              <TitleBox title="Trabajos en Chasis" />
-              {pedidoData?.trabajo_chasis.map((trabajo, index) => (
-                <Row
-                  isLast={index === pedidoData.trabajo_chasis.length - 1}
-                  key={trabajo.id}
-                >
-                  <Cell
-                    title={`# ${index + 1}`}
-                    value={trabajo.tipo_trabajo_nombre}
-                    isFirst
-                  />
-                  <Cell title="Detalle" value={trabajo.descripcion} />
-                </Row>
-              ))}
-            </Box>
-            )}
+            {pedidoData?.trabajo_chasis &&
+              pedidoData.trabajo_chasis.length > 0 && (
+                <Box>
+                  <TitleBox title="Trabajos en Chasis" />
+                  {pedidoData?.trabajo_chasis.map((trabajo, index) => (
+                    <Row
+                      isLast={index === pedidoData.trabajo_chasis.length - 1}
+                      key={trabajo.id}
+                    >
+                      <Cell
+                        title={`# ${index + 1}`}
+                        value={trabajo.tipo_trabajo_nombre}
+                        isFirst
+                      />
+                      <Cell title="Detalle" value={trabajo.descripcion} />
+                    </Row>
+                  ))}
+                </Box>
+              )}
           </View>
         </View>
         <Subtitle>Observaciones</Subtitle>

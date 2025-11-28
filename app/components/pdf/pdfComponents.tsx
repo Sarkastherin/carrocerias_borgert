@@ -9,7 +9,6 @@ import {
   Line,
 } from "@react-pdf/renderer";
 import type { OrdenesBD, PedidosUI } from "~/types/pedidos";
-import { formatDateUStoES } from "~/utils/formatDate";
 
 interface OrdenFabricacionProps {
   pedidoData?: PedidosUI;
@@ -101,19 +100,21 @@ export const Cell = ({
   title,
   value,
   isFirst,
+  flex,
 }: {
   title: string;
   value: string | number | boolean | undefined;
   isFirst?: boolean;
+  flex?: string | number;
 }) => (
   <Text
     style={{
-      flex: 1,
+      flex: flex ?? 1,
       padding: "4px 6px",
       borderLeft: isFirst ? "none" : "1px dashed #ccc",
     }}
   >
-    <Text style={{ fontWeight: "bold" }}>{title}: </Text>
+    <Text style={{ fontWeight: "bold", fontSize: 10 }}>{title}: </Text>
     {value || "-"}
   </Text>
 );
