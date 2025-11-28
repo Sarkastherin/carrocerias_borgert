@@ -11,7 +11,7 @@ export function useCarroceriaForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const { showLoading, showSuccess, showError, showInfo } = useUIModals();
-  const { pedido, getPedidos, configItemsControl } = useData();
+  const { pedido, getPedidos, refreshPedidoByIdAndTable } = useData();
   const isEditMode = Boolean(pedido);
   const { carroceria } = pedido || {};
   const existingPedido = carroceria || null;
@@ -60,7 +60,8 @@ export function useCarroceriaForm() {
   useFormNavigationBlock({
     isDirty: form.formState.isDirty,
     isSubmitSuccessful: form.formState.isSubmitSuccessful,
-    message: "Tienes cambios sin guardar en la carrocería. Si sales ahora, perderás todos los cambios realizados.",
+    message:
+      "Tienes cambios sin guardar en la carrocería. Si sales ahora, perderás todos los cambios realizados.",
     title: "¿Salir sin guardar?",
     confirmText: "Sí, salir",
     cancelText: "No, continuar editando",
@@ -103,7 +104,8 @@ export function useCarroceriaForm() {
           );
         }
       }
-      await getPedidos();
+      await refreshPedidoByIdAndTable("carroceria");
+      await getPedidos(); // Refresca la lista de pedidos
       form.reset(formData); // Resetea el formulario con los datos actuales
       setIsLoading(false);
       showSuccess("Carrocería guardada exitosamente");
@@ -125,7 +127,7 @@ export function useCarroceriaForm() {
   const resetForm = () => {
     form.reset();
   };
-  
+
   useEffect(() => {
     handleChangeFieldCuchetin();
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -7,6 +7,7 @@ import { RulerDimensionLine } from "lucide-react";
 import { useDataLoader } from "~/hooks/useDataLoader";
 import { FooterForm } from "./Footer";
 import LoadingComponent from "../LoadingComponent";
+import { Badge } from "../Badge";
 import {
   materialOptions,
   anchoOptions,
@@ -18,8 +19,10 @@ import {
   zocaloOptions,
 } from "~/config/atributosMetadata";
 import { useEffect } from "react";
+import { useUIModals } from "~/context/ModalsContext";
 
 export default function CarroceriaForm() {
+  const { openModal, closeModal } = useUIModals();
   const {
     colores,
     getColores,
@@ -29,7 +32,7 @@ export default function CarroceriaForm() {
     getPuertasTraseras,
     selectedCarrozado,
     setSelectedCarrozado,
-    getCarrozadoByID
+    getCarrozadoByID,
   } = useData(true);
 
   const { isLoading: isLoadingData } = useDataLoader({
@@ -47,38 +50,49 @@ export default function CarroceriaForm() {
     setIsLoading,
     watch,
     setValue,
-    reset,
   } = useCarroceriaForm();
-  
+
   // Reset selectedCarrozado al montar el componente
   useEffect(() => {
-    console.log("CarroceriaForm mounted, resetting selectedCarrozado");
     setSelectedCarrozado(null);
   }, [setSelectedCarrozado]);
-  
-  const handleCarrozadoDefault = async(carrozadoId:string) => {
+
+  const handleCarrozadoDefault = async (carrozadoId: string) => {
     console.log("Selected Carrozado ID:", carrozadoId);
-    
+
     // Si no hay carrozadoId, limpiar selectedCarrozado
     if (!carrozadoId) {
       setSelectedCarrozado(null);
       return;
     }
-    
-    await getCarrozadoByID(carrozadoId);
-  }
+    try {
+      openModal("LOADING", { message: "Cargando parámetros del carrozado..." });
+      setIsLoading(true);
+      await getCarrozadoByID(carrozadoId);
+    } finally {
+      closeModal();
+      setIsLoading(false);
+    }
+  };
   useEffect(() => {
-    console.log("selectedCarrozado changed:", selectedCarrozado);
     if (selectedCarrozado && selectedCarrozado.length > 0) {
       setIsLoading(true);
       selectedCarrozado.forEach((item) => {
-        const {atributo, valor} = item;
+        const { atributo, valor } = item;
         console.log(`Setting ${atributo} to ${valor}`);
         setValue(atributo as any, valor);
       });
       setIsLoading(false);
     }
   }, [selectedCarrozado, setValue, setIsLoading]);
+  const handleChangeMaterialField = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const selectedMaterial = e.target.value;
+    if (selectedMaterial === "fibra") {
+      setValue("espesor_chapa", "0");
+    }
+  };
   if (isLoadingData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -88,6 +102,7 @@ export default function CarroceriaForm() {
       </div>
     );
   }
+
   return (
     <>
       {!isLoadingData && (
@@ -101,11 +116,13 @@ export default function CarroceriaForm() {
                     label="Carrozado"
                     {...register("tipo_carrozado_id", {
                       required: "Este campo es obligatorio",
-                      onChange: (e) => {handleCarrozadoDefault(e.target.value)}
+                      onChange: (e) => {
+                        handleCarrozadoDefault(e.target.value);
+                      },
                     })}
                     error={errors.tipo_carrozado_id?.message}
                   >
-                    <option value="">Tipo de Carrozado</option>
+                    <option value="">Sin selección</option>
                     {carrozados?.map((carrozado) => (
                       <option key={carrozado.id} value={carrozado.id}>
                         {carrozado.nombre}
@@ -117,11 +134,12 @@ export default function CarroceriaForm() {
                   label="Material"
                   {...register("material", {
                     required: "Este campo es obligatorio",
+                    onChange: handleChangeMaterialField,
                   })}
                   requiredField
                   error={errors.material?.message}
                 >
-                  <option value="">Tipo de material</option>
+                  <option value="">Sin selección</option>
                   {materialOptions.map((material) => (
                     <option key={material.value} value={material.value}>
                       {material.label}
@@ -135,23 +153,26 @@ export default function CarroceriaForm() {
                   })}
                   requiredField
                   error={errors.espesor_chapa?.message}
+                  disabled={watch("material") === "fibra"}
                 >
+                  <option value={0}>No aplica</option>
                   {espesorOptions.map((espesor) => (
                     <option key={espesor.value} value={espesor.value}>
                       {espesor.label}
                     </option>
                   ))}
                 </Select>
-                <InputWithIcon
-                  type="number"
-                  label="Largo int"
-                  {...register("largo_int", {
-                    required: "Este campo es obligatorio",
-                  })}
-                  icon={RulerDimensionLine}
-                  error={errors.largo_int?.message}
-                  requiredField
-                />
+                  <InputWithIcon
+                    type="number"
+                    label="Largo int"
+                    {...register("largo_int", {
+                      required: "Este campo es obligatorio",
+                    })}
+                    icon={RulerDimensionLine}
+                    error={errors.largo_int?.message}
+                    requiredField
+                  />
+                  
                 <InputWithIcon
                   type="number"
                   label="Largo ext"
@@ -171,7 +192,7 @@ export default function CarroceriaForm() {
                   requiredField
                   error={errors.ancho_ext?.message}
                 >
-                  <option value="">Ancho ext</option>
+                  <option value="">Sin selección</option>
                   {anchoOptions.map((ancho) => (
                     <option key={ancho.value} value={ancho.value}>
                       {ancho.label}
@@ -213,7 +234,7 @@ export default function CarroceriaForm() {
                   {...register("arcos_por_puerta")}
                   error={errors.arcos_por_puerta?.message}
                 >
-                  <option value="">Seleccione una opción</option>
+                  <option value="">Sin selección</option>
                   {arcosOptions.map((arco) => (
                     <option key={arco.value} value={arco.value}>
                       {arco.label}
@@ -229,7 +250,7 @@ export default function CarroceriaForm() {
                     requiredField
                     error={errors.puerta_trasera_id?.message}
                   >
-                    <option value="">Seleccione una opción</option>
+                    <option value="">Sin selección</option>
                     {puertasTraseras?.map((puerta) => (
                       <option key={puerta.id} value={puerta.id}>
                         {puerta.nombre}
@@ -264,7 +285,7 @@ export default function CarroceriaForm() {
                   requiredField
                   error={errors.lineas_refuerzo?.message}
                 >
-                  <option value="">Tipo de refuerzo</option>
+                  <option value="">Sin selección</option>
                   {lineasRefOptions.map((linea) => (
                     <option key={linea.value} value={linea.value}>
                       {linea.label}
@@ -279,7 +300,7 @@ export default function CarroceriaForm() {
                   requiredField
                   error={errors.tipo_zocalo?.message}
                 >
-                  <option value="">Tipo de zócalo</option>
+                  <option value="">Sin selección</option>
                   {zocaloOptions.map((zocalo) => (
                     <option key={zocalo.value} value={zocalo.value}>
                       {zocalo.label}
@@ -294,7 +315,7 @@ export default function CarroceriaForm() {
                   requiredField
                   error={errors.tipo_piso?.message}
                 >
-                  <option value="">Tipo de piso</option>
+                  <option value="">Sin selección</option>
                   {pisoOptions.map((piso) => (
                     <option key={piso.value} value={piso.value}>
                       {piso.label}
@@ -313,7 +334,7 @@ export default function CarroceriaForm() {
                   requiredField
                   error={errors.color_carrozado_id?.message}
                 >
-                  <option value="">Color de Carrozado</option>
+                  <option value="">Sin selección</option>
                   {colores
                     ?.filter((item) => item.tipo === "esmalte")
                     .map((color) => (
@@ -330,7 +351,7 @@ export default function CarroceriaForm() {
                   requiredField
                   error={errors.color_zocalo_id?.message}
                 >
-                  <option value="">Color en zócalo</option>
+                  <option value="">Sin selección</option>
                   {colores
                     ?.filter((item) => item.tipo === "esmalte")
                     .map((color) => (
@@ -344,7 +365,7 @@ export default function CarroceriaForm() {
                   {...register("color_lona_id")}
                   error={errors.color_lona_id?.message}
                 >
-                  <option value="">Color de lona</option>
+                  <option value="">Sin selección</option>
                   {colores
                     ?.filter((item) => item.tipo === "lona")
                     .map((color) => (
@@ -356,6 +377,7 @@ export default function CarroceriaForm() {
                 <div className="col-span-1 md:col-span-2 lg:col-span-3">
                   <Textarea
                     label="Observaciones del color"
+                    placeholder="Agregue notas u observaciones del color adiconales si son necesarias"
                     {...register("notas_color")}
                   />
                 </div>
@@ -403,12 +425,14 @@ export default function CarroceriaForm() {
                   error={errors.alt_techo_cuchetin?.message}
                 />
                 <div className="col-span-4">
-                <Textarea
-                  disabled={!watch("cuchetin")}
-                  label="Observaciones cuchetín"
-                  {...register("notas_cuchetin")}
-                  rows={2}
-                /></div>
+                  <Textarea
+                    disabled={!watch("cuchetin")}
+                    label="Observaciones cuchetín"
+                    placeholder="Agregue notas u observaciones para el cuchetpin si son necesarias"
+                    {...register("notas_cuchetin")}
+                    rows={2}
+                  />
+                </div>
               </fieldset>
             </CardToggle>
             <CardToggle title="Accessorios">
@@ -439,7 +463,7 @@ export default function CarroceriaForm() {
                   {...register("cintas_reflectivas")}
                   error={errors.cintas_reflectivas?.message}
                 >
-                  <option value="">Seleccione una opción</option>
+                  <option value="">Sin selección</option>
                   {cintasOptions.map((cinta) => (
                     <option key={cinta.value} value={cinta.value}>
                       {cinta.label}

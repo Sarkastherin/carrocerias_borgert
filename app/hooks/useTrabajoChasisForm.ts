@@ -11,7 +11,7 @@ export function useTrabajoChasisForm() {
 
   const { showLoading, showSuccess, showError, showInfo, closeModal } =
     useUIModals();
-  const { pedido, getPedidos } = useData();
+  const { pedido, getPedidos, refreshPedidoByIdAndTable } = useData();
   const isEditMode = Boolean(pedido);
   const { trabajo_chasis } = pedido || {};
   const existingPedido = trabajo_chasis || null;
@@ -118,7 +118,7 @@ export function useTrabajoChasisForm() {
           })
         );
       }
-      await getPedidos();
+      await refreshPedidoByIdAndTable("trabajo_chasis");
       form.reset(formData); // Resetea el formulario con los datos actuales
       setIsLoading(false);
       showSuccess("Trabajos de chasis guardados exitosamente");

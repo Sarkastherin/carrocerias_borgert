@@ -11,7 +11,7 @@ export function useCamionForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const { showLoading, showSuccess, showError, showInfo } = useUIModals();
-  const { pedido, getPedidos } = useData();
+  const { pedido, getPedidos, refreshPedidoByIdAndTable } = useData();
   const isEditMode = Boolean(pedido);
   const { camion } = pedido || {};
   const existingPedido = camion || null;
@@ -82,7 +82,7 @@ export function useCamionForm() {
           );
         }
       }
-      await getPedidos();
+      await refreshPedidoByIdAndTable("camion");
       form.reset(formData); // Resetea el formulario con los datos actuales
       setIsLoading(false);
       showSuccess("Camión guardado exitosamente");

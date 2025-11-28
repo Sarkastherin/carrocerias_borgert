@@ -125,18 +125,20 @@ export type TrabajoChasisBD = {
   tipo_trabajo_id: string;
   descripcion: string;
 };
+export type TrabajoChasisUI = TrabajoChasisBD & {
+  tipo_trabajo_nombre?: string;
+};
+ export type CarroceriaUI = CarroceriaBD & {
+  carrozado_nombre?: string;
+  puerta_trasera_nombre?: string;
+  color_carrozado_nombre?: string;
+  color_zocalo_nombre?: string;
+  color_lona_nombre?: string;
+};
 export type PedidosUI = PedidosTable & {
-  carroceria:
-    | (CarroceriaBD & {
-        carrozado_nombre: string;
-        puerta_trasera_nombre: string;
-        color_carrozado_nombre: string;
-        color_zocalo_nombre: string;
-        color_lona_nombre?: string;
-      })
-    | null;
+  carroceria: CarroceriaUI | null;
 } & {
-  trabajo_chasis: (TrabajoChasisBD & { tipo_trabajo_nombre: string })[];
+  trabajo_chasis: TrabajoChasisUI[];
 } & { camion: CamionBD | null };
 export type OrdenesBD = {
   id: string;
@@ -148,7 +150,7 @@ export type OrdenesBD = {
   url_archivo: string;
   status?: string;
   notas?: string;
-}
+};
 export type ControlesBD = {
   id: string;
   fecha_creacion: string;
@@ -159,4 +161,4 @@ export type ControlesBD = {
   url_archivo: string;
   resultado?: string;
   notas?: string;
-}
+};

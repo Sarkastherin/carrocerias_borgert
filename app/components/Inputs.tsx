@@ -8,6 +8,7 @@ import type {
 import { ChevronDown, IdCard, Phone, Banknote, Upload } from "lucide-react";
 import type { IconType } from "./IconComponent";
 import { getIcon } from "./IconComponent";
+import { Badge } from "./Badge";
 type CommonInputsProps = {
   id?: string;
   label?: string;
@@ -82,17 +83,18 @@ export function Input({
   if (label === "Razón Social") {
   }
   return (
-    <label htmlFor={id} className={hidden ? "sr-only" : ""}>
-      <Label label={label ?? ""} requiredField={requiredField} />
-      <input
-        type={type ? type : "text"}
-        {...props}
-        autoComplete="off"
-        className={`dark:[&::-webkit-calendar-picker-indicator]:invert
+    
+      <label htmlFor={id} className={hidden ? "sr-only" : ""}>
+        <Label label={label ?? ""} requiredField={requiredField} />
+        <input
+          type={type ? type : "text"}
+          {...props}
+          autoComplete="off"
+          className={`dark:[&::-webkit-calendar-picker-indicator]:invert
  ${basesClass(error ?? "")}`}
-      />
-      {error && <SpanError error={error} />}
-    </label>
+        />
+        {error && <SpanError error={error} />}
+      </label>
   );
 }
 export function InputWithIcon({
@@ -110,6 +112,7 @@ export function InputWithIcon({
   }
   const IconComponent = getIcon({ icon, size: 5 });
   return (
+
     <label htmlFor={id} className={hidden ? "sr-only" : ""}>
       <Label label={label ?? ""} requiredField={requiredField} />
       <div className="relative">
@@ -588,37 +591,38 @@ export function FileInput({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setSelectedFiles(files.map(file => file.name));
+    setSelectedFiles(files.map((file) => file.name));
     onChange?.(e);
   };
 
-  const displayText = selectedFiles.length > 0 
-    ? multiple 
-      ? `${selectedFiles.length} archivo(s) seleccionado(s)`
-      : selectedFiles[0]
-    : multiple 
-      ? "Subir archivos" 
-      : "Subir archivo";
+  const displayText =
+    selectedFiles.length > 0
+      ? multiple
+        ? `${selectedFiles.length} archivo(s) seleccionado(s)`
+        : selectedFiles[0]
+      : multiple
+        ? "Subir archivos"
+        : "Subir archivo";
 
   return (
     <div className={hidden ? "sr-only" : ""}>
       <Label label={label ?? ""} requiredField={requiredField} />
-      <label 
-        htmlFor={id} 
+      <label
+        htmlFor={id}
         className={`flex flex-col items-center rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 p-4 text-text-primary shadow-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200 focus-within:ring-2 focus-within:ring-blue-400 focus-within:border-blue-500 sm:p-6 ${
           error ? "border-red-500 ring-2 ring-red-500" : ""
         }`}
       >
         <Upload className="w-6 h-6 text-text-secondary" />
-        
+
         <span className="mt-4 font-medium text-text-primary text-center">
           {displayText}
         </span>
-        
+
         <span className="mt-2 inline-block rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-center text-xs font-medium text-text-secondary shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
           Explorar archivos
         </span>
-        
+
         <input
           id={id}
           type="file"
