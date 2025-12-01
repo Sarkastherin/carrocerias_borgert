@@ -1,14 +1,12 @@
-import { Input, Label } from "./Inputs";
-import { useEffect, useCallback, useState } from "react";
+import { Input, Label, SelectFieldCustom } from "./Inputs";
+import { useEffect, useState } from "react";
 import { Select } from "./Inputs";
-import { ChevronDown } from "lucide-react";
 import type {
   UseFormRegister,
   UseFormWatch,
   UseFormSetValue,
   FieldErrors,
 } from "react-hook-form";
-import type { MouseEventHandler, MouseEvent } from "react";
 
 export interface Provincia {
   id: string;
@@ -56,14 +54,6 @@ export function AddressFields({
   const [localidadesByProvincia, setLocalidadesByProvincia] = useState<
     Localidades[] | null
   >(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [filteredLocalidades, setFilteredLocalidades] = useState<
-    Localidades[] | null
-  >(null);
-  //const [isAddressCompleted, setIsAddressCompleted] = useState(false);
-  const handleDropDown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
   const fetchProvincias = async () => {
     try {
       const data = await fetch("/provincias.json")
@@ -99,13 +89,11 @@ export function AddressFields({
         (loc) => loc.provincia.id === provinciaId
       );
       setLocalidadesByProvincia(filteredLocalidadesAll);
-      setFilteredLocalidades(filteredLocalidadesAll);
     } else {
       setLocalidadesByProvincia(null);
-      setFilteredLocalidades(null);
     }
-  }, [watch("provincia_id")]);
-  useEffect(() => {}, [localidadesByProvincia]);
+  }, [watch("provincia_id"), localidades]);
+
   const getNameById = (id: string, type: "provincia" | "localidad") => {
     if (type === "provincia" && provincias) {
       const provincia = provincias.find((prov) => prov.id === id);
@@ -117,38 +105,27 @@ export function AddressFields({
     }
   };
   const handleChangeProvincia = () => {
-    setIsDropdownOpen(false);
     const provinciaId = watch("provincia_id");
     const provinciaNombre = getNameById(provinciaId, "provincia");
-    setValue("provincia", provinciaNombre, {shouldDirty: true});
-    setValue("localidad_id", "",{shouldDirty: true});
-    setValue("localidad", "",{shouldDirty: true});
-    setValue("direccion", "", {shouldDirty: true});
+    setValue("provincia", provinciaNombre, { shouldDirty: true });
+    setValue("localidad_id", "", { shouldDirty: true });
+    setValue("localidad", "", { shouldDirty: true });
+    setValue("direccion", "", { shouldDirty: true });
   };
   const handleChangeLocalidad = (id: string) => {
-    setValue("localidad_id", id,{shouldDirty: true});
+    setValue("localidad_id", id, { shouldDirty: true });
     if (!id) {
-      setValue("localidad_id", "", {shouldDirty: true});
-      setValue("localidad", "", {shouldDirty: true});
-      setValue("direccion", "", {shouldDirty: true});
+      setValue("localidad_id", "", { shouldDirty: true });
+      setValue("localidad", "", { shouldDirty: true });
+      setValue("direccion", "", { shouldDirty: true });
     }
     const localidadNombre = getNameById(id, "localidad");
-    setValue("localidad", localidadNombre || "",{shouldDirty: true});
-    setValue("direccion", "", {shouldDirty: true});
+    setValue("localidad", localidadNombre || "", { shouldDirty: true });
+    setValue("direccion", "", { shouldDirty: true });
   };
-  const handleSelectedLocalidad = (e: MouseEvent<HTMLLIElement>) => {
-    const localidadId = e.currentTarget.getAttribute("data-id");
+  const handleSelectedLocalidad = (selectItem: Localidades) => {
+    const localidadId = selectItem.id;
     if (localidadId) handleChangeLocalidad(localidadId);
-    setIsDropdownOpen(false);
-  };
-  const handleFilterLocalidades: MouseEventHandler<HTMLInputElement> = (e) => {
-    const filterText = e.currentTarget.value.toLowerCase();
-    if (localidadesByProvincia) {
-      const filtered = localidadesByProvincia.filter((loc) =>
-        loc.nombre.toLowerCase().includes(filterText)
-      );
-      setFilteredLocalidades(filtered);
-    }
   };
   const disabled = !watch("provincia_id") || watch("provincia_id") === "";
   const isAddressCompleted =
@@ -183,51 +160,16 @@ export function AddressFields({
               <option>Cargando provincias...</option>
             )}
           </Select>
-          <div>
-            <Label label="Localidad" requiredField={true} />
-            <button
-              type="button"
-              className="bg-gray-50 border border-gray-300 dark:bg-gray-700 dark:border-gray-600 text-text-primary text-sm rounded-lg focus:ring focus:outline-none focus:ring-blue-400 focus:border-blue-500 block w-full p-2.5 placeholder:text-gray-400 disabled:opacity-70 disabled:cursor-not-allowed"
-              onClick={handleDropDown}
-              disabled={disabled}
-            >
-              <span className="float-end">
-                <ChevronDown
-                  className={`size-4 transition-transform duration-300 ${isDropdownOpen ? "rotate-180" : ""}`}
-                />
-              </span>
-              <span className="float-start">
-                {disabled
-                  ? "Seleccione una provincia"
-                  : watch("localidad") || "Seleccione una localidad"}
-              </span>
-            </button>
-            <div
-              className={`bg-slate-100 dark:bg-slate-900 p-4 mt-2 rounded-xl border border-slate-300 dark:border-gray-700 ${isDropdownOpen ? "" : "hidden"} transition-all ease-in-out duration-300`}
-            >
-              <Input
-                type="search"
-                placeholder="Buscar localidad"
-                onInput={handleFilterLocalidades}
-              />
-              <ul className="mt-2 max-h-40 overflow-y-auto">
-                {filteredLocalidades ? (
-                  filteredLocalidades.map((loc) => (
-                    <li
-                      key={loc.id}
-                      className="py-1 px-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md text-md text-text-secondary"
-                      data-id={loc.id}
-                      onClick={handleSelectedLocalidad}
-                    >
-                      {loc.nombre}
-                    </li>
-                  ))
-                ) : (
-                  <li>Cargando localidades...</li>
-                )}
-              </ul>
-            </div>
-          </div>
+          <SelectFieldCustom
+            label="Localidad"
+            requiredField={true}
+            disabled={disabled}
+            placeholderMainInput="Seleccione una localidad"
+            data={localidadesByProvincia || []}
+            keyOfData="nombre"
+            initialValue={watch("localidad")}
+            onChange={(selectItem) => handleSelectedLocalidad(selectItem)}
+          />
           <Input
             label="Dirección"
             placeholder="Ej: Av. Corrientes 1234, Piso 5, Depto B (Opcional)"

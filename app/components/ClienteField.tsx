@@ -1,13 +1,14 @@
-import { SelectField } from "./SelectField";
 import { useData } from "~/context/DataContext";
 import { useEffect } from "react";
+import { SelectFieldCustom } from "./Inputs";
+import type { ClientesBD } from "~/types/clientes";
 export default function ClienteField({
   value,
   onChange,
   required = false,
 }: {
   value?: string;
-  onChange: (value: string) => void;
+  onChange: (selectItem: ClientesBD) => void;
   required?: boolean;
 }) {
   const { clientes, getClientes } = useData();
@@ -17,17 +18,15 @@ export default function ClienteField({
     }
   }, []);
   return (
-    <SelectField
+    <SelectFieldCustom
       label="Cliente"
-      value={value}
-      onChange={onChange}
-      required={required}
-      options={
-        clientes?.map((cliente) => ({
-          id: cliente.id,
-          label: `${cliente.razon_social} - [${cliente.cuit_cuil}]`,
-        })) || []
-      }
-    />
+      requiredField={required}
+      disabled={!clientes}
+      placeholderMainInput="Seleccione un cliente"
+      data={clientes || []}
+      keyOfData="razon_social"
+      initialValue={value}
+      onChange={(selectItem) => onChange(selectItem)}
+      />
   );
 }

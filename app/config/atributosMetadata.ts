@@ -1,6 +1,11 @@
 import type { CarroceriaBD } from "~/types/pedidos";
 
-export type AtributoFieldType = "text" | "number" | "boolean" | "select" | "textarea";
+export type AtributoFieldType =
+  | "text"
+  | "number"
+  | "boolean"
+  | "select"
+  | "textarea";
 
 export type AtributoMetadata = {
   value: keyof CarroceriaBD;
@@ -10,6 +15,7 @@ export type AtributoMetadata = {
   placeholder?: string;
   min?: number;
   max?: number;
+  disabledDefaultValues?: boolean;
 };
 export const materialOptions = [
   { value: "chapa", label: "Chapa" },
@@ -21,9 +27,9 @@ export const anchoOptions = [
   { value: 2300, label: "2300 mm" },
   { value: 2400, label: "2400 mm" },
   { value: 2600, label: "2600 mm" },
-]
+];
 export const arcosOptions = [
-  { value: 0, label: "0 arcos" },
+  { value: 0, label: "No aplica" },
   { value: 1, label: "1 arco" },
   { value: 2, label: "2 arcos" },
   { value: 3, label: "3 arcos" },
@@ -52,13 +58,31 @@ export const cintasOptions = [
   { value: "nacionales", label: "Nacionales" },
   { value: "internacionales", label: "Internacionales" },
 ];
-
+export const tiposArcosOptions = [
+  { value: "Estándar", label: "Estándar" },
+  { value: "Reforzado", label: "Reforzado" },
+  { value: "Mixtos", label: "Mixtos" },
+  { value: "N/A", label: "No aplica" },
+];
+export const tiposBoquillasOptions = [
+  { value: "Común", label: "Común" },
+  { value: "Guillotinada", label: "Guillotinada" },
+  { value: "N/A", label: "No aplica" },
+];
+export const ubicacionOptions = [
+  { value: "Lado conductor", label: "Lado conductor" },
+  { value: "Lado acompañante", label: "Lado acompañante" },
+  { value: "N/A", label: "No aplica" },
+];
 export const atributosConMetadata: AtributoMetadata[] = [
+  /* datos generales */
   {
-    value: "material",
-    label: "Material",
+    value: "tipo_carrozado_id",
+    label: "Tipo de Carrozado",
     fieldType: "select",
-    options: materialOptions,
+    placeholder: "Seleccione tipo de carrozado",
+    disabledDefaultValues: true,
+    // Las opciones se configurarán dinámicamente desde el contexto
   },
   {
     value: "largo_int",
@@ -74,6 +98,13 @@ export const atributosConMetadata: AtributoMetadata[] = [
     placeholder: "Ingrese largo exterior en metros",
     min: 0,
   },
+  {
+    value: "material",
+    label: "Material",
+    fieldType: "select",
+    options: materialOptions,
+  },
+
   {
     value: "ancho_ext",
     label: "Ancho exterior",
@@ -115,6 +146,12 @@ export const atributosConMetadata: AtributoMetadata[] = [
     options: arcosOptions,
   },
   {
+    value: "tipos_arcos",
+    label: "Tipos de arcos",
+    fieldType: "select",
+    options: tiposArcosOptions,
+  },
+  {
     value: "corte_guardabarros",
     label: "Corte guardabarros",
     fieldType: "boolean",
@@ -128,20 +165,27 @@ export const atributosConMetadata: AtributoMetadata[] = [
     value: "espesor_chapa",
     label: "Espesor chapa",
     fieldType: "select",
-    options: espesorOptions
+    options: espesorOptions,
   },
   {
     value: "tipo_zocalo",
     label: "Tipo zócalo",
     fieldType: "select",
-    options: zocaloOptions
+    options: zocaloOptions,
   },
   {
     value: "lineas_refuerzo",
     label: "Líneas de refuerzo",
     fieldType: "select",
-    options: lineasRefOptions
+    options: lineasRefOptions,
   },
+  {
+    value: "tipo_piso",
+    label: "Tipo de piso",
+    fieldType: "select",
+    options: pisoOptions,
+  },
+  /* cuchetin */
   {
     value: "cuchetin",
     label: "Cuchetín",
@@ -168,24 +212,28 @@ export const atributosConMetadata: AtributoMetadata[] = [
     placeholder: "Altura en metros",
     min: 0,
   },
-  /* {
+  {
+    value: "notas_cuchetin",
+    label: "Notas cuchetín",
+    fieldType: "textarea",
+    placeholder: "Notas sobre el cuchetín",
+    disabledDefaultValues: true,
+  },
+  /* color */
+  {
     value: "color_lona_id",
     label: "Color lona",
     fieldType: "text",
     placeholder: "Color de la lona",
-  }, */
-  {
-    value: "tipo_piso",
-    label: "Tipo de piso",
-    fieldType: "select",
-    options: pisoOptions
+    disabledDefaultValues: true,
   },
-  /* {
+  {
     value: "color_carrozado_id",
     label: "Color carrozado",
     fieldType: "select", // Cambiado de text a select
     placeholder: "Seleccione color de carrozado",
     // Las opciones se configurarán dinámicamente desde el contexto
+    disabledDefaultValues: true,
   },
   {
     value: "color_zocalo_id",
@@ -193,13 +241,16 @@ export const atributosConMetadata: AtributoMetadata[] = [
     fieldType: "select", // Cambiado de text a select
     placeholder: "Seleccione color del zócalo",
     // Las opciones se configurarán dinámicamente desde el contexto
-  }, */
-  /* {
+    disabledDefaultValues: true,
+  },
+  {
     value: "notas_color",
     label: "Notas color",
     fieldType: "textarea",
     placeholder: "Notas sobre el color",
-  }, */
+    disabledDefaultValues: true,
+  },
+  /* Boquillas */
   {
     value: "boquillas",
     label: "Boquillas",
@@ -208,12 +259,32 @@ export const atributosConMetadata: AtributoMetadata[] = [
     min: 0,
   },
   {
+    value: "tipo_boquillas",
+    label: "Tipo de boquillas",
+    fieldType: "select",
+    options: tiposBoquillasOptions,
+  },
+  {
+    value: "ubicacion_boquillas",
+    label: "Ubicación de boquillas",
+    fieldType: "select",
+    options: ubicacionOptions,
+  },
+  /* Cajon de herramientas */
+  {
     value: "med_cajon_herramientas",
     label: "Medida cajón de herramientas",
     fieldType: "number",
     placeholder: "Medida en metros",
     min: 0,
   },
+  {
+    value: "ubicacion_cajon_herramientas",
+    label: "Ubicación cajón de herramientas",
+    fieldType: "select",
+    options: ubicacionOptions,
+  },
+  /* Accesorios */
   {
     value: "luces",
     label: "Luces",
@@ -232,57 +303,114 @@ export const atributosConMetadata: AtributoMetadata[] = [
     fieldType: "boolean",
   },
   {
+    value: "ubicacion_dep_agua",
+    label: "Ubicación depósito de agua",
+    fieldType: "select",
+    options: ubicacionOptions,
+  },
+  {
     value: "cintas_reflectivas",
     label: "Cintas reflectivas",
     fieldType: "select",
-    options: cintasOptions
+    options: cintasOptions,
+  },
+  /* Alargue */
+  {
+    value: "alargue_tipo_1",
+    label: "Baranda a cumbrera",
+    fieldType: "boolean",
+    disabledDefaultValues: true,
   },
   {
-    value: "med_alargue",
-    label: "Medida alargue",
+    value: "cant_alargue_1",
+    label: "Cantidad alargue 1",
     fieldType: "number",
-    placeholder: "Medida en metros",
+    disabledDefaultValues: true,
     min: 0,
   },
   {
-    value: "quiebre_alargue",
-    label: "Quiebre alargue",
-    fieldType: "boolean",
+    value: "med_alargue_1",
+    label: "Medida alargue 1",
+    fieldType: "number",
+    placeholder: "Medida en metros",
+    min: 0,
+    disabledDefaultValues: true,
   },
-  /* {
+  {
+    value: "quiebre_alargue_1",
+    label: "Quiebre alargue 1",
+    fieldType: "boolean",
+    disabledDefaultValues: true,
+  },
+  {
+    value: "alargue_tipo_2",
+    label: "Baranda a cumbrera",
+    fieldType: "boolean",
+    disabledDefaultValues: true,
+  },
+  {
+    value: "cant_alargue_2",
+    label: "Cantidad alargue 1",
+    fieldType: "number",
+    disabledDefaultValues: true,
+    min: 0,
+  },
+  {
+    value: "med_alargue_2",
+    label: "Medida alargue 1",
+    fieldType: "number",
+    placeholder: "Medida en metros",
+    min: 0,
+    disabledDefaultValues: true,
+  },
+  {
+    value: "quiebre_alargue_2",
+    label: "Quiebre alargue 2",
+    fieldType: "boolean",
+    disabledDefaultValues: true,
+  },
+  {
     value: "observaciones",
     label: "Observaciones",
     fieldType: "textarea",
     placeholder: "Observaciones adicionales",
-  }, */
+    disabledDefaultValues: true,
+  },
 ];
 
 // Función helper para obtener metadata de un atributo
-export const getAtributoMetadata = (atributo: keyof CarroceriaBD): AtributoMetadata | undefined => {
-  return atributosConMetadata.find(attr => attr.value === atributo);
+export const getAtributoMetadata = (
+  atributo: keyof CarroceriaBD
+): AtributoMetadata | undefined => {
+  return atributosConMetadata.find((attr) => attr.value === atributo);
 };
 
 // Función para obtener metadata con opciones dinámicas
 export const getAtributoMetadataWithOptions = (
-  atributo: keyof CarroceriaBD, 
+  atributo: keyof CarroceriaBD,
   dynamicOptions?: { value: string | number | boolean; label: string }[]
 ): AtributoMetadata | undefined => {
   const metadata = getAtributoMetadata(atributo);
   if (!metadata) return undefined;
-  
+
   // Si hay opciones dinámicas y el atributo las necesita, las usa
-  if (dynamicOptions && (atributo === "puerta_trasera_id" || atributo === "color_carrozado_id" || atributo === "color_zocalo_id")) {
+  if (
+    dynamicOptions &&
+    (atributo === "puerta_trasera_id" ||
+      atributo === "color_carrozado_id" ||
+      atributo === "color_zocalo_id")
+  ) {
     return {
       ...metadata,
-      options: dynamicOptions
+      options: dynamicOptions,
     };
   }
-  
+
   return metadata;
 };
 
 // Mantener compatibilidad con el array original
-export const atributos = atributosConMetadata.map(attr => ({
+export const atributos = atributosConMetadata.filter(attr => !attr.disabledDefaultValues).map((attr) => ({
   value: attr.value,
-  label: attr.label
+  label: attr.label,
 }));

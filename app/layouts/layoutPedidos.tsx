@@ -83,6 +83,11 @@ export default function PedidosLayout() {
         icon: Drill,
       },
       {
+        title: "Datos de Colocación",
+        href: `/pedidos/datos-colocacion/${id}`,
+        icon: Truck,
+      },
+      {
         title: "Órdenes de Trabajo",
         href: `/pedidos/ordenes-trabajo/${id}`,
         icon: FileBox,

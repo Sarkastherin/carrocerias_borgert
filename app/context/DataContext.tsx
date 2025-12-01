@@ -387,13 +387,10 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const getCarrozadoByID = async (id: string) => {
     let dataDefaults: DefaultDB[] | null = defaults;
     if (!defaults) {
-      console.log("getCarrozadoByID: Loading defaults from API...");
       dataDefaults = await getDefaults();
-    } else {
-      console.log("getCarrozadoByID: Using cached defaults:", defaults);
-      dataDefaults = defaults;
-    }
-    const dataDefault = dataDefaults.filter((def) => def.carrozado_id === id);
+    } 
+    const dataDefault = dataDefaults?.filter((def) => def.carrozado_id === id);
+    console.log(dataDefault);
     setSelectedCarrozado(dataDefault || null);
   };
   const deletePedidoById = async (id: string) => {
@@ -738,7 +735,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       return existeingControles;
     }
   };
-  const getCompleteData = async <T extends unknown>({
+  const getCompleteData = async <T extends Record<string, any>>({
     api,
     setData,
   }: {
@@ -751,6 +748,21 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       const formattedError = getFormattedError(response.error);
       showError(formattedError);
       throw new Error(formattedError);
+    }
+    // si response.data tiene la propiedad "nombre" se debe ordenar alfabeticamente
+    if (
+      response.data &&
+      Array.isArray(response.data) &&
+      response.data.length > 0 &&
+      "nombre" in response.data[0]
+    ) {
+      response.data.sort((a, b) => {
+        const nombreA = (a as any).nombre.toLowerCase();
+        const nombreB = (b as any).nombre.toLowerCase();
+        if (nombreA < nombreB) return -1;
+        if (nombreA > nombreB) return 1;
+        return 0;
+      });
     }
     setData((response.data as T[]) || []);
     return response.data as T[];
@@ -814,7 +826,6 @@ export const useData = (onlyActive: boolean = false) => {
   if (context === undefined) {
     throw new Error("useData must be used within a DataProvider");
   }
-
   // Aplicar filtros usando useMemo para optimizar performance
   const filteredData = useMemo(() => {
     if (!onlyActive) {

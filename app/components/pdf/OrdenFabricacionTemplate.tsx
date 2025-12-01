@@ -9,7 +9,7 @@ import {
   TitleBox,
   PageTemplate,
   HeaderTemplate,
-  FooterTemplate
+  FooterTemplate,
 } from "./pdfComponents";
 
 interface OrdenFabricacionProps {
@@ -219,6 +219,36 @@ export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
                 <Cell
                   title="Observaciones generales"
                   value={pedidoData?.carroceria?.observaciones}
+                  isFirst
+                />
+              </Row>
+            </Box>
+          </View>
+          <Subtitle>Detalles del color y acabado</Subtitle>
+          <View style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <Box>
+              <TitleBox title="Colores de Carrozado" />
+              <Row>
+                <Cell
+                  title="Carrozado"
+                  value={pedidoData?.carroceria?.color_carrozado_nombre}
+                  isFirst
+                />
+                <Cell
+                  title="Zócalo"
+                  value={pedidoData?.carroceria?.color_zocalo_nombre}
+                />
+              </Row>
+              <Row>
+                <Cell
+                  title="Lona"
+                  value={pedidoData?.carroceria?.color_lona_nombre}
+                />
+              </Row>
+              <Row isLast>
+                <Cell
+                  title="Observaciones"
+                  value={pedidoData?.carroceria?.notas_color}
                   isFirst
                 />
               </Row>

@@ -12,11 +12,14 @@ import {
   materialOptions,
   anchoOptions,
   arcosOptions,
+  tiposArcosOptions,
   espesorOptions,
   lineasRefOptions,
   pisoOptions,
   cintasOptions,
   zocaloOptions,
+  tiposBoquillasOptions,
+  ubicacionOptions,
 } from "~/config/atributosMetadata";
 import { useEffect } from "react";
 import { useUIModals } from "~/context/ModalsContext";
@@ -50,6 +53,7 @@ export default function CarroceriaForm() {
     setIsLoading,
     watch,
     setValue,
+    resetForm,
   } = useCarroceriaForm();
 
   // Reset selectedCarrozado al montar el componente
@@ -58,8 +62,8 @@ export default function CarroceriaForm() {
   }, [setSelectedCarrozado]);
 
   const handleCarrozadoDefault = async (carrozadoId: string) => {
-    console.log("Selected Carrozado ID:", carrozadoId);
-
+    resetForm();
+    setValue("tipo_carrozado_id", carrozadoId);
     // Si no hay carrozadoId, limpiar selectedCarrozado
     if (!carrozadoId) {
       setSelectedCarrozado(null);
@@ -74,17 +78,21 @@ export default function CarroceriaForm() {
       setIsLoading(false);
     }
   };
-  useEffect(() => {
-    if (selectedCarrozado && selectedCarrozado.length > 0) {
-      setIsLoading(true);
-      selectedCarrozado.forEach((item) => {
-        const { atributo, valor } = item;
-        console.log(`Setting ${atributo} to ${valor}`);
-        setValue(atributo as any, valor);
+
+  useEffect(() => {    
+    if (!selectedCarrozado) return;
+    setIsLoading(true);
+    for (const item of selectedCarrozado) {
+      const { atributo, valor, tipo } = item;
+      setValue(atributo as any, valor);
+      const elements = document.getElementsByName(atributo);
+      elements.forEach((el) => {
+        (el as HTMLInputElement | HTMLSelectElement).disabled = tipo === "fijo";
       });
-      setIsLoading(false);
     }
+    setIsLoading(false);
   }, [selectedCarrozado, setValue, setIsLoading]);
+
   const handleChangeMaterialField = (
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
@@ -92,6 +100,12 @@ export default function CarroceriaForm() {
     if (selectedMaterial === "fibra") {
       setValue("espesor_chapa", "0");
     }
+  };
+  
+  const handleChangeArcosField = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    console.log("Arcos changed:", e.target.value);
+    const selectedArcos = e.target.value;
+    setValue("tipos_arcos", selectedArcos === "0" ? "N/A" : "");
   };
   if (isLoadingData) {
     return (
@@ -102,7 +116,6 @@ export default function CarroceriaForm() {
       </div>
     );
   }
-
   return (
     <>
       {!isLoadingData && (
@@ -155,6 +168,7 @@ export default function CarroceriaForm() {
                   error={errors.espesor_chapa?.message}
                   disabled={watch("material") === "fibra"}
                 >
+                  <option value="">Sin selección</option>
                   <option value={0}>No aplica</option>
                   {espesorOptions.map((espesor) => (
                     <option key={espesor.value} value={espesor.value}>
@@ -162,20 +176,22 @@ export default function CarroceriaForm() {
                     </option>
                   ))}
                 </Select>
-                  <InputWithIcon
-                    type="number"
-                    label="Largo int"
-                    {...register("largo_int", {
-                      required: "Este campo es obligatorio",
-                    })}
-                    icon={RulerDimensionLine}
-                    error={errors.largo_int?.message}
-                    requiredField
-                  />
-                  
+                <InputWithIcon
+                  type="number"
+                  label="Largo int"
+                  placeholder="Ingrese un valor"
+                  {...register("largo_int", {
+                    required: "Este campo es obligatorio",
+                  })}
+                  icon={RulerDimensionLine}
+                  error={errors.largo_int?.message}
+                  requiredField
+                />
+
                 <InputWithIcon
                   type="number"
                   label="Largo ext"
+                  placeholder="Ingrese un valor"
                   {...register("largo_ext", {
                     required: "Este campo es obligatorio",
                   })}
@@ -202,6 +218,7 @@ export default function CarroceriaForm() {
                 <InputWithIcon
                   type="number"
                   label="Alto"
+                  placeholder="Ingrese un valor"
                   {...register("alto", {
                     required: "Este campo es obligatorio",
                   })}
@@ -212,6 +229,7 @@ export default function CarroceriaForm() {
                 <InputWithIcon
                   type="number"
                   label="Alt. baranda"
+                  placeholder="Ingrese un valor"
                   {...register("alt_baranda", {
                     required: "Este campo es obligatorio",
                   })}
@@ -222,6 +240,7 @@ export default function CarroceriaForm() {
                 <InputWithIcon
                   type="number"
                   label="Ptas. por lado"
+                  placeholder="Ingrese un valor"
                   {...register("ptas_por_lado", {
                     required: "Este campo es obligatorio",
                   })}
@@ -231,8 +250,13 @@ export default function CarroceriaForm() {
                 />
                 <Select
                   label="Arcos por puerta"
-                  {...register("arcos_por_puerta")}
+                  {...register("arcos_por_puerta", {
+                    required: "Este campo es obligatorio",
+                    onChange: handleChangeArcosField,
+                    valueAsNumber: true,
+                  })}
                   error={errors.arcos_por_puerta?.message}
+                  requiredField
                 >
                   <option value="">Sin selección</option>
                   {arcosOptions.map((arco) => (
@@ -241,7 +265,23 @@ export default function CarroceriaForm() {
                     </option>
                   ))}
                 </Select>
-                <div className="col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-2">
+                <Select
+                  label="Tipo de arcos"
+                  {...register("tipos_arcos", {
+                    required: "Este campo es obligatorio",
+                  })}
+                  requiredField
+                  error={errors.tipos_arcos?.message}
+                  disabled={String(watch("arcos_por_puerta")) === "0"}
+                >
+                  <option value="">Sin selección</option>
+                  {tiposArcosOptions.map((arco) => (
+                    <option key={arco.value} value={arco.value}>
+                      {arco.label}
+                    </option>
+                  ))}
+                </Select>
+                <div className="col-span-1 md:col-span-2 xl:col-span-2">
                   <Select
                     label="Puerta trasera"
                     {...register("puerta_trasera_id", {
@@ -265,7 +305,6 @@ export default function CarroceriaForm() {
                   onChange={(checked) =>
                     setValue("corte_guardabarros", checked)
                   }
-                  requiredField
                   error={errors.corte_guardabarros?.message}
                 />
                 <ToggleCheckbox
@@ -273,7 +312,6 @@ export default function CarroceriaForm() {
                   label="Cumbreras"
                   checked={watch("cumbreras")}
                   onChange={(checked) => setValue("cumbreras", checked)}
-                  requiredField
                   error={errors.cumbreras?.message}
                 />
                 <Select
@@ -394,9 +432,13 @@ export default function CarroceriaForm() {
                 <InputWithIcon
                   disabled={!watch("cuchetin")}
                   type="number"
-                  label="Medida cuchetín (mm)"
+                  label="Medida (mm)"
                   {...register("med_cuchetin", {
                     required: "Este campo es obligatorio",
+                    min: {
+                      value: watch("cuchetin") ? 0.1 : 0,
+                      message: "La medida debe ser mayor a 0",
+                    },
                   })}
                   icon={RulerDimensionLine}
                   requiredField
@@ -405,9 +447,13 @@ export default function CarroceriaForm() {
                 <InputWithIcon
                   disabled={!watch("cuchetin")}
                   type="number"
-                  label="Altura puerta cuchetín (mm)"
+                  label="Altura puerta (mm)"
                   {...register("alt_pta_cuchetin", {
                     required: "Este campo es obligatorio",
+                    min: {
+                      value: watch("cuchetin") ? 0.1 : 0,
+                      message: "La medida debe ser mayor a 0",
+                    },
                   })}
                   icon={RulerDimensionLine}
                   requiredField
@@ -416,9 +462,13 @@ export default function CarroceriaForm() {
                 <InputWithIcon
                   disabled={!watch("cuchetin")}
                   type="number"
-                  label="Altura techo cuchetín (mm)"
+                  label="Altura techo (mm)"
                   {...register("alt_techo_cuchetin", {
                     required: "Este campo es obligatorio",
+                    min: {
+                      value: watch("cuchetin") ? 0.1 : 0,
+                      message: "La medida debe ser mayor a 0",
+                    },
                   })}
                   icon={RulerDimensionLine}
                   requiredField
@@ -435,70 +485,11 @@ export default function CarroceriaForm() {
                 </div>
               </fieldset>
             </CardToggle>
-            <CardToggle title="Accessorios">
-              <fieldset className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-end">
-                <InputWithIcon
-                  type="number"
-                  label="Cantidad de boquillas"
-                  {...register("boquillas")}
-                  icon={RulerDimensionLine}
-                  error={errors.boquillas?.message}
-                />
-                <InputWithIcon
-                  type="number"
-                  label="Medida cajón de herramientas"
-                  {...register("med_cajon_herramientas")}
-                  icon={RulerDimensionLine}
-                  error={errors.med_cajon_herramientas?.message}
-                />
-                <InputWithIcon
-                  type="number"
-                  label="Cantidad de luces"
-                  {...register("luces")}
-                  icon={RulerDimensionLine}
-                  error={errors.luces?.message}
-                />
-                <Select
-                  label="Cintas reflectivas"
-                  {...register("cintas_reflectivas")}
-                  error={errors.cintas_reflectivas?.message}
-                >
-                  <option value="">Sin selección</option>
-                  {cintasOptions.map((cinta) => (
-                    <option key={cinta.value} value={cinta.value}>
-                      {cinta.label}
-                    </option>
-                  ))}
-                </Select>
-                <ToggleCheckbox
-                  id="guardabarros"
-                  label="Guardabarros"
-                  checked={watch("guardabarros")}
-                  onChange={(checked) => setValue("guardabarros", checked)}
-                />
-                <ToggleCheckbox
-                  id="dep_agua"
-                  label="Depósito de agua"
-                  checked={watch("dep_agua")}
-                  onChange={(checked) => setValue("dep_agua", checked)}
-                />
-
-                <InputWithIcon
-                  type="number"
-                  label="Medida alargue (mm)"
-                  {...register("med_alargue_1")}
-                  icon={RulerDimensionLine}
-                  error={errors.med_alargue_1?.message}
-                />
-                <ToggleCheckbox
-                  id="quiebre_alargue_1"
-                  label="Quiebre en alargue"
-                  checked={watch("quiebre_alargue_1")}
-                  onChange={(checked) => setValue("quiebre_alargue_1", checked)}
-                />
-              </fieldset>
-            </CardToggle>
-            <Textarea label="Observaciones" {...register("observaciones")} />
+            <Textarea
+              label="Observaciones"
+              placeholder="Datos adicionales, aclaraciones, etc."
+              {...register("observaciones")}
+            />
             <FooterForm>
               <Button
                 type="submit"

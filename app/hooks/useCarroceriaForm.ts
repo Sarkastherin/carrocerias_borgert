@@ -24,35 +24,57 @@ export function useCarroceriaForm() {
         }
       : {
           pedido_id: pedido?.id,
+          /* datos generales */
           tipo_carrozado_id: "",
-          largo_int: 0,
-          largo_ext: 0,
+          largo_int: null,
+          largo_ext: null,
           material: "",
-          ancho_ext: 0,
-          alto: 0,
-          alt_baranda: 0,
-          ptas_por_lado: 0,
+          ancho_ext: null,
+          alto: null,
+          alt_baranda: null,
+          ptas_por_lado: null,
           puerta_trasera_id: "",
-          arcos_por_puerta: 0,
+          arcos_por_puerta: null,
+          tipos_arcos: "",
           corte_guardabarros: false,
           cumbreras: false,
           espesor_chapa: "",
           tipo_zocalo: "",
-          lineas_refuerzo: 0,
+          lineas_refuerzo: null,
+          tipo_piso: "",
+          /* cuchetin */
           cuchetin: false,
           med_cuchetin: 0,
           alt_pta_cuchetin: 0,
           alt_techo_cuchetin: 0,
+          notas_cuchetin: "",
+          /* color */
           color_lona_id: "",
-          tipo_piso: "",
           color_carrozado_id: "",
           color_zocalo_id: "",
           notas_color: "",
-          boquillas: 0,
-          med_cajon_herramientas: 0,
-          luces: 0,
+          /* Boquillas */
+          boquillas: null,
+          tipo_boquillas: "",
+          ubicacion_boquillas: "",
+          /* Cajon de herramientas */
+          med_cajon_herramientas: null,
+          ubicacion_cajon_herramientas: "",
+          /* Accesorios */
+          luces: null,
+          guardabarros: false,
+          dep_agua: false,
+          ubicacion_dep_agua: "",
+          cintas_reflectivas: "",
+          /* Alargue */
+          alargue_tipo_1: "N/A",
+          cant_alargue_1: 0,
           med_alargue_1: 0,
           quiebre_alargue_1: false,
+          alargue_tipo_2: "",
+          cant_alargue_2: 0,
+          med_alargue_2: 0,
+          quiebre_alargue_2: false,
           observaciones: "",
         },
   });
@@ -124,14 +146,35 @@ export function useCarroceriaForm() {
       form.setValue("alt_techo_cuchetin", 0);
     }
   };
+  const handleChangeFieldAlargue1 = () => {
+    const alargue1Value = form.watch("alargue_tipo_1");
+    if (alargue1Value === "N/A" || alargue1Value === "") {
+      form.setValue("cant_alargue_1", 0, { shouldDirty: true });
+      form.setValue("med_alargue_1", 0, { shouldDirty: true });
+      form.setValue("quiebre_alargue_1", false, { shouldDirty: true });
+    }
+  };
+  const handleChangeFieldAlargue2 = () => {
+    const alargue2Value = form.watch("alargue_tipo_2");
+    if (alargue2Value === "N/A" || alargue2Value === "") {
+      form.setValue("cant_alargue_2", 0, { shouldDirty: true });
+      form.setValue("med_alargue_2", 0, { shouldDirty: true });
+      form.setValue("quiebre_alargue_2", false, { shouldDirty: true });
+    }
+  };
   const resetForm = () => {
     form.reset();
   };
 
   useEffect(() => {
     handleChangeFieldCuchetin();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.watch("cuchetin")]);
+  useEffect(() => {
+    handleChangeFieldAlargue1();
+  }, [form.watch("alargue_tipo_1")]);
+  useEffect(() => {
+    handleChangeFieldAlargue2();
+  }, [form.watch("alargue_tipo_2")]);
   return {
     // Form methods
     register: form.register,

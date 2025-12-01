@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import type { PedidosBD } from "~/types/pedidos";
+import type { PedidosBD, PedidosUI } from "~/types/pedidos";
 import { useUIModals } from "~/context/ModalsContext";
 import { useData } from "~/context/DataContext";
 import { useState } from "react";
@@ -14,9 +14,9 @@ export function usePedidosForm() {
   const { showLoading, showSuccess, showError, showInfo } = useUIModals();
   const { pedido, getPedidos } = useData();
   const isEditMode = Boolean(pedido);
-  const existingPedido = pedido as PedidosBD | null;
+  const existingPedido: PedidosUI | null = pedido
 
-  const form = useForm<PedidosBD>({
+  const form = useForm<PedidosUI>({
     defaultValues: existingPedido
       ? {
           ...existingPedido,

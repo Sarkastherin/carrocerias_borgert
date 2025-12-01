@@ -9,6 +9,7 @@ import { ChevronDown, IdCard, Phone, Banknote, Upload } from "lucide-react";
 import type { IconType } from "./IconComponent";
 import { getIcon } from "./IconComponent";
 import { Badge } from "./Badge";
+import type { MouseEventHandler, MouseEvent } from "react";
 type CommonInputsProps = {
   id?: string;
   label?: string;
@@ -83,18 +84,17 @@ export function Input({
   if (label === "Razón Social") {
   }
   return (
-    
-      <label htmlFor={id} className={hidden ? "sr-only" : ""}>
-        <Label label={label ?? ""} requiredField={requiredField} />
-        <input
-          type={type ? type : "text"}
-          {...props}
-          autoComplete="off"
-          className={`dark:[&::-webkit-calendar-picker-indicator]:invert
+    <label htmlFor={id} className={hidden ? "sr-only" : ""}>
+      <Label label={label ?? ""} requiredField={requiredField} />
+      <input
+        type={type ? type : "text"}
+        {...props}
+        autoComplete="off"
+        className={`dark:[&::-webkit-calendar-picker-indicator]:invert
  ${basesClass(error ?? "")}`}
-        />
-        {error && <SpanError error={error} />}
-      </label>
+      />
+      {error && <SpanError error={error} />}
+    </label>
   );
 }
 export function InputWithIcon({
@@ -112,7 +112,6 @@ export function InputWithIcon({
   }
   const IconComponent = getIcon({ icon, size: 5 });
   return (
-
     <label htmlFor={id} className={hidden ? "sr-only" : ""}>
       <Label label={label ?? ""} requiredField={requiredField} />
       <div className="relative">
@@ -634,6 +633,108 @@ export function FileInput({
         />
       </label>
       {error && <SpanError error={error} />}
+    </div>
+  );
+}
+type SelectFieldCustomProps<T extends Record<string, any> & { id: string }> = {
+  label: string;
+  requiredField?: boolean;
+  disabled?: boolean;
+  initialValue?: string;
+  placeholderMainInput?: string;
+  data: T[];
+  keyOfData: keyof T;
+  onChange?: (selectedItem: T) => void;
+};
+
+export function SelectFieldCustom<T extends { id: string }>({
+  label,
+  requiredField,
+  disabled = false,
+  initialValue,
+  placeholderMainInput,
+  data,
+  keyOfData,
+  onChange,
+}: SelectFieldCustomProps<T>) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [filteredData, setFilteredData] = useState<T[] | null>(data || null);
+
+  const handleFilterSearchInput: React.ChangeEventHandler<HTMLInputElement> = (
+    e
+  ) => {
+    const filterText = e.currentTarget.value.toLowerCase();
+    if (data) {
+      const filtered = data.filter((item) => {
+        const value = item[keyOfData];
+        return (
+          typeof value === "string" && value.toLowerCase().includes(filterText)
+        );
+      });
+      setFilteredData(filtered);
+    }
+  };
+
+  const handleSelectedData = (e: MouseEvent<HTMLLIElement>) => {
+    const clickedElement = e.currentTarget;
+    const itemId = clickedElement.getAttribute("data-id");
+    if (itemId) {
+      const selectedItem = data.find((item) => item.id === itemId);
+      if (selectedItem) {
+        if (onChange) onChange(selectedItem);
+        setIsDropdownOpen(false);
+      }
+    }
+  };
+  useEffect(() => {
+    setFilteredData(data || null);
+  },[data]);
+  
+  return (
+    <div className="relative">
+      <Label label={label} requiredField={requiredField} />
+      <button
+        type="button"
+        className="bg-gray-50 border border-gray-300 dark:bg-gray-700 dark:border-gray-600 text-text-primary text-sm rounded-lg focus:ring focus:outline-none focus:ring-blue-400 focus:border-blue-500 block w-full p-2.5 placeholder:text-gray-400 disabled:opacity-70 disabled:cursor-not-allowed"
+        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+        disabled={disabled}
+      >
+        <span className="float-end">
+          <ChevronDown
+            className={`size-4 transition-transform duration-300 ${isDropdownOpen ? "rotate-180" : ""}`}
+          />
+        </span>
+        <span className="float-start">
+          {disabled
+            ? "Seleccione una opción"
+            : initialValue || placeholderMainInput || "Seleccione una opción"}
+        </span>
+      </button>
+      <div
+        className={`absolute z-10 w-full bg-slate-100 dark:bg-slate-900 p-4 mt-2 rounded-xl border border-slate-300 dark:border-gray-700 ${isDropdownOpen ? "" : "hidden"} transition-all ease-in-out duration-300`}
+      >
+        <Input
+          type="search"
+          placeholder="Buscar ..."
+          onInput={handleFilterSearchInput}
+        />
+        <ul className="mt-2 max-h-40 overflow-y-auto">
+          {filteredData ? (
+            filteredData.map((item) => (
+              <li
+                key={item.id}
+                className="py-1 px-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md text-md text-text-secondary"
+                data-id={item.id}
+                onClick={handleSelectedData}
+              >
+                {String(item[keyOfData])}
+              </li>
+            ))
+          ) : (
+            <li>Cargando localidades...</li>
+          )}
+        </ul>
+      </div>
     </div>
   );
 }

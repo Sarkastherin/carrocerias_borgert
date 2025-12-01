@@ -1,8 +1,7 @@
 import { use, useEffect } from "react";
 import type { Route } from "../+types/home";
 import { useData } from "~/context/DataContext";
-import { Spinning } from "~/components/Spinning";
-import { Button, ButtonLink, ButtonLinkAdd } from "~/components/Buttons";
+import { ButtonLink, ButtonLinkAdd } from "~/components/Buttons";
 import { PlusIcon } from "lucide-react";
 import { EntityTable } from "~/components/EntityTable";
 import type { ClientesBD } from "~/types/clientes";
@@ -47,6 +46,11 @@ const clienteColumns: TableColumn<ClientesBD>[] = [
     sortable: true,
   },
   {
+    name: "Localidad",
+    selector: (row) => row.localidad,
+    sortable: true,
+  },
+  {
     name: "CUIT/CUIL",
     selector: (row) => formatCuit(row.cuit_cuil || ""),
     sortable: true,
@@ -72,6 +76,22 @@ export default function ClientesHome() {
       </div>
     );
   }
+  const uniqueProvincias = Array.from(
+    new Set(
+      clientes
+        .map((c) => c.provincia)
+        .filter((p) => p)
+        .sort((a, b) => a.localeCompare(b))
+    )
+  );
+  const uniqueLocalidades = Array.from(
+    new Set(
+      clientes
+        .map((c) => c.localidad)
+        .filter((l) => l)
+        .sort((a, b) => a.localeCompare(b))
+    )
+  );
   return (
     <>
       {clientes.length === 0 ? (
@@ -114,7 +134,38 @@ export default function ClientesHome() {
                 label: "CUIT/CUIL",
                 autoFilter: true,
               },
-              { key: "provincia", label: "Provincia", autoFilter: true}
+              {
+                key: "provincia",
+                label: "Provincia",
+                autoFilter: true,
+                type: "select",
+                options: (
+                  <>
+                    <option value="">Todas</option>
+                    {uniqueProvincias.map((provincia) => (
+                      <option key={provincia} value={provincia}>
+                        {provincia}
+                      </option>
+                    ))}
+                  </>
+                ),
+              },
+              {
+                key: "localidad",
+                label: "Localidad",
+                autoFilter: true,
+                type: "select",
+                options: (
+                  <>
+                    <option value="">Todas</option>
+                    {uniqueLocalidades.map((localidad) => (
+                      <option key={localidad} value={localidad}>
+                        {localidad}
+                      </option>
+                    ))}
+                  </>
+                ),
+              },
             ]}
           />
           <ButtonLinkAdd to="/clientes/nuevo">Nuevo Cliente</ButtonLinkAdd>

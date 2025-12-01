@@ -31,7 +31,7 @@ export default function OrdenesPedidos() {
       description:
         "Generar órden de trabajo para la fabricación de la carrocería según las especificaciones del pedido.",
       icon: Hammer,
-      tipo: "fabricacion" as typeof tipoOrdenOptions[number]["value"],
+      tipo: "fabricacion" as (typeof tipoOrdenOptions)[number]["value"],
       isCreated: ordenesByPedido
         ? ordenesByPedido.some((orden) => orden.tipo_orden === "fabricacion")
         : false,
@@ -47,7 +47,7 @@ export default function OrdenesPedidos() {
       description:
         "Generar órden de trabajo para la pintura y acabados de componentes de la carrocería",
       icon: BrushCleaning,
-      tipo: "pintura" as typeof tipoOrdenOptions[number]["value"],
+      tipo: "pintura" as (typeof tipoOrdenOptions)[number]["value"],
       isCreated: ordenesByPedido
         ? ordenesByPedido.some((orden) => orden.tipo_orden === "pintura")
         : false,
@@ -60,7 +60,7 @@ export default function OrdenesPedidos() {
       description:
         "Generar órden de trabajo para la colocación y ensamblaje de componentes de la carrocería",
       icon: ToolCase,
-      tipo: "montaje" as typeof tipoOrdenOptions[number]["value"],
+      tipo: "montaje" as (typeof tipoOrdenOptions)[number]["value"],
       isCreated: ordenesByPedido
         ? ordenesByPedido.some((orden) => orden.tipo_orden === "montaje")
         : false,
@@ -78,57 +78,65 @@ export default function OrdenesPedidos() {
           color: "text-green-600 dark:text-green-400",
         }}
       />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {tipoOrdenes.map((orden) => {
-          const IconComponent = getIcon({
-            icon: orden.icon as any,
-            size: 6,
-            color: "text-gray-500 dark:text-gray-200",
-          });
-          return (
-            <GlassCard
-              key={orden.tipo}
-              size="md"
-              blur="lg"
-              opacity="low"
-              padding="md"
-              className="!border-gray-300/80 dark:!border-white/20 hover:bg-gray-100/50 dark:hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl overflow-hidden"
-            >
-              <div
-                className="flex flex-col items-start h-full cursor-pointer"
-                onClick={() => {
-                  if (pedido) openOrdenModal(orden.tipo, pedido, orden.order);
-                }}
+      {pedido?.carroceria ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {tipoOrdenes.map((orden) => {
+            const IconComponent = getIcon({
+              icon: orden.icon as any,
+              size: 6,
+              color: "text-gray-500 dark:text-gray-200",
+            });
+            return (
+              <GlassCard
+                key={orden.tipo}
+                size="md"
+                blur="lg"
+                opacity="low"
+                padding="md"
+                className="!border-gray-300/80 dark:!border-white/20 hover:bg-gray-100/50 dark:hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl overflow-hidden"
               >
-                <div className="mb-3 sm:mb-4 p-2.5 sm:p-3 rounded-xl bg-gray-500/20 dark:bg-white/20 backdrop-blur-sm group-hover:bg-white/30  transition-colors">
-                  {IconComponent}
+                <div
+                  className="flex flex-col items-start h-full cursor-pointer"
+                  onClick={() => {
+                    if (pedido) openOrdenModal(orden.tipo, pedido, orden.order);
+                  }}
+                >
+                  <div className="mb-3 sm:mb-4 p-2.5 sm:p-3 rounded-xl bg-gray-500/20 dark:bg-white/20 backdrop-blur-sm group-hover:bg-white/30  transition-colors">
+                    {IconComponent}
+                  </div>
+                  <h2 className="text-lg sm:text-xl font-semibold text-text-primary mb-2 group-hover:text-gray-100 transition-colors">
+                    {orden.name}
+                  </h2>
+                  <p className="text-sm text-text-secondary group-hover:text-gray-100 transition-colors leading-relaxed flex-1">
+                    {orden.description}
+                  </p>
+                  {orden.order && (
+                    <>
+                      {orden.order.status && orden.order.status ? (
+                        <Badge
+                          variant={
+                            orden.order.status === "completada"
+                              ? "green"
+                              : "red"
+                          }
+                        >
+                          {orden.order.status}
+                        </Badge>
+                      ) : (
+                        <Badge variant={"blue"}>Orden generada</Badge>
+                      )}
+                    </>
+                  )}
                 </div>
-                <h2 className="text-lg sm:text-xl font-semibold text-text-primary mb-2 group-hover:text-gray-100 transition-colors">
-                  {orden.name}
-                </h2>
-                <p className="text-sm text-text-secondary group-hover:text-gray-100 transition-colors leading-relaxed flex-1">
-                  {orden.description}
-                </p>
-                {orden.order && (
-                  <>
-                    {orden.order.status && orden.order.status ? (
-                      <Badge
-                        variant={
-                          orden.order.status === "completada" ? "green" : "red"
-                        }
-                      >
-                        {orden.order.status}
-                      </Badge>
-                    ) : (
-                      <Badge variant={"blue"}>Orden generada</Badge>
-                    )}
-                  </>
-                )}
-              </div>
-            </GlassCard>
-          );
-        })}
-      </div>
+              </GlassCard>
+            );
+          })}
+        </div>
+      ): (
+        <p className="text-center text-text-secondary mt-8">
+          No hay carrocería asociada a este pedido.
+        </p>
+      )}
     </ContainerToForms>
   );
 }

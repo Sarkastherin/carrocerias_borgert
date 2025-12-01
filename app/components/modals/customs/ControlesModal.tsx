@@ -49,7 +49,7 @@ const ordenConfigs: Record<typeof tipoOrdenOptions[number]["value"], OrdenConfig
     color: "text-blue-600",
     description:
       "Generar orden de trabajo para la fabricación de la carrocería según las especificaciones del pedido.",
-    /* fields: [
+    fields: [
       {
         name: "responsable",
         label: "Responsable asignado",
@@ -57,7 +57,7 @@ const ordenConfigs: Record<typeof tipoOrdenOptions[number]["value"], OrdenConfig
         placeholder: "Nombre del responsable",
         options: [], // Se llena dinámicamente con personal del sector
       },
-    ], */
+    ],
   },
   pintura: {
     title: "Pintura y Acabados",

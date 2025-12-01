@@ -25,6 +25,7 @@ export default [
         route("carroceria/:pedidoId", "routes/pedidos/carroceria.tsx"),
         route("camion/:pedidoId", "routes/pedidos/camion.tsx"),
         route("trabajo-chasis/:pedidoId", "routes/pedidos/trabajo-chasis.tsx"),
+        route("datos-colocacion/:pedidoId", "routes/pedidos/datos-colocacion.tsx"),
         route("ordenes-trabajo/:pedidoId", "routes/pedidos/ordenes-trabajo.tsx"),
         route("controles-calidad/:pedidoId", "routes/pedidos/controles-calidad.tsx"),
       ]),

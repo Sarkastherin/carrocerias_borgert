@@ -1,4 +1,4 @@
-import { Input, Select, CurrencyInput } from "../Inputs";
+import { Input, Select, CurrencyInput, SelectFieldCustom } from "../Inputs";
 import { Button } from "../Buttons";
 import { usePedidosForm } from "~/hooks/usePedidosForm";
 import { CardToggle } from "../CardToggle";
@@ -11,10 +11,11 @@ import ClienteNuevoModal from "../modals/customs/ClienteNuevoModal";
 import { FooterForm } from "./Footer";
 import LoadingComponent from "../LoadingComponent";
 import { formaPagoOptions, statusOptions } from "~/types/pedidos";
+import type { ClientesBD } from "~/types/clientes";
 
 export default function PedidosForm() {
   const { personal, getPersonal } = useData();
-  const { openModal } = useUIModals();
+  const { openModal, closeModal } = useUIModals();
 
   const { isLoading: isLoadingData } = useDataLoader({
     loaders: getPersonal,
@@ -37,6 +38,29 @@ export default function PedidosForm() {
       component: ClienteNuevoModal,
       props: {},
     });
+  };
+  const handleSelectedCliente = (selectItem: ClientesBD) => {
+    const clienteId = selectItem.id;
+    if (clienteId) {
+      openModal("LOADING", {
+        title: "Cargando datos del cliente...",
+        message: "",
+      });
+      setValue("cliente_id", clienteId, { shouldDirty: true });
+      setValue("cliente_nombre", selectItem.razon_social, {
+        shouldDirty: true,
+      });
+      setValue("vendedor_id", selectItem.vendedor_id || "", {
+        shouldDirty: true,
+      });
+      closeModal();
+    }
+  };
+  const handlePrecioChange = () => {
+    const valorTasacion = watch("valor_tasacion") || 0;
+    const precioTotal = watch("precio_total") || 0;
+    const saldoRestante = precioTotal - valorTasacion;
+    setValue("saldo_restante", saldoRestante, { shouldDirty: true });
   };
   if (isLoadingData) {
     return (
@@ -65,9 +89,9 @@ export default function PedidosForm() {
                     <div className="flex gap-1 items-end">
                       <div className="w-full">
                         <ClienteField
-                          value={watch("cliente_id")}
-                          onChange={(value) =>
-                            setValue("cliente_id", value, { shouldDirty: true })
+                          value={watch("cliente_nombre")}
+                          onChange={(selectItem) =>
+                            handleSelectedCliente(selectItem)
                           }
                           required={true}
                         />
@@ -106,7 +130,9 @@ export default function PedidosForm() {
                   >
                     <option value="">Seleccione un vendedor</option>
                     {personal
-                      ?.filter((item) => item.activo && item.sector === "ventas")
+                      ?.filter(
+                        (item) => item.activo && item.sector === "ventas"
+                      )
                       .map((empleado) => (
                         <option key={empleado.id} value={empleado.id}>
                           {`${empleado.nombre} ${empleado.apellido}`}
@@ -137,16 +163,17 @@ export default function PedidosForm() {
                   label="Fecha prevista"
                   type="date"
                   {...register("fecha_entrega_estimada")}
-                  error={errors.fecha_entrega_estimada?.message}
                 />
                 <CurrencyInput
                   label="Precio total"
                   value={watch("precio_total")}
-                  onChange={(value) =>
+                  onChange={(value) => {
                     setValue("precio_total", value === "" ? 0 : value, {
                       shouldDirty: true,
-                    })
-                  }
+                    });
+
+                    handlePrecioChange();
+                  }}
                   error={errors.precio_total?.message}
                   requiredField={true}
                 />
@@ -157,35 +184,17 @@ export default function PedidosForm() {
                     valueAsNumber: true,
                   })}
                 />
-                <Select
-                  requiredField={true}
-                  label="Forma de pago"
-                  {...register("forma_pago", {
-                    required: "Este campo es requerido",
-                  })}
-                  error={errors.forma_pago?.message}
-                >
-                  <option value="">Seleccione una forma de pago</option>
-                  {formaPagoOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </Select>
+                
                 <CurrencyInput
                   label="Valor de tasación (aplica a carrocería usada)"
                   value={watch("valor_tasacion")}
-                  disabled={watch("forma_pago") !== "Carrocería usada"}
-                  placeholder={
-                    watch("forma_pago") === "Carrocería usada"
-                      ? "Ingrese el valor de tasación"
-                      : "No aplica"
-                  }
-                  onChange={(value) =>
+                  placeholder="Ingrese el valor de tasación"
+                  onChange={(value) => {
                     setValue("valor_tasacion", value === "" ? 0 : value, {
                       shouldDirty: true,
-                    })
-                  }
+                    });
+                    handlePrecioChange();
+                  }}
                   error={errors.valor_tasacion?.message}
                 />
                 <input
@@ -194,18 +203,26 @@ export default function PedidosForm() {
                     valueAsNumber: true,
                   })}
                 />
+                <CurrencyInput
+                  label="Saldo restante (solo lectura)"
+                  value={watch("saldo_restante")}
+                  disabled={watch("forma_pago") !== "Carrocería usada"}
+                  placeholder={"Saldo restante, calculado automáticamente"}
+                  readOnly={true}
+                  error={errors.saldo_restante?.message}
+                  onChange={() => console.log("cambié")}
+                />
+                <input
+                  type="hidden"
+                  {...register("saldo_restante", {
+                    valueAsNumber: true,
+                  })}
+                />
                 <div className="col-span-2">
                   <Input
-                    label="Especifique otra forma de pago"
-                    requiredField={watch("forma_pago") === "Otros"}
-                    {...register("forma_pago_otros", {
-                      required:
-                        watch("forma_pago") === "Otros"
-                          ? "Este campo es requerido"
-                          : false,
-                    })}
-                    disabled={watch("forma_pago") !== "Otros"}
-                    error={errors.forma_pago_otros?.message}
+                    label="Especifique la forma de pago"
+                    placeholder="Ejemp.: Entre 40% + 4 Cheques + Carroceria usada"
+                    {...register("forma_pago_otros")}
                   />
                 </div>
               </fieldset>

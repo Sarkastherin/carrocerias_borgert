@@ -56,6 +56,7 @@ const ordenConfigs: Record<typeof tipoOrdenOptions[number]["value"], OrdenConfig
         type: "select",
         placeholder: "Nombre del responsable",
         options: [], // Se llena dinámicamente con personal del sector
+        required: true,
       },
     ],
   },
@@ -72,6 +73,7 @@ const ordenConfigs: Record<typeof tipoOrdenOptions[number]["value"], OrdenConfig
         type: "select",
         placeholder: "Nombre del responsable",
         options: [], // Se llena dinámicamente con personal del sector
+        required: true,
       },
     ],
   },
@@ -88,6 +90,7 @@ const ordenConfigs: Record<typeof tipoOrdenOptions[number]["value"], OrdenConfig
         type: "select",
         placeholder: "Nombre del responsable",
         options: [], // Se llena dinámicamente con personal del sector
+        required: true,
       },
     ],
   },

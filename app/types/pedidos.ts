@@ -7,6 +7,9 @@ import {
   lineasRefOptions,
   pisoOptions,
   cintasOptions,
+  tiposArcosOptions,
+  tiposBoquillasOptions,
+  ubicacionOptions,
 } from "~/config/atributosMetadata";
 export const statusOptions = [
   { value: "incompleto", label: "⏳ Incompleto" },
@@ -46,27 +49,13 @@ export const tipoControlOptions = [
   { value: "pintura", label: "Control de Pintura" },
   { value: "final", label: "Control Final" },
 ];
-export const ubicacionOptions = [
-  { value: "LADO CONDUCTOR", label: "LADO CONDUCTOR" },
-  { value: "LADO ACOMPAÑANTE", label: "LADO ACOMPAÑANTE" },
-  { value: "NO APLICA", label: "NO APLICA" },
-];
-export const tiposArcosOptions = [
-  { value: "Estándar", label: "Estándar" },
-  { value: "Reforzado", label: "Reforzado" },
-  { value: "Mixtos", label: "Mixtos" },
-  { value: "Ninguno", label: "Ninguno" },
-]
+
 export const alarguesOptions = [
   { value: "baranda a cumbrera", label: "Baranda a Cumbrera" },
   { value: "sobre cumbrera", label: "Sobre Cumbrera" },
   { value: "N/A", label: "No aplica" },
 ];
-export const tiposBoquillasOptions = [
-  { value: "Común", label: "Común" },
-  { value: "Guillotinada", label: "Guillotinada" },
-  { value: "N/A", label: "No aplica" },
-];
+
 export type PedidosBD = {
   id: string;
   fecha_creacion: string;
@@ -77,6 +66,7 @@ export type PedidosBD = {
   precio_total: number;
   forma_pago: (typeof formaPagoOptions)[number]["value"];
   valor_tasacion?: number;
+  saldo_restante: number;
   forma_pago_otros: string;
   fecha_entrega_estimada: string;
   status: (typeof statusOptions)[number]["value"];
@@ -92,53 +82,55 @@ export type CarroceriaBD = {
   pedido_id: string;
   /* datos generales */
   tipo_carrozado_id: string;
-  largo_int: number;
-  largo_ext: number;
+  largo_int: number | null;
+  largo_ext: number | null;
   material: (typeof materialOptions)[number]["value"];
-  ancho_ext: (typeof anchoOptions)[number]["value"];
-  alto: number;
-  alt_baranda: number;
-  ptas_por_lado: number;
+  ancho_ext: (typeof anchoOptions)[number]["value"] | null;
+  alto: number | null;
+  alt_baranda: number | null;
+  ptas_por_lado: number | null;
   puerta_trasera_id: string;
-  arcos_por_puerta: (typeof arcosOptions)[number]["value"];
+  arcos_por_puerta: (typeof arcosOptions)[number]["value"] | null;
   tipos_arcos: (typeof tiposArcosOptions)[number]["value"];
   corte_guardabarros: boolean;
   cumbreras: boolean;
   espesor_chapa: (typeof espesorOptions)[number]["value"];
   tipo_zocalo: (typeof zocaloOptions)[number]["value"];
-  lineas_refuerzo: (typeof lineasRefOptions)[number]["value"];
+  lineas_refuerzo: (typeof lineasRefOptions)[number]["value"] | null;
+  tipo_piso: (typeof pisoOptions)[number]["value"];
   /* cuchetin */
   cuchetin: boolean;
-  med_cuchetin: number;
-  alt_pta_cuchetin: number;
-  alt_techo_cuchetin: number;
+  med_cuchetin: number | null;
+  alt_pta_cuchetin: number | null;
+  alt_techo_cuchetin: number | null;
   notas_cuchetin: string;
   /* color */
   color_lona_id: string;
   color_carrozado_id: string;
   color_zocalo_id: string;
   notas_color: string;
-  tipo_piso: (typeof pisoOptions)[number]["value"];
-  boquillas: number;
+  /* Boquillas */
+  boquillas: number | null;
   tipo_boquillas: (typeof tiposBoquillasOptions)[number]["value"];
-  ubicacion_boquillas?: (typeof ubicacionOptions)[number]["value"];
+  ubicacion_boquillas: (typeof ubicacionOptions)[number]["value"];
   /* Cajon de herramientas */
-  med_cajon_herramientas: number;
+  med_cajon_herramientas: number | null;
   ubicacion_cajon_herramientas: (typeof ubicacionOptions)[number]["value"];
-  luces: number;
-  /* Alargue */
-  alargue_tipo_1:"baranda a cumbrera" | "N/A"; 
-  cant_alargue_1: number;
-  med_alargue_1: number;
-  quiebre_alargue_1: boolean;
-  alargue_tipo_2:"sobre cumbrera" | "N/A"; 
-  cant_alargue_2: number;
-  med_alargue_2: number;
-  quiebre_alargue_2: boolean;
+  /* Accesorios */
+  luces: number | null;
   guardabarros: boolean;
   dep_agua: boolean;
   ubicacion_dep_agua: (typeof ubicacionOptions)[number]["value"];
   cintas_reflectivas: (typeof cintasOptions)[number]["value"];
+  /* Alargue */
+  alargue_tipo_1: "baranda a cumbrera" | "N/A" | "";
+  cant_alargue_1: number | null;
+  med_alargue_1: number | null;
+  quiebre_alargue_1: boolean;
+  alargue_tipo_2: "sobre cumbrera" | "N/A" | "";
+  cant_alargue_2: number | null;
+  med_alargue_2: number | null;
+  quiebre_alargue_2: boolean;
   observaciones: string;
 };
 export type CamionBD = {
@@ -164,7 +156,7 @@ export type TrabajoChasisBD = {
 export type TrabajoChasisUI = TrabajoChasisBD & {
   tipo_trabajo_nombre?: string;
 };
- export type CarroceriaUI = CarroceriaBD & {
+export type CarroceriaUI = CarroceriaBD & {
   carrozado_nombre?: string;
   puerta_trasera_nombre?: string;
   color_carrozado_nombre?: string;
