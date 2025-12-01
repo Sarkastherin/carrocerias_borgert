@@ -16,10 +16,14 @@ export function ModalConfirmation({
   message,
   onConfirm,
   onClose,
+  confirmText = "Confirmar",
+  cancelText = "Cancelar",
 }: {
   message: string | React.ReactNode;
   onConfirm: () => void;
   onClose: () => void;
+  confirmText?: string;
+  cancelText?: string;
 }) {
   return (
     <ModalBase
@@ -29,12 +33,12 @@ export function ModalConfirmation({
       onClose={onClose}
       footer={{
         btnPrimary: {
-          label: "Confirmar",
+          label: confirmText || "Confirmar",
           handleOnClick: onConfirm,
           variant: "yellow",
         },
         btnSecondary: {
-          label: "Cancelar",
+          label: cancelText || "Cancelar",
           handleOnClick: onClose,
           variant: "dark",
         },

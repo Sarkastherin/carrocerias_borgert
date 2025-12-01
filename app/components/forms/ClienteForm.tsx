@@ -93,8 +93,6 @@ export default function ClienteForm({
   const cuitRegister = register("cuit_cuil", {
     required: "El CUIT/CUIL es obligatorio",
   });
-  // Obtener errores de validación de dirección en tiempo real
-  //const addressErrors = validateAddress();
   return (
     <>
       {personal && (
@@ -104,6 +102,7 @@ export default function ClienteForm({
               <div className="md:col-span-2 lg:col-span-3">
                 <Input
                   label="Razón Social"
+                  placeholder=" NOMBRE DE LA COMPAÑIA S.A."
                   {...register("razon_social", {
                     required: "La razón social es obligatoria",
                   })}
@@ -114,6 +113,7 @@ export default function ClienteForm({
               <div className="md:col-span-2 lg:col-span-3">
                 <Input
                   label="Nombre de Contacto"
+                  placeholder="Juan Encargado Pérez"
                   {...register("nombre_contacto")}
                   error={errors.nombre_contacto?.message}
                 />
@@ -134,6 +134,7 @@ export default function ClienteForm({
               <Input
                 label="Email"
                 type="email"
+                placeholder="ejemplo@dominio.com"
                 {...register("email", {
                   pattern: {
                     value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
@@ -179,7 +180,7 @@ export default function ClienteForm({
                 {...register("condicion_iva")}
                 error={errors.condicion_iva?.message}
               >
-                <option value="">Seleccione una condición</option>
+                <option value="">Sin selección</option>
                 <option value="Responsable Inscripto">
                   Responsable Inscripto
                 </option>
@@ -193,7 +194,7 @@ export default function ClienteForm({
                 {...register("vendedor_id")}
                 error={errors.vendedor_id?.message}
               >
-                <option value="">Seleccione un vendedor</option>
+                <option value="">Sin selección</option>
                 {personal
                   ?.filter((item) => item.sector === "ventas")
                   .map((empleado) => (
@@ -204,13 +205,14 @@ export default function ClienteForm({
               </Select>
 
               <Select label="Activo" {...register("activo")}>
-                <option value="">Seleccione una opción</option>
+                <option value="">Sin selección</option>
                 <option value="true">Sí</option>
                 <option value="false">No</option>
               </Select>
               <div className="md:col-span-2 lg:col-span-3">
                 <Textarea
                   label="Observaciones"
+                  placeholder="Datos o condiciones adicionales del cliente"
                   {...register("observaciones")}
                   error={errors.observaciones?.message}
                 />

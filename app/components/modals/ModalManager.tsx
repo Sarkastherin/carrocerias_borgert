@@ -75,6 +75,8 @@ export function ModalManager() {
             closeModal();
             confirmProps?.onConfirm();
           }}
+          confirmText={confirmProps?.confirmText}
+          cancelText={confirmProps?.cancelText}
         />
       );
     }

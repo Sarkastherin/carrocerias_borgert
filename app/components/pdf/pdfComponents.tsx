@@ -103,7 +103,7 @@ export const Cell = ({
   flex,
 }: {
   title: string;
-  value: string | number | boolean | undefined;
+  value: string | number | boolean | undefined | null;
   isFirst?: boolean;
   flex?: string | number;
 }) => (
@@ -115,7 +115,7 @@ export const Cell = ({
     }}
   >
     <Text style={{ fontWeight: "bold", fontSize: 10 }}>{title}: </Text>
-    {value || "-"}
+    {value || "N/A"}
   </Text>
 );
 export const TitleBox = ({ title }: { title: string }) => (

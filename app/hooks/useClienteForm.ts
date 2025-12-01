@@ -47,7 +47,7 @@ export function useClienteForm({
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
-  const { showLoading, showSuccess, showError, showInfo } = useUIModals();
+  const { showLoading, showSuccess, showError, showInfo, closeModal } = useUIModals();
   const { cliente, getClientes, checkCuitExists } = useData();
   const isEditMode = Boolean(cliente);
   const existingCliente = cliente as ClientesBD | null;
@@ -91,6 +91,7 @@ export function useClienteForm({
 
   const handleSubmit = async (formData: ClientesBD) => {
     try {
+      showLoading("Validando datos...");
       // Validar CUIT antes de enviar
       if (formData.cuit_cuil && !validateCuit(formData.cuit_cuil)) {
         const errorMsg = "El CUIT/CUIL ingresado no es válido";
@@ -101,7 +102,7 @@ export function useClienteForm({
         }
         return;
       }
-      // Verificar CUIT duplicado
+      // Verificar CUIT duplicado|
       if (formData.cuit_cuil) {
         const cuitExists = await checkCuitExists(
           formData.cuit_cuil,
@@ -138,6 +139,7 @@ export function useClienteForm({
         }
         return;
       }
+      closeModal();
 
       // Iniciar loading
       setIsLoading(true);

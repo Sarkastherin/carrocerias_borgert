@@ -1,4 +1,4 @@
-import React, { useState, useEffect, type JSX } from "react";
+import React, { useState, useEffect, type JSX, use } from "react";
 import DataTable, {
   createTheme,
   type TableColumn,
@@ -7,6 +7,7 @@ import { Input, Select } from "./Inputs";
 import { Button } from "./Buttons";
 import { useUI } from "~/context/UIContext";
 import { useLocation } from "react-router";
+import { useUIModals } from "~/context/ModalsContext";
 function getNestedValue(obj: any, path: string): any {
   return path.split(".").reduce((acc, part) => acc?.[part], obj);
 }
@@ -72,6 +73,7 @@ export function EntityTable<T>({
 }: EntityTableProps<T>) {
   const { theme } = useUI();
   const location = useLocation();
+  const { openModal, showConfirmation } = useUIModals();
   const storageKey =
     alternativeStorageKey || `entityTableFilters_${location.pathname}`;
 
@@ -235,6 +237,28 @@ export function EntityTable<T>({
     setShowFilterInfo(Object.values(filters).some((v) => v));
   }, [data]); // Ejecuta cuando cambia la data
   // ...existing code...
+  useEffect(() => {
+    const isFilter = Object.values(filters).some((v) => v);
+    console.log("Filters applied on mount:", isFilter); 
+    if(isFilter) {
+      showConfirmation(
+        "Hay filtros aplicados desde tu última visita. ¿Deseas limpiar los filtros?", 
+        () => {
+          setFilters({});
+          setFilteredData(data);
+          localStorage.removeItem(storageKey);
+          localStorage.removeItem(`${storageKey}_page`);
+          setShowFilterInfo(false);
+        }, {
+        title: "Filtros Aplicados",
+        confirmText: "Limpiar Filtros",
+        cancelText: "Mantener Filtros",
+        }
+      );
+      // Opción de limpiar filtros
+    }
+    
+  },[]);
   return (
     <>
       {showFilterInfo && filterFields.length > 0 && (

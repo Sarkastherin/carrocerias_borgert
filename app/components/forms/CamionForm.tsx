@@ -37,6 +37,7 @@ export default function CamionForm() {
           </Select>
           <Input
             label="Modelo"
+            placeholder="Ingrese el modelo"
             {...register("modelo", {
               required: "Este campo es obligatorio",
             })}
@@ -52,12 +53,13 @@ export default function CamionForm() {
             requiredField={true}
             error={errors.tipo_larguero?.message}
           >
-            <option value="">Seleccione una opción</option>
+            <option value="">Sin selección</option>
             <option value="recto">Recto</option>
             <option value="curvo">Curvo</option>
           </Select>
           <InputWithIcon
             type="number"
+            placeholder="Ingrese un valor"
             label="Medida Larguero (mm)"
             {...register("med_larguero", {
               required: "Este campo es obligatorio",
@@ -68,6 +70,7 @@ export default function CamionForm() {
           />
           <InputWithIcon
             type="number"
+            placeholder="Ingrese un valor"
             label="Centro de Eje (mm)"
             {...register("centro_eje", {
               required: "Este campo es obligatorio",
@@ -79,6 +82,7 @@ export default function CamionForm() {
           <InputWithIcon
             requiredField={true}
             type="number"
+            placeholder="Ingrese un valor"
             label="Voladizo Trasero (mm)"
             {...register("voladizo_trasero", {
               required: "Este campo es obligatorio",
