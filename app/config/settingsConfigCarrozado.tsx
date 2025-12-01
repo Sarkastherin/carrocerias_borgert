@@ -16,7 +16,7 @@ export type SettingsDataContext = {
 };
 export type SettingsDataLoaders = {
   getDefaults: () => Promise<any>;
-  getControlesItems: () => Promise<any>;
+  getControlCarrozado: () => Promise<any>;
 };
 export type ConfigItemWithData = ConfigItem & {
   data: any[];
@@ -158,7 +158,7 @@ export const createSettingsConfig = (
   {
     title: "control de carrozado",
     icon: PencilRuler,
-    reloadData: loaders.getControlesItems,
+    reloadData: loaders.getControlCarrozado,
     columns: [
       {
         name: "Ítem de control",
@@ -218,7 +218,7 @@ export const useSettingsData = (carrozadoId?: string) => {
     defaults, 
     getDefaults, 
     controlCarrozado, 
-    getControlesItems,
+    getControlCarrozado,
     configItemsControl,
     getConfigItemsControl,
     puertasTraseras,
@@ -229,7 +229,7 @@ export const useSettingsData = (carrozadoId?: string) => {
 
   // Usar el hook useDataLoader para cargar todos los datos
   const { isLoading } = useDataLoader({
-    loaders: [getDefaults, getControlesItems, getConfigItemsControl, getPuertasTraseras, getColores],
+    loaders: [getDefaults, getControlCarrozado, getConfigItemsControl, getPuertasTraseras, getColores],
     dependencies: [defaults, controlCarrozado, configItemsControl, puertasTraseras, colores],
     errorMessage: "Error cargando configuraciones",
   });
@@ -302,7 +302,7 @@ export const useSettingsData = (carrozadoId?: string) => {
       },
       {
         getDefaults,
-        getControlesItems,
+        getControlCarrozado,
       },
       itemsControlOptions,
       {
@@ -318,7 +318,7 @@ export const useSettingsData = (carrozadoId?: string) => {
     filteredDefaults,
     filteredControlCarrozado,
     getDefaults,
-    getControlesItems,
+    getControlCarrozado,
     itemsControlOptions,
     puertasTraserasOptions,
     coloresOptions,

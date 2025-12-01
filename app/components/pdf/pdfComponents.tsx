@@ -8,8 +8,6 @@ import {
   Image,
   Line,
 } from "@react-pdf/renderer";
-import type { OrdenesBD, PedidosUI } from "~/types/pedidos";
-
 
 export const styles = StyleSheet.create({
   page: {
@@ -18,6 +16,7 @@ export const styles = StyleSheet.create({
     padding: 30,
     fontFamily: "Helvetica", // Fuente base del documento
     color: "#434343",
+    
   },
   title: {
     fontSize: 20,
@@ -98,7 +97,8 @@ export const Cell = ({
   isFirst,
   flex,
   unit,
-  convertToCM
+  convertToCM,
+  bold,
 }: {
   title?: string;
   value: string | number | boolean | undefined | null;
@@ -106,6 +106,7 @@ export const Cell = ({
   flex?: string | number;
   unit?: string;
   convertToCM?: boolean;
+  bold?: boolean;
 }) => {
   const getValue = () => {
     if (value === "0" || value === 0 || value === null || value === undefined)
@@ -134,7 +135,7 @@ export const Cell = ({
       }}
     >
       {title && <Text style={{ fontWeight: "bold", fontSize: 10 }}>{title}: </Text>}
-      {newValue}
+      <Text style={{fontSize: 10, fontWeight: bold ? "bold" : "normal"}}>{newValue}</Text>
     </Text>
   );
 };
@@ -170,7 +171,7 @@ export const FooterTemplate = () => {
     <View
       style={{
         position: "absolute",
-        bottom: 20,
+        bottom: 30,
         left: 20,
         right: 20,
         fontSize: 10,
@@ -205,5 +206,42 @@ export const FooterTemplate = () => {
         <Text>_____/_____/_______</Text>
       </View>
     </View>
+  );
+};
+
+// Componente para manejar múltiples páginas con header repetido
+export const MultiPageTemplate = ({ 
+  title, 
+  children 
+}: { 
+  title: string; 
+  children: React.ReactNode 
+}) => {
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View fixed>
+          <HeaderTemplate title={title} />
+        </View>
+        <View style={{ paddingTop: 20 }}>
+          {children}
+        </View>
+        <FooterTemplate />
+        <Text
+          fixed
+          style={{
+            position: "absolute",
+            bottom: 30,
+            left: 30,
+            right: 0,
+            borderTop: "1px solid #ccc",
+            fontSize: 8,
+            textAlign: "center",
+            color: "#999",
+            width:"90%"
+          }}
+        ></Text>
+      </Page>
+    </Document>
   );
 };

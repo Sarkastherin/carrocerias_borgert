@@ -72,7 +72,7 @@ type DataContextType = {
   configItemsControl: ConfigItemsControlBD[] | null;
   getConfigItemsControl: () => Promise<ConfigItemsControlBD[]>;
   controlCarrozado: ControlCarrozadoDB[] | null;
-  getControlesItems: () => Promise<ControlCarrozadoDB[]>;
+  getControlCarrozado: () => Promise<ControlCarrozadoDB[]>;
   getDefaults: () => Promise<DefaultDB[]>;
   defaults: DefaultDB[] | null;
   selectedCarrozado: DefaultDB[] | null;
@@ -97,6 +97,8 @@ type DataContextType = {
     React.SetStateAction<ControlesBD[] | null>
   >;
   refreshPedidoByIdAndTable: (table: Tables) => Promise<void>;
+  getCtrlCarrozadoByCarrozadoId: (carrozadoId: string) => Promise<ControlCarrozadoDB[] | null>;
+  ctrlCarrozadoByCarrozadoId: ControlCarrozadoDB[] | null;
 };
 type Tables = "carroceria" | "trabajo_chasis" | "camion";
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -138,6 +140,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     TrabajoChasisUI[] | null
   >(null);
   const [camiones, setCamiones] = useState<CamionBD[] | null>(null);
+  const [ctrlCarrozadoByCarrozadoId, setctrlCarrozadoByCarrozadoId] = useState<ControlCarrozadoDB[] | null>(null);
   const getClientes = async () => {
     return await getCompleteData({
       api: clientesAPI,
@@ -541,7 +544,6 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       setData: setCamiones,
     });
   };
-
   const getColores = async () => {
     return await getCompleteData({
       api: coloresAPI,
@@ -600,11 +602,35 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       setData: setDefaults,
     });
   };
-  const getControlesItems = async () => {
+  const getControlCarrozado = async () => {
     return await getCompleteData({
       api: controlCarrozadoAPI,
       setData: setControlCarrozado,
     });
+  };
+  const getCtrlCarrozadoByCarrozadoId = async (id: string) => {
+    let datConfigItems: ConfigItemsControlBD[] | null = configItemsControl;
+    if (!configItemsControl) {
+      datConfigItems = await getConfigItemsControl();
+    }
+    let dataControlCarrozado: ControlCarrozadoDB[] | null = controlCarrozado;
+    if (!controlCarrozado) {
+      dataControlCarrozado = await getControlCarrozado();
+    }
+    const filteredControlCarrozado = dataControlCarrozado?.filter((control) => control.carrozado_id === id).map(
+      (control) => {
+        const configItem = datConfigItems?.find(
+          (item) => item.id === control.item_control_id
+        );
+        if (configItem) {
+          control.item_control_nombre = configItem.nombre;
+          control.atributo_relacionado = configItem.atributo_relacionado;
+        }
+        return control;
+      }
+    );
+    setctrlCarrozadoByCarrozadoId(filteredControlCarrozado || null);
+    return filteredControlCarrozado || [];
   };
   const checkCuitExists = async (
     cuit: string,
@@ -653,7 +679,6 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       setData: setOrdenes,
     });
   };
-
   const getControles = async () => {
     return await getCompleteData({
       api: controlesAPI,
@@ -798,7 +823,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         checkCuitExists,
         getConfigItemsControl,
         configItemsControl,
-        getControlesItems,
+        getControlCarrozado,
         controlCarrozado,
         getDefaults,
         defaults,
@@ -814,6 +839,8 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         controlesByPedido,
         setControlesByPedido,
         refreshPedidoByIdAndTable,
+        getCtrlCarrozadoByCarrozadoId,
+        ctrlCarrozadoByCarrozadoId,
       }}
     >
       {children}

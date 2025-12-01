@@ -31,6 +31,8 @@ export type ConfigTrabajosChasisBD = {
 export type ConfigItemsControlBD = {
   nombre: string;
   control: "carrozado";
+  carrozado_id: string;
+  atributo_relacionado: string;
 } & CommonSettingsBD;
 export type DefaultDB = {
   carrozado_id: string;
@@ -42,4 +44,6 @@ export type DefaultDB = {
 export type ControlCarrozadoDB = {
   carrozado_id: string;
   item_control_id: string;
+  item_control_nombre?: string;
+  atributo_relacionado?: string;
 } & CommonSettingsBD;

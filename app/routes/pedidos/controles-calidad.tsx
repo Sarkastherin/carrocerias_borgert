@@ -7,7 +7,9 @@ import { GlassCard } from "~/components/GlassCard";
 import { tipoControlOptions } from "~/types/pedidos";
 import { useControlesModal } from "~/hooks/useControlesModal";
 import { useData } from "~/context/DataContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import type { ControlCarrozadoDB } from "~/types/settings";
+import { ButtonLink } from "~/components/Buttons";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Controles de Calidad" },
@@ -15,14 +17,26 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 export default function ControlesCalidad() {
-  const { pedido, getControlesByPedidoId, controlesByPedido } = useData();
+  const {
+    pedido,
+    getControlesByPedidoId,
+    controlesByPedido,
+    getCtrlCarrozadoByCarrozadoId,
+    ctrlCarrozadoByCarrozadoId,
+  } = useData();
   const { openControlesModal } = useControlesModal();
+
   // Cargar las órdenes del pedido actual
   useEffect(() => {
     if (pedido?.id) {
       getControlesByPedidoId(pedido.id);
     }
   }, [pedido?.id, getControlesByPedidoId]);
+  useEffect(() => {
+    if (pedido?.carroceria) {
+      getCtrlCarrozadoByCarrozadoId(pedido.carroceria.tipo_carrozado_id);
+    }
+  }, [pedido?.carroceria]);
   const tipoControles = [
     {
       name: "Control de Carrozado",
@@ -60,10 +74,12 @@ export default function ControlesCalidad() {
   return (
     <ContainerToForms>
       <Subheader
-        title="Controles de Calidad (En Pruebas)"
+        title="Controles de Calidad"
         icon={{ component: FileBox, color: "text-pink-600 dark:text-pink-400" }}
       />
-      {pedido?.carroceria ? (
+      {pedido?.carroceria &&
+      ctrlCarrozadoByCarrozadoId &&
+      ctrlCarrozadoByCarrozadoId.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {tipoControles.map((control) => {
             const IconComponent = getIcon({
@@ -85,7 +101,7 @@ export default function ControlesCalidad() {
                   onClick={() => {
                     if (!pedido) return;
                     console.log("Abriendo modal para control:", control.tipo);
-                    openControlesModal(control.tipo, pedido, control.control);
+                    openControlesModal(control.tipo, pedido, control.control, ctrlCarrozadoByCarrozadoId);
                   }}
                 >
                   <div className="mb-3 sm:mb-4 p-2.5 sm:p-3 rounded-xl bg-gray-500/20 dark:bg-white/20 backdrop-blur-sm group-hover:bg-white/30  transition-colors">
@@ -103,9 +119,26 @@ export default function ControlesCalidad() {
           })}
         </div>
       ) : (
-        <p className="text-center text-text-secondary mt-8">
-          No hay carrocería asociada a este pedido.
-        </p>
+        <>
+          {!pedido?.carroceria && (
+            <p className="text-center text-text-secondary mt-8">
+              No hay carrocería asociada a este pedido.
+            </p>
+          )}
+          {pedido?.carroceria && ctrlCarrozadoByCarrozadoId?.length === 0 && (
+            <div className="text-center mt-8 text-text-secondary">
+              <p>
+                No se encontraron ítems de control para el tipo de carrozado
+                asociado.
+              </p>
+              <p>Configurelo en los Items de Control</p>
+              <div className="w-fit mx-auto mt-4">
+              <ButtonLink to={`/settings/carrozados/parametros/${pedido.carroceria.tipo_carrozado_id}`} className="mx-auto mt-4">
+                Ir a configuración
+              </ButtonLink></div>
+            </div>
+          )}
+        </>
       )}
     </ContainerToForms>
   );

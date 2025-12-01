@@ -1,4 +1,4 @@
-import type { CarroceriaBD } from "~/types/pedidos";
+import type { CamionBD, CarroceriaBD } from "~/types/pedidos";
 
 export type AtributoFieldType =
   | "text"
@@ -8,7 +8,7 @@ export type AtributoFieldType =
   | "textarea";
 
 export type AtributoMetadata = {
-  value: keyof CarroceriaBD;
+  value: keyof CarroceriaBD | keyof CamionBD;
   label: string;
   fieldType: AtributoFieldType;
   options?: { value: string | number | boolean; label: string }[];
@@ -16,6 +16,7 @@ export type AtributoMetadata = {
   min?: number;
   max?: number;
   disabledDefaultValues?: boolean;
+  unit?: string;
 };
 export const materialOptions = [
   { value: "chapa", label: "Chapa" },
@@ -90,6 +91,7 @@ export const atributosConMetadata: AtributoMetadata[] = [
     fieldType: "number",
     placeholder: "Ingrese largo interior en metros",
     min: 0,
+    unit: "mm",
   },
   {
     value: "largo_ext",
@@ -97,6 +99,7 @@ export const atributosConMetadata: AtributoMetadata[] = [
     fieldType: "number",
     placeholder: "Ingrese largo exterior en metros",
     min: 0,
+    unit: "mm",
   },
   {
     value: "material",
@@ -110,6 +113,7 @@ export const atributosConMetadata: AtributoMetadata[] = [
     label: "Ancho exterior",
     fieldType: "select",
     options: anchoOptions,
+    unit: "mm",
   },
   {
     value: "alto",
@@ -117,6 +121,7 @@ export const atributosConMetadata: AtributoMetadata[] = [
     fieldType: "number",
     placeholder: "Ingrese alto en metros",
     min: 0,
+    unit: "mm",
   },
   {
     value: "alt_baranda",
@@ -124,6 +129,7 @@ export const atributosConMetadata: AtributoMetadata[] = [
     fieldType: "number",
     placeholder: "Ingrese altura baranda en metros",
     min: 0,
+    unit: "mm",
   },
   {
     value: "ptas_por_lado",
@@ -131,6 +137,7 @@ export const atributosConMetadata: AtributoMetadata[] = [
     fieldType: "number",
     placeholder: "Número de puertas por lado",
     min: 0,
+    unit: "ptas",
   },
   {
     value: "puerta_trasera_id",
@@ -144,6 +151,7 @@ export const atributosConMetadata: AtributoMetadata[] = [
     label: "Arcos por puerta",
     fieldType: "select",
     options: arcosOptions,
+    unit: "arcos",
   },
   {
     value: "tipos_arcos",
@@ -178,6 +186,7 @@ export const atributosConMetadata: AtributoMetadata[] = [
     label: "Líneas de refuerzo",
     fieldType: "select",
     options: lineasRefOptions,
+    unit: "líneas",
   },
   {
     value: "tipo_piso",
@@ -197,6 +206,7 @@ export const atributosConMetadata: AtributoMetadata[] = [
     fieldType: "number",
     placeholder: "Medida en metros",
     min: 0,
+    unit: "mm",
   },
   {
     value: "alt_pta_cuchetin",
@@ -204,6 +214,7 @@ export const atributosConMetadata: AtributoMetadata[] = [
     fieldType: "number",
     placeholder: "Altura en metros",
     min: 0,
+    unit: "mm",
   },
   {
     value: "alt_techo_cuchetin",
@@ -211,6 +222,7 @@ export const atributosConMetadata: AtributoMetadata[] = [
     fieldType: "number",
     placeholder: "Altura en metros",
     min: 0,
+    unit: "mm",
   },
   {
     value: "notas_cuchetin",
@@ -257,6 +269,7 @@ export const atributosConMetadata: AtributoMetadata[] = [
     fieldType: "number",
     placeholder: "Número de boquillas",
     min: 0,
+    unit: "boquillas",
   },
   {
     value: "tipo_boquillas",
@@ -375,6 +388,13 @@ export const atributosConMetadata: AtributoMetadata[] = [
     fieldType: "textarea",
     placeholder: "Observaciones adicionales",
     disabledDefaultValues: true,
+  },
+  {
+    value: "centro_eje",
+    label: "Centro de eje",
+    fieldType: "number",
+    placeholder: "Medida en metros",
+    min: 0,
   },
 ];
 

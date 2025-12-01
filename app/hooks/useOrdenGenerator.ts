@@ -8,6 +8,7 @@ import { ControlCarrozadoTemplate } from "~/components/pdf/ControlCarrozadoTempl
 import { uploadOrderPDF } from "~/backend/driveAPI";
 import { ordenesAPI, pedidosAPI } from "~/backend/sheetServices";
 import { tipoOrdenOptions } from "~/types/pedidos";
+import type { ControlCarrozadoDB } from "~/types/settings";
 interface OrdenData {
   [key: string]: any;
 }
@@ -16,6 +17,7 @@ interface PDFGenerationOptions {
   tipoOrden: (typeof tipoOrdenOptions)[number]["value"];
   formData: Partial<OrdenesBD>;
   pedidoData?: PedidosUI;
+  itemsControl?: ControlCarrozadoDB[];
 }
 
 export const useOrdenGenerator = () => {
@@ -27,6 +29,7 @@ export const useOrdenGenerator = () => {
     tipoOrden,
     formData,
     pedidoData,
+    itemsControl
   }: PDFGenerationOptions): Promise<Blob> => {
     setIsGenerating(true);
     setError(null);
@@ -58,6 +61,7 @@ export const useOrdenGenerator = () => {
           pdfDocument = React.createElement(ControlCarrozadoTemplate, {
             pedidoData,
             formData,
+            itemsControl
           });
           break;
         default:

@@ -81,7 +81,7 @@ export const defaultAPI = createCrud<DefaultDB>({
 });
 export const controlCarrozadoAPI = createCrud<ControlCarrozadoDB>({
   sheetId: import.meta.env.VITE_SHEET_ID_ESPECIALES,
-  nameSheet: "Ítems de Control",
+  nameSheet: "Controles por carrozado",
   nameFile: "Parámetros Especiales: carrozados",
 });
 export const ordenesAPI =  createCrud<OrdenesBD>({

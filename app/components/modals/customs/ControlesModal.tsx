@@ -17,12 +17,14 @@ import { useData } from "~/context/DataContext";
 import { Badge } from "~/components/Badge";
 import PDFIcon from "~/components/icons/PDFIcon";
 import { formatDateUStoES } from "~/utils/formatDate";
+import type { ControlCarrozadoDB } from "~/types/settings";
 
 interface ControlesProps {
   onClose: () => void;
   tipoOrden: typeof tipoControlOptions[number]["value"];
   pedidoData?: PedidosUI;
   order?: OrdenesBD;
+  ctrlCarrozadoByCarrozadoId?: ControlCarrozadoDB[]
 }
 
 interface OrdenField {
@@ -56,6 +58,7 @@ const ordenConfigs: Record<typeof tipoOrdenOptions[number]["value"], OrdenConfig
         type: "select",
         placeholder: "Nombre del responsable",
         options: [], // Se llena dinámicamente con personal del sector
+        required: true,
       },
     ],
   },
@@ -72,6 +75,7 @@ const ordenConfigs: Record<typeof tipoOrdenOptions[number]["value"], OrdenConfig
         type: "select",
         placeholder: "Nombre del responsable",
         options: [], // Se llena dinámicamente con personal del sector
+        required: true,
       },
     ],
   },
@@ -88,6 +92,7 @@ const ordenConfigs: Record<typeof tipoOrdenOptions[number]["value"], OrdenConfig
         type: "select",
         placeholder: "Nombre del responsable",
         options: [], // Se llena dinámicamente con personal del sector
+        required: true,
       },
     ],
   },
@@ -100,6 +105,7 @@ export default function ControlesModal({
   tipoOrden,
   pedidoData,
   order,
+  ctrlCarrozadoByCarrozadoId,
 }: ControlesProps) {
   const [step, setStep] = useState<ModalStep>(order ? "existing" : "form");
   const [formData, setFormData] = useState<Partial<OrdenesBD>>({});
@@ -165,8 +171,9 @@ export default function ControlesModal({
       }
     };
   }, []);
-  const getPersonalBySector = (sector: string) => {
+  const getPersonalBySector = (sector?: string) => {
     if (!personal) return [];
+    if(!sector) return personal.filter((p) => p.activo).map((p) => `${p.nombre} ${p.apellido}`);
     return personal
       .filter(
         (p) => p.activo && p.sector.toLowerCase().includes(sector.toLowerCase())
@@ -213,6 +220,7 @@ export default function ControlesModal({
 
   // Obtener opciones de personal según el tipo de orden
   const getPersonalOptions = () => {
+    console.log("tipoOrden en getPersonalOptions:", tipoOrden);
     switch (tipoOrden) {
       case "fabricacion":
         return getPersonalBySector("fabricacion");
@@ -221,7 +229,7 @@ export default function ControlesModal({
       case "montaje":
         return getPersonalBySector("montaje");
       default:
-        return [];
+        return  getPersonalBySector();
     }
   };
 
@@ -262,6 +270,7 @@ export default function ControlesModal({
         tipoOrden,
         formData,
         pedidoData,
+        itemsControl: ctrlCarrozadoByCarrozadoId
       });
 
       setPdfBlob(pdfBlob);

@@ -6,7 +6,14 @@ import { useMemo } from "react";
 import { useData } from "~/context/DataContext";
 import { useDataLoader } from "~/hooks/useDataLoader";
 import { getIcon } from "~/components/IconComponent";
-import { PaintBucket, Truck, DoorOpen, ContactRound, Drill, PencilRuler } from "lucide-react";
+import {
+  PaintBucket,
+  Truck,
+  DoorOpen,
+  ContactRound,
+  Drill,
+  PencilRuler,
+} from "lucide-react";
 import {
   coloresAPI,
   carrozadoAPI,
@@ -15,6 +22,7 @@ import {
   configTrabajoChasisAPI,
   configItemsControlAPI,
 } from "~/backend/sheetServices";
+import { atributosConMetadata } from "./atributosMetadata";
 
 export type ConfigField = {
   name: string;
@@ -56,7 +64,9 @@ export type SettingsDataLoaders = {
   getConfigItemsControl: () => Promise<any>;
 };
 
-export const createSettingsConfig = (loaders: SettingsDataLoaders): ConfigItem[] => [
+export const createSettingsConfig = (
+  loaders: SettingsDataLoaders
+): ConfigItem[] => [
   {
     title: "colores",
     icon: PaintBucket,
@@ -109,7 +119,7 @@ export const createSettingsConfig = (loaders: SettingsDataLoaders): ConfigItem[]
         type: "select",
         options: (
           <>
-          <option value="">Tipo de pintura</option>
+            <option value="">Tipo de pintura</option>
             <option value="esmalte">Esmalte</option>
             <option value="lona">Lona</option>
           </>
@@ -234,7 +244,7 @@ export const createSettingsConfig = (loaders: SettingsDataLoaders): ConfigItem[]
     filterFields: [
       { key: "nombre", label: "Nombre", autoFilter: true },
       { key: "apellido", label: "Apellido", autoFilter: true },
-      { key: "sector", label: "Sector", autoFilter: true }
+      { key: "sector", label: "Sector", autoFilter: true },
     ],
   },
   {
@@ -282,6 +292,15 @@ export const createSettingsConfig = (loaders: SettingsDataLoaders): ConfigItem[]
         sortable: true,
       },
       {
+        name: "Campo relacionado",
+        selector: (row: any) =>
+          atributosConMetadata.find(
+            (atr) => atr.value === row.atributo_relacionado
+          )?.label || "-",
+          width: "200px",
+        sortable: false,
+      },
+      {
         name: "Control",
         selector: (row: any) => capitalize(row.control),
         sortable: false,
@@ -302,6 +321,12 @@ export const createSettingsConfig = (loaders: SettingsDataLoaders): ConfigItem[]
         required: true,
       },
       {
+        name: "atributo_relacionado",
+        label: "Campo relacionado",
+        type: "select",
+        options: atributosConMetadata,
+      },
+      {
         name: "control",
         label: "Control",
         type: "select",
@@ -316,9 +341,14 @@ export const createSettingsConfig = (loaders: SettingsDataLoaders): ConfigItem[]
       },
     ],
     api: configItemsControlAPI,
-    filterFields: [{ key: "nombre", label: "Nombre", autoFilter: true }, {
-      key: "control",
-      label: "Control", autoFilter: true,}],
+    filterFields: [
+      { key: "nombre", label: "Nombre", autoFilter: true },
+      {
+        key: "control",
+        label: "Control",
+        autoFilter: true,
+      },
+    ],
   },
 ];
 
@@ -330,10 +360,10 @@ export const getSettingsWithData = (
 ): ConfigItemWithData[] => {
   const settingsConfig = createSettingsConfig(loaders);
   const dataMapping = {
-    "colores": dataContext.colores || [],
-    "carrozado": dataContext.carrozados || [],
+    colores: dataContext.colores || [],
+    carrozado: dataContext.carrozados || [],
     "puertas traseras": dataContext.puertasTraseras || [],
-    "personal": dataContext.personal || [],
+    personal: dataContext.personal || [],
     "tipos de trabajos": dataContext.configTrabajosChasis || [],
     "items de control": dataContext.configItemsControl || [],
   };
