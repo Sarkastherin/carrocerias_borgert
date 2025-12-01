@@ -11,6 +11,7 @@ import {
   HeaderTemplate,
   FooterTemplate,
 } from "./pdfComponents";
+import { DatosPedido, DatosCamion, DatosColor } from "./DatosComunesTemplate";
 
 interface OrdenFabricacionProps {
   pedidoData?: PedidosUI;
@@ -24,58 +25,8 @@ export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
     <PageTemplate>
       <HeaderTemplate title="Pedido de Fabricación" />
       <View>
-        <View>
-          <Subtitle>Datos del Pedido</Subtitle>
-          <Box>
-            <Row>
-              <Cell
-                title="Número de Pedido"
-                value={pedidoData?.numero_pedido}
-                isFirst
-              />
-              <Cell
-                title="Fecha de Pedido"
-                value={new Date().toLocaleDateString("es-ES", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })}
-              />
-            </Row>
-            <Row isLast>
-              <Cell
-                title="Cliente"
-                value={pedidoData?.cliente_nombre}
-                isFirst
-              />
-              <Cell title="Armador" value={formData?.responsable} />
-            </Row>
-          </Box>
-        </View>
-        <View>
-          <Subtitle>Datos del Camión</Subtitle>
-          <Box>
-            <Row>
-              <Cell
-                title="Marca"
-                value={pedidoData?.camion?.marca.toLocaleUpperCase()}
-                isFirst
-              />
-              <Cell title="Modelo" value={pedidoData?.camion?.modelo} />
-            </Row>
-            <Row isLast>
-              <Cell
-                title="Medida Larguero"
-                value={pedidoData?.camion?.med_larguero + " mm"}
-                isFirst
-              />
-              <Cell
-                title="Centro Eje"
-                value={pedidoData?.camion?.centro_eje + " mm"}
-              />
-            </Row>
-          </Box>
-        </View>
+        <DatosPedido pedidoData={pedidoData} formData={formData} />
+        <DatosCamion pedidoData={pedidoData} />
         <View>
           <Subtitle>Detalles de la Carrocería</Subtitle>
           <View style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -86,42 +37,41 @@ export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
                   title="Tipo de Carrocería"
                   value={pedidoData?.carroceria?.carrozado_nombre}
                   isFirst
+                  flex={4}
                 />
-              </Row>
-              <Row>
                 <Cell
                   title="Material"
                   value={pedidoData?.carroceria?.material}
-                  isFirst
                 />
                 <Cell
                   title="Espesor"
-                  value={pedidoData?.carroceria?.espesor_chapa + " mm"}
+                  value={pedidoData?.carroceria?.espesor_chapa}
+                  unit="mm"
                 />
               </Row>
               <Row>
                 <Cell
                   title="Largo Int."
-                  value={pedidoData?.carroceria?.largo_int + " mm"}
+                  value={pedidoData?.carroceria?.largo_int}
+                  unit="mm"
                   isFirst
                 />
                 <Cell
                   title="Largo Ext."
-                  value={pedidoData?.carroceria?.largo_ext + " mm"}
+                  value={pedidoData?.carroceria?.largo_ext}
+                  unit="mm"
                 />
-              </Row>
-              <Row>
                 <Cell
                   title="Alto"
-                  value={pedidoData?.carroceria?.alto + " mm"}
-                  isFirst
+                  value={pedidoData?.carroceria?.alto}
+                  unit="mm"
                 />
                 <Cell
                   title="Ancho Ext."
-                  value={pedidoData?.carroceria?.ancho_ext + " mm"}
+                  value={pedidoData?.carroceria?.ancho_ext}
+                  unit="mm"
                 />
               </Row>
-
               <Row>
                 <Cell
                   title="Puerta Trasera"
@@ -132,7 +82,8 @@ export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
               <Row>
                 <Cell
                   title="Altura baranda"
-                  value={pedidoData?.carroceria?.alt_baranda + " mm"}
+                  value={pedidoData?.carroceria?.alt_baranda}
+                  unit="mm"
                   isFirst
                 />
                 <Cell
@@ -146,33 +97,32 @@ export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
               </Row>
               <Row>
                 <Cell
-                  title="Corte en guardabarros"
-                  value={
-                    pedidoData?.carroceria?.corte_guardabarros ? "Sí" : "No"
-                  }
+                  title="Tipos de arcos"
+                  value={pedidoData?.carroceria?.tipos_arcos.toUpperCase()}
                   isFirst
                 />
                 <Cell
-                  title="Cumbreras"
-                  value={pedidoData?.carroceria?.cumbreras ? "Sí" : "No"}
+                  title="Corte en guardabarros"
+                  value={pedidoData?.carroceria?.corte_guardabarros}
                 />
                 <Cell
-                  title="Líneas de refuerzo"
-                  value={
-                    pedidoData?.carroceria?.lineas_refuerzo === 0
-                      ? "No"
-                      : pedidoData?.carroceria?.lineas_refuerzo + " líneas"
-                  }
+                  title="Cumbreras"
+                  value={pedidoData?.carroceria?.cumbreras}
                 />
               </Row>
               <Row isLast>
+                <Cell
+                  title="Líneas de refuerzo"
+                  value={pedidoData?.carroceria?.lineas_refuerzo}
+                  unit="líneas"
+                  isFirst
+                />
                 <Cell
                   title="Tipo de Zócalo"
                   value={pedidoData?.carroceria?.tipo_zocalo
                     ?.toUpperCase()
                     .split("_")
                     .join(" ")}
-                  isFirst
                 />
                 <Cell
                   title="Tipo de piso"
@@ -182,75 +132,42 @@ export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
             </Box>
             <Box>
               <TitleBox title="Cuchetín" />
-              <Row isLast>
+              <Row>
                 <Cell
                   title="Con chuchetín"
-                  value={pedidoData?.carroceria?.cuchetin ? "Sí" : "No"}
+                  value={pedidoData?.carroceria?.cuchetin}
                   isFirst
                 />
                 <Cell
                   title="Medida"
-                  value={
-                    pedidoData?.carroceria?.med_cuchetin === 0
-                      ? "N/A"
-                      : pedidoData?.carroceria?.med_cuchetin + " mm"
-                  }
+                  value={pedidoData?.carroceria?.med_cuchetin}
+                  unit="mm"
                 />
                 <Cell
                   title="Alto puerta"
-                  value={
-                    pedidoData?.carroceria?.alt_pta_cuchetin === 0
-                      ? "N/A"
-                      : pedidoData?.carroceria?.alt_pta_cuchetin + " mm"
-                  }
+                  value={pedidoData?.carroceria?.alt_pta_cuchetin}
+                  unit="mm"
                 />
                 <Cell
                   title="Altura techo"
-                  value={
-                    pedidoData?.carroceria?.alt_techo_cuchetin === 0
-                      ? "N/A"
-                      : pedidoData?.carroceria?.alt_techo_cuchetin + " mm"
-                  }
+                  value={pedidoData?.carroceria?.alt_techo_cuchetin}
+                  unit="mm"
                 />
               </Row>
-            </Box>
-            <Box>
-              <Row isLast>
-                <Cell
-                  title="Observaciones generales"
-                  value={pedidoData?.carroceria?.observaciones}
-                  isFirst
-                />
-              </Row>
-            </Box>
-          </View>
-          <Subtitle>Detalles del color y acabado</Subtitle>
-          <View style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <Box>
-              <TitleBox title="Colores de Carrozado" />
-              <Row>
-                <Cell
-                  title="Carrozado"
-                  value={pedidoData?.carroceria?.color_carrozado_nombre}
-                  isFirst
-                />
-                <Cell
-                  title="Zócalo"
-                  value={pedidoData?.carroceria?.color_zocalo_nombre}
-                />
-              </Row>
-              <Row>
-                <Cell
-                  title="Lona"
-                  value={pedidoData?.carroceria?.color_lona_nombre}
-                />
-              </Row>
+
               <Row isLast>
                 <Cell
                   title="Observaciones"
-                  value={pedidoData?.carroceria?.notas_color}
+                  value={pedidoData?.carroceria?.notas_cuchetin}
                   isFirst
                 />
+              </Row>
+            </Box>
+            <DatosColor pedidoData={pedidoData} />
+            <Box>
+              <TitleBox title="Observaciones Generales" />
+              <Row isLast>
+                <Cell value={pedidoData?.carroceria?.observaciones} isFirst />
               </Row>
             </Box>
           </View>

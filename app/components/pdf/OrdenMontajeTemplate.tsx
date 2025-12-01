@@ -11,6 +11,7 @@ import {
   HeaderTemplate,
   FooterTemplate,
 } from "./pdfComponents";
+import { DatosPedido, DatosCamion } from "./DatosComunesTemplate";
 
 interface OrdenMontajeProps {
   pedidoData?: PedidosUI;
@@ -24,58 +25,8 @@ export const OrdenMontajeTemplate: React.FC<OrdenMontajeProps> = ({
     <PageTemplate>
       <HeaderTemplate title="Datos de Colocación" />
       <View>
-        <View>
-          <Subtitle>Datos del Pedido</Subtitle>
-          <Box>
-            <Row>
-              <Cell
-                title="Número de Pedido"
-                value={pedidoData?.numero_pedido}
-                isFirst
-              />
-              <Cell
-                title="Fecha de Pedido"
-                value={new Date().toLocaleDateString("es-ES", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })}
-              />
-            </Row>
-            <Row isLast>
-              <Cell
-                title="Cliente"
-                value={pedidoData?.cliente_nombre}
-                isFirst
-              />
-              <Cell title="Responsable" value={formData?.responsable} />
-            </Row>
-          </Box>
-        </View>
-        <View>
-          <Subtitle>Datos del Camión</Subtitle>
-          <Box>
-            <Row>
-              <Cell
-                title="Marca"
-                value={pedidoData?.camion?.marca.toLocaleUpperCase()}
-                isFirst
-              />
-              <Cell title="Modelo" value={pedidoData?.camion?.modelo} />
-            </Row>
-            <Row isLast>
-              <Cell
-                title="Medida Larguero"
-                value={pedidoData?.camion?.med_larguero + " mm"}
-                isFirst
-              />
-              <Cell
-                title="Centro Eje"
-                value={pedidoData?.camion?.centro_eje + " mm"}
-              />
-            </Row>
-          </Box>
-        </View>
+        <DatosPedido pedidoData={pedidoData} formData={formData} />
+        <DatosCamion pedidoData={pedidoData}  convertToCM />
         <View>
           <Subtitle>Accesorios</Subtitle>
           <View style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -84,15 +35,18 @@ export const OrdenMontajeTemplate: React.FC<OrdenMontajeProps> = ({
                 <Cell
                   title="Cajón de herramientas"
                   value={
-                    (pedidoData?.carroceria?.med_cajon_herramientas ?? 0) > 0
+                    (pedidoData?.carroceria?.med_cajon_herramientas?? 0) > 0
                       ? "Sí"
                       : "No"
                   }
                   isFirst
+                  
                 />
                 <Cell
                   title="Medida"
-                  value={pedidoData?.carroceria?.med_cajon_herramientas + " mm"}
+                  value={pedidoData?.carroceria?.med_cajon_herramientas}
+                  unit="mm"
+                  convertToCM
                 />
                 <Cell
                   title="Ubicación"
@@ -142,8 +96,13 @@ export const OrdenMontajeTemplate: React.FC<OrdenMontajeProps> = ({
               </Row>
               <Row>
                 <Cell
-                  title="Alargues"
-                  value={pedidoData?.carroceria?.alargue_tipo_1?.toUpperCase()}
+                  title="Alargues baranda a cumbrera"
+                  value={
+                    pedidoData?.carroceria?.alargue_tipo_1 ===
+                    "baranda a cumbrera"
+                      ? "Sí"
+                      : "No"
+                  }
                   isFirst
                   flex={2}
                 />
@@ -153,23 +112,33 @@ export const OrdenMontajeTemplate: React.FC<OrdenMontajeProps> = ({
                 />
                 <Cell
                   title="Medida"
-                  value={pedidoData?.carroceria?.med_alargue_1 + " mm"}
+                  value={pedidoData?.carroceria?.med_alargue_1}
+                  unit="mm"
+                  convertToCM
                 />
                 <Cell
                   title="Tipo"
                   value={
-                    pedidoData?.carroceria?.quiebre_alargue_1
-                      ? "Con quiebre"
-                      : "Común"
+                    pedidoData?.carroceria?.alargue_tipo_1 ===
+                    "baranda a cumbrera"
+                      ? pedidoData?.carroceria?.quiebre_alargue_1
+                        ? "Con quiebre"
+                        : "Común"
+                      : "N/A"
                   }
                 />
               </Row>
               <Row>
                 <Cell
-                  title="Alargues"
-                  value={pedidoData?.carroceria?.alargue_tipo_2?.toUpperCase()}
+                  title="Alargues sobre cumbrera"
+                  value={
+                    pedidoData?.carroceria?.alargue_tipo_2 ===
+                    "sobre cumbrera"
+                      ? "Sí"
+                      : "No"
+                  }
                   isFirst
-                  flex={"2"}
+                  flex={2}
                 />
                 <Cell
                   title="Cantidad"
@@ -177,21 +146,26 @@ export const OrdenMontajeTemplate: React.FC<OrdenMontajeProps> = ({
                 />
                 <Cell
                   title="Medida"
-                  value={pedidoData?.carroceria?.med_alargue_2 + " mm"}
+                  value={pedidoData?.carroceria?.med_alargue_2}
+                  unit="mm"
+                  convertToCM
                 />
                 <Cell
                   title="Tipo"
                   value={
-                    pedidoData?.carroceria?.quiebre_alargue_2
-                      ? "Con quiebre"
-                      : "Común"
+                    pedidoData?.carroceria?.alargue_tipo_2 ===
+                    "sobre cumbrera"
+                      ? pedidoData?.carroceria?.quiebre_alargue_2
+                        ? "Con quiebre"
+                        : "Común"
+                      : "N/A"
                   }
                 />
               </Row>
               <Row>
                 <Cell
                   title="Depósito de agua"
-                  value={pedidoData?.carroceria?.dep_agua ? "Sí" : "No"}
+                  value={pedidoData?.carroceria?.dep_agua}
                   isFirst
                 />
                 <Cell

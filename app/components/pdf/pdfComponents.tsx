@@ -10,10 +10,6 @@ import {
 } from "@react-pdf/renderer";
 import type { OrdenesBD, PedidosUI } from "~/types/pedidos";
 
-interface OrdenFabricacionProps {
-  pedidoData?: PedidosUI;
-  formData: Partial<OrdenesBD>;
-}
 
 export const styles = StyleSheet.create({
   page: {
@@ -101,23 +97,47 @@ export const Cell = ({
   value,
   isFirst,
   flex,
+  unit,
+  convertToCM
 }: {
-  title: string;
+  title?: string;
   value: string | number | boolean | undefined | null;
   isFirst?: boolean;
   flex?: string | number;
-}) => (
-  <Text
-    style={{
-      flex: flex ?? 1,
-      padding: "4px 6px",
-      borderLeft: isFirst ? "none" : "1px dashed #ccc",
-    }}
-  >
-    <Text style={{ fontWeight: "bold", fontSize: 10 }}>{title}: </Text>
-    {value || "N/A"}
-  </Text>
-);
+  unit?: string;
+  convertToCM?: boolean;
+}) => {
+  const getValue = () => {
+    if (value === "0" || value === 0 || value === null || value === undefined)
+      return "N/A";
+    if (typeof value === "string") {
+      if (unit) return `${value} ${unit}`;
+      return value.toString();
+    }
+    if (typeof value === "boolean") return value ? "Sí" : "No";
+    if (typeof value === "number") {
+      if (convertToCM) {
+        const valueInCM = value / 10;
+        return `${valueInCM} cm`;
+      }
+      if (unit) return `${value} ${unit}`;
+      return value.toString();
+    }
+  };
+  const newValue = getValue();
+  return (
+    <Text
+      style={{
+        flex: flex ?? 1,
+        padding: "4px 6px",
+        borderLeft: isFirst ? "none" : "1px dashed #ccc",
+      }}
+    >
+      {title && <Text style={{ fontWeight: "bold", fontSize: 10 }}>{title}: </Text>}
+      {newValue}
+    </Text>
+  );
+};
 export const TitleBox = ({ title }: { title: string }) => (
   <Text
     style={{
