@@ -148,9 +148,14 @@ export const useOrdenGenerator = () => {
 
       // Actualizar pedido con link de orden y fecha
       if (ordenData.tipo_orden === "fabricacion") {
-        const pedidoUpdated = await pedidosAPI.update(pedidoId, {
+        await pedidosAPI.update(pedidoId, {
           fecha_fabricacion: new Date().toISOString().split("T")[0],
           status: "en_produccion",
+        });
+      }
+      if (ordenData.tipo_orden === "pintura") {
+        await pedidosAPI.update(pedidoId, {
+          status: "en_pintura",
         });
       }
     } catch (error) {

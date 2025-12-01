@@ -20,7 +20,7 @@ import { formatDateUStoES } from "~/utils/formatDate";
 
 interface OrdenTrabajoModalProps {
   onClose: () => void;
-  tipoOrden: typeof tipoOrdenOptions[number]["value"];
+  tipoOrden: (typeof tipoOrdenOptions)[number]["value"];
   pedidoData?: PedidosUI;
   order?: OrdenesBD;
 }
@@ -42,7 +42,10 @@ interface OrdenConfig {
   fields: OrdenField[];
 }
 
-const ordenConfigs: Record<typeof tipoOrdenOptions[number]["value"], OrdenConfig> = {
+const ordenConfigs: Record<
+  (typeof tipoOrdenOptions)[number]["value"],
+  OrdenConfig
+> = {
   fabricacion: {
     title: "Fabricación de Carrocerías",
     icon: Hammer,
@@ -113,7 +116,8 @@ export default function OrdenTrabajoModal({
     order || undefined
   );
   // Hook para acceder al personal desde el contexto global
-  const { personal, getPersonal, getOrdenesByPedidoId, getPedidos } = useData();
+  const { personal, getPersonal, getOrdenesByPedidoId, getPedidos, setPedido } =
+    useData();
 
   // Hook para generación de PDF
   const {
@@ -289,15 +293,21 @@ export default function OrdenTrabajoModal({
         formData.responsable,
         orderData
       );
-      await getOrdenesByPedidoId(
-        pedidoData?.id || "",
-        true
-      );
+      await getOrdenesByPedidoId(pedidoData?.id || "", true);
       setOrderData((prev) =>
         prev ? ({ ...prev, ...formData } as OrdenesBD) : prev
       );
-      if(tipoOrden === "fabricacion"){
+      if (tipoOrden === "fabricacion" || tipoOrden === "pintura") {
         await getPedidos();
+        setPedido((prev) =>
+          prev
+            ? {
+                ...prev,
+                status:
+                  tipoOrden === "fabricacion" ? "en_produccion" : "en_pintura",
+              }
+            : prev
+        );
       }
       setStep("success");
     } catch (error) {
@@ -309,13 +319,18 @@ export default function OrdenTrabajoModal({
     if (!orderData?.id) return;
     try {
       setStep("saving");
-      await closeOrder(orderData?.id, formData, tipoOrden, pedidoData?.id || "");
+      await closeOrder(
+        orderData?.id,
+        formData,
+        tipoOrden,
+        pedidoData?.id || ""
+      );
       await getOrdenesByPedidoId(pedidoData?.id || "", true);
       // actualizar orderData con los datos actualizados en formData
       setOrderData((prev) =>
         prev ? ({ ...prev, ...formData } as OrdenesBD) : prev
       );
-      if(tipoOrden === "montaje" && formData.status === "completada"){
+      if (tipoOrden === "montaje" && formData.status === "completada") {
         await getPedidos();
       }
       setStep("existing");
