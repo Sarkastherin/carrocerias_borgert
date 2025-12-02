@@ -58,7 +58,7 @@ export default function CamionForm() {
             <option value="curvo">Curvo</option>
           </Select>
           <InputWithIcon
-            type="number"
+            type="text"
             placeholder="Ingrese un valor"
             label="Medida Larguero (mm)"
             {...register("med_larguero", {
