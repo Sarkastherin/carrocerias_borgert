@@ -77,6 +77,23 @@ const tutorials = [
       "Configuraciones generales",
     ],
   },
+  {
+    id: "configuraciones-avanzadas",
+    title: "Configuraciones Avanzadas",
+    description: "Explicación del flujo de trabajo de las confguraciones por carrozado.",
+    icon: <Settings className="w-6 h-6" />,
+    category: "Administración",
+    duration: "20 min",
+    difficulty: "Avanzado",
+    to: "/ayuda/configuraciones-avanzadas",
+    topics: [
+      "Flujo de trabajo de configuraciones",
+      "Personalización avanzada",
+      "Optimización de procesos",
+      "Solución de problemas comunes",
+      "Mejores prácticas",
+    ],
+  }
 ];
 
 const quickLinks = [

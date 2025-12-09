@@ -43,6 +43,7 @@ export default [
       route("clientes", "routes/ayuda/clientes.tsx"),
       route("pedidos", "routes/ayuda/pedidos.tsx"),
       route("configuracion", "routes/ayuda/configuracion.tsx"),
+      route("configuraciones-avanzadas", "routes/ayuda/configuraciones-avanzadas.tsx"),
     ]),
   ]),
 ] satisfies RouteConfig;

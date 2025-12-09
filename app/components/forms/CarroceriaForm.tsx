@@ -82,6 +82,11 @@ export default function CarroceriaForm() {
   useEffect(() => {    
     if (!selectedCarrozado) return;
     setIsLoading(true);
+    if(selectedCarrozado.length === 0) {
+      setIsLoading(false);
+      resetForm();
+      return;
+    }
     for (const item of selectedCarrozado) {
       const { atributo, valor, tipo } = item;
       setValue(atributo as any, valor);

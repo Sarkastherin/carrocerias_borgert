@@ -163,7 +163,61 @@ export function useCarroceriaForm() {
     }
   };
   const resetForm = () => {
-    form.reset();
+    form.reset({
+          pedido_id: pedido?.id,
+          /* datos generales */
+          tipo_carrozado_id: "",
+          largo_int: null,
+          largo_ext: null,
+          material: "",
+          ancho_ext: null,
+          alto: null,
+          alt_baranda: null,
+          ptas_por_lado: null,
+          puerta_trasera_id: "",
+          arcos_por_puerta: null,
+          tipos_arcos: "",
+          corte_guardabarros: false,
+          cumbreras: false,
+          espesor_chapa: "",
+          tipo_zocalo: "",
+          lineas_refuerzo: null,
+          tipo_piso: "",
+          /* cuchetin */
+          cuchetin: false,
+          med_cuchetin: 0,
+          alt_pta_cuchetin: 0,
+          alt_techo_cuchetin: 0,
+          notas_cuchetin: "",
+          /* color */
+          color_lona_id: "",
+          color_carrozado_id: "",
+          color_zocalo_id: "",
+          notas_color: "",
+          /* Boquillas */
+          boquillas: null,
+          tipo_boquillas: "",
+          ubicacion_boquillas: "",
+          /* Cajon de herramientas */
+          med_cajon_herramientas: null,
+          ubicacion_cajon_herramientas: "",
+          /* Accesorios */
+          luces: null,
+          guardabarros: false,
+          dep_agua: false,
+          ubicacion_dep_agua: "",
+          cintas_reflectivas: "",
+          /* Alargue */
+          alargue_tipo_1: "N/A",
+          cant_alargue_1: 0,
+          med_alargue_1: 0,
+          quiebre_alargue_1: false,
+          alargue_tipo_2: "",
+          cant_alargue_2: 0,
+          med_alargue_2: 0,
+          quiebre_alargue_2: false,
+          observaciones: "",
+        },);
   };
 
   useEffect(() => {
