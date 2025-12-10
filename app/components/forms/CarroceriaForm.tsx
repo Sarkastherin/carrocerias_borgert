@@ -76,6 +76,7 @@ export default function CarroceriaForm() {
     } finally {
       closeModal();
       setIsLoading(false);
+      setValue("tipo_carrozado_id", carrozadoId);
     }
   };
 
