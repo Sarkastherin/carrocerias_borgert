@@ -393,7 +393,6 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       dataDefaults = await getDefaults();
     } 
     const dataDefault = dataDefaults?.filter((def) => def.carrozado_id === id);
-    console.log(dataDefault);
     setSelectedCarrozado(dataDefault || null);
   };
   const deletePedidoById = async (id: string) => {

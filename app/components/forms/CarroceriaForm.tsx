@@ -7,7 +7,6 @@ import { RulerDimensionLine } from "lucide-react";
 import { useDataLoader } from "~/hooks/useDataLoader";
 import { FooterForm } from "./Footer";
 import LoadingComponent from "../LoadingComponent";
-import { Badge } from "../Badge";
 import {
   materialOptions,
   anchoOptions,
@@ -16,12 +15,9 @@ import {
   espesorOptions,
   lineasRefOptions,
   pisoOptions,
-  cintasOptions,
   zocaloOptions,
-  tiposBoquillasOptions,
-  ubicacionOptions,
 } from "~/config/atributosMetadata";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useUIModals } from "~/context/ModalsContext";
 
 export default function CarroceriaForm() {
@@ -37,7 +33,7 @@ export default function CarroceriaForm() {
     setSelectedCarrozado,
     getCarrozadoByID,
   } = useData(true);
-
+const [carrozadoId, setCarrozadoId] = useState<string>("");
   const { isLoading: isLoadingData } = useDataLoader({
     loaders: [getColores, getCarrozados, getPuertasTraseras],
     forceLoad: true,
@@ -61,22 +57,22 @@ export default function CarroceriaForm() {
     setSelectedCarrozado(null);
   }, [setSelectedCarrozado]);
 
-  const handleCarrozadoDefault = async (carrozadoId: string) => {
+  const handleCarrozadoDefault = async (id: string) => {
+    setCarrozadoId(id);
     resetForm();
-    setValue("tipo_carrozado_id", carrozadoId);
-    // Si no hay carrozadoId, limpiar selectedCarrozado
-    if (!carrozadoId) {
+    setValue("tipo_carrozado_id", id);
+    // Si no hay id, limpiar selectedCarrozado
+    if (!id) {
       setSelectedCarrozado(null);
       return;
     }
     try {
       openModal("LOADING", { message: "Cargando parámetros del carrozado..." });
       setIsLoading(true);
-      await getCarrozadoByID(carrozadoId);
+      await getCarrozadoByID(id);
     } finally {
       closeModal();
       setIsLoading(false);
-      setValue("tipo_carrozado_id", carrozadoId);
     }
   };
 
@@ -86,6 +82,7 @@ export default function CarroceriaForm() {
     if(selectedCarrozado.length === 0) {
       setIsLoading(false);
       resetForm();
+      setValue("tipo_carrozado_id", carrozadoId);
       return;
     }
     for (const item of selectedCarrozado) {
