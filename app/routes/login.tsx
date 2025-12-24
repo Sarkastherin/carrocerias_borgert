@@ -25,14 +25,14 @@ export default function Login() {
   return (
     <div className="min-h-screen relative">
       {/* Hero Background - Overlay más sutil */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: 'url("/cover.jpg")' }}
       >
         {/* Overlay más sutil para mejor contraste */}
         <div className="absolute inset-0 bg-gradient-to-br from-black/50 via-black/60 to-black/70"></div>
       </div>
-      
+
       {/* Content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
         <AuthGlassCard>
@@ -41,10 +41,10 @@ export default function Login() {
             <div className="w-16 h-16 backdrop-blur-sm bg-white/30 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/40 shadow-lg">
               <PaintRollerIcon size={38} color="#ffffff" />
             </div>
-            
+
             {/* Título */}
             <h1 className="px-2 pb-4 scale-180">
-              <LogoComponent />
+              <LogoComponent noTheme />
             </h1>
 
             <p className="text-gray-300 text-lg font-light">
@@ -54,10 +54,10 @@ export default function Login() {
 
           <div className="space-y-6">
             <div className="backdrop-blur-sm bg-white/10 rounded-xl p-4 border border-white/20">
-              <p className="text-sm text-gray-800 mb-3 font-medium">
+              <p className="text-sm text-gray-300 mb-3 font-medium">
                 Inicia sesión para acceder a:
               </p>
-              <ul className="text-sm text-gray-800 space-y-2">
+              <ul className="text-sm text-gray-300 space-y-2">
                 <li className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full"></span>
                   Gestión de pedidos

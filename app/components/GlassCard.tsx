@@ -52,7 +52,7 @@ const variantClasses = {
 export function GlassCard({
   children,
   className,
-  size = "lg",
+  size = "full",
   blur = "xl",
   opacity = "medium",
   padding = "lg",

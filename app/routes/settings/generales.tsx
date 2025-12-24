@@ -37,7 +37,7 @@ export default function SettingsLayout() {
   } = useSettingsData();
 
   const validateUniqueNameBeforeCreate = useCallback(
-    (name: string, configType: string): boolean => {
+    (name: string, configType: string, additionalData?: any): boolean => {
       try {
         if (configType === "personal") {
           return true;
@@ -66,6 +66,18 @@ export default function SettingsLayout() {
             return true;
         }
 
+        // Para colores, validar considerando también el tipo (esmalte/lona)
+        if (configType === "colores" && additionalData?.tipo) {
+          const exists = currentData.some(
+            (item) =>
+              item.nombre && 
+              item.nombre.trim().toLowerCase() === normalizedName &&
+              item.tipo === additionalData.tipo
+          );
+          return !exists;
+        }
+
+        // Para otros tipos de configuración, validar solo por nombre
         const exists = currentData.some(
           (item) =>
             item.nombre && item.nombre.trim().toLowerCase() === normalizedName
@@ -215,10 +227,17 @@ export default function SettingsLayout() {
             { reset, setSuccessMessage, setErrorMessage }: any
           ) => {
             if (mode === "create") {
-              if (!validateUniqueNameBeforeCreate(data.nombre, configTitle)) {
-                setErrorMessage(
-                  `Ya existe un ${configTitle.slice(0, -1)} con el nombre "${data.nombre}". Por favor, utiliza un nombre diferente.`
-                );
+              if (!validateUniqueNameBeforeCreate(data.nombre, configTitle, data)) {
+                let errorMessage = `Ya existe un ${configTitle.slice(0, -1)} con el nombre "${data.nombre}"`;
+                
+                // Para colores, incluir información del tipo en el mensaje de error
+                if (configTitle === "colores" && data.tipo) {
+                  errorMessage += ` del tipo "${data.tipo}"`;
+                }
+                
+                errorMessage += ". Por favor, utiliza un nombre diferente.";
+                
+                setErrorMessage(errorMessage);
                 return { success: false, keepOpen: true };
               }
 
