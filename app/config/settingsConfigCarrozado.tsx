@@ -161,6 +161,12 @@ export const createSettingsConfig = (
     reloadData: loaders.getControlCarrozado,
     columns: [
       {
+        name: "#",
+        selector: (row: any, index?: number) => (index ?? 0) + 1,
+        sortable: false,
+        width: "50px",
+      },
+      {
         name: "Ítem de control",
         selector: (row: any) => row.nombre_item_control,
         sortable: true,

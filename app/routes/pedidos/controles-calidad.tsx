@@ -1,14 +1,13 @@
 import type { Route } from "../+types/home";
 import { Subheader } from "~/components/Headers";
-import { Badge, FileBox } from "lucide-react";
+import { FileBox } from "lucide-react";
 import { ContainerToForms } from "~/components/Containers";
 import { getIcon } from "~/components/IconComponent";
 import { GlassCard } from "~/components/GlassCard";
 import { tipoControlOptions } from "~/types/pedidos";
 import { useControlesModal } from "~/hooks/useControlesModal";
 import { useData } from "~/context/DataContext";
-import { useEffect, useState } from "react";
-import type { ControlCarrozadoDB } from "~/types/settings";
+import { useEffect} from "react";
 import { ButtonLink } from "~/components/Buttons";
 export function meta({}: Route.MetaArgs) {
   return [
@@ -100,7 +99,6 @@ export default function ControlesCalidad() {
                   className={`flex flex-col items-start h-full cursor-pointer ${control.disabled ? "pointer-events-none" : ""}`}
                   onClick={() => {
                     if (!pedido) return;
-                    console.log("Abriendo modal para control:", control.tipo);
                     openControlesModal(control.tipo, pedido, control.control, ctrlCarrozadoByCarrozadoId);
                   }}
                 >

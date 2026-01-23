@@ -15,6 +15,8 @@ import {
   controlCarrozadoAPI,
   ordenesAPI,
   controlesAPI,
+  ctaCorrienteAPI,
+  chequesAPI,
 } from "~/backend/sheetServices";
 import type { ClientesBD } from "~/types/clientes";
 import { useUIModals } from "./ModalsContext";
@@ -42,7 +44,11 @@ import type {
   ControlCarrozadoDB,
 } from "~/types/settings";
 import type { CRUDMethods } from "~/backend/crudFactory";
-
+import type {
+  CtasCorrientesDB,
+  ChequesDB,
+  CtaCorrienteConCliente,
+} from "~/types/ctas_corrientes";
 type DataContextType = {
   clientes: ClientesBD[] | null;
   setClientes: React.Dispatch<React.SetStateAction<ClientesBD[] | null>>;
@@ -97,11 +103,20 @@ type DataContextType = {
     React.SetStateAction<ControlesBD[] | null>
   >;
   refreshPedidoByIdAndTable: (table: Tables) => Promise<void>;
-  getCtrlCarrozadoByCarrozadoId: (carrozadoId: string) => Promise<ControlCarrozadoDB[] | null>;
+  getCtrlCarrozadoByCarrozadoId: (
+    carrozadoId: string
+  ) => Promise<ControlCarrozadoDB[] | null>;
   ctrlCarrozadoByCarrozadoId: ControlCarrozadoDB[] | null;
+  getCuentasCorrientesByClientes: () => Promise<CtaCorrienteConCliente[]>;
+  ctasCorrientesByClientes: CtaCorrienteConCliente[] | null;
+  cuentasCorrientes: CtasCorrientesDB[] | null;
+  setCuentasCorrientes: React.Dispatch<React.SetStateAction<CtasCorrientesDB[] | null>>;
+  getCuentasCorrientes: () => Promise<CtasCorrientesDB[]>;
+  
 };
 type Tables = "carroceria" | "trabajo_chasis" | "camion";
 const DataContext = createContext<DataContextType | undefined>(undefined);
+
 export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const { showError } = useUIModals();
   const [clientes, setClientes] = useState<ClientesBD[] | null>(null);
@@ -140,7 +155,15 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     TrabajoChasisUI[] | null
   >(null);
   const [camiones, setCamiones] = useState<CamionBD[] | null>(null);
-  const [ctrlCarrozadoByCarrozadoId, setctrlCarrozadoByCarrozadoId] = useState<ControlCarrozadoDB[] | null>(null);
+  const [ctrlCarrozadoByCarrozadoId, setctrlCarrozadoByCarrozadoId] = useState<
+    ControlCarrozadoDB[] | null
+  >(null);
+  const [cuentasCorrientes, setCuentasCorrientes] = useState<
+    CtasCorrientesDB[] | null
+  >(null);
+  const [ctasCorrientesByClientes, setCtasCorrientesByClientes] = useState<
+    CtaCorrienteConCliente[] | null
+  >(null);
   const getClientes = async () => {
     return await getCompleteData({
       api: clientesAPI,
@@ -156,18 +179,18 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       throw new Error(formattedError);
     }
     const resClientes = await getClientes();
-    const resVendedores = await getPersonal();
+    const resPersonal = await getPersonal();
     const pedidosConCliente = (resPedidos.data as PedidosBD[]).map((pedido) => {
       const cliente = resClientes.find((c) => c.id === pedido.cliente_id);
-      const vendedor = resVendedores.find((v) => v.id === pedido.vendedor_id);
+      const armador = resPersonal.find((a) => a.id === pedido.armador_id);
       return {
         ...pedido,
         cliente_nombre: cliente
           ? cliente.razon_social
           : "Cliente no encontrado",
-        vendedor_nombre: vendedor
-          ? `${vendedor.nombre} ${vendedor.apellido}`
-          : "Vendedor no encontrado",
+        armador_nombre: armador
+          ? `${armador.nombre} ${armador.apellido}`
+          : "-",
       };
     });
     setPedidos(pedidosConCliente);
@@ -391,7 +414,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     let dataDefaults: DefaultDB[] | null = defaults;
     if (!defaults) {
       dataDefaults = await getDefaults();
-    } 
+    }
     const dataDefault = dataDefaults?.filter((def) => def.carrozado_id === id);
     setSelectedCarrozado(dataDefault || null);
   };
@@ -616,8 +639,9 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     if (!controlCarrozado) {
       dataControlCarrozado = await getControlCarrozado();
     }
-    const filteredControlCarrozado = dataControlCarrozado?.filter((control) => control.carrozado_id === id).map(
-      (control) => {
+    const filteredControlCarrozado = dataControlCarrozado
+      ?.filter((control) => control.carrozado_id === id)
+      .map((control) => {
         const configItem = datConfigItems?.find(
           (item) => item.id === control.item_control_id
         );
@@ -626,8 +650,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
           control.atributo_relacionado = configItem.atributo_relacionado;
         }
         return control;
-      }
-    );
+      });
     setctrlCarrozadoByCarrozadoId(filteredControlCarrozado || null);
     return filteredControlCarrozado || [];
   };
@@ -759,6 +782,65 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       return existeingControles;
     }
   };
+  const getCuentasCorrientes = async () => {
+    return await getCompleteData({
+      api: ctaCorrienteAPI,
+      setData: setCuentasCorrientes,
+    });
+  };
+  const getCuentasCorrientesByClientes = async () => {
+    let dataCtasCorrientes: CtasCorrientesDB[] | null = cuentasCorrientes;
+    let datClientes: ClientesBD[] | null = clientes;
+    if (!dataCtasCorrientes) {
+      dataCtasCorrientes = await getCuentasCorrientes();
+    }
+    if (!datClientes) {
+      datClientes = await getClientes();
+    }
+    // Agrupar por cliente_id sumando debe y haber, y calculando saldo = debe - haber
+    const grouped = (dataCtasCorrientes || []).reduce((acc, cta) => {
+      const key = cta.cliente_id;
+      if (!acc[key]) {
+        acc[key] = { debe: 0, haber: 0 };
+      }
+      acc[key].debe += Number(cta.debe) || 0;
+      acc[key].haber += Number(cta.haber) || 0;
+      return acc;
+    }, {} as Record<string, { debe: number; haber: number }>);
+
+    const ctsCorrientesGroupedByClientes: CtaCorrienteConCliente[] = Object.entries(grouped).map(([clienteId, sums]) => {
+      const cliente = (datClientes || []).find((c) => c.id === clienteId);
+      const debe = sums.debe;
+      const haber = sums.haber;
+      const saldo = debe - haber;
+
+      // Construir objeto resumido. Rellenamos campos requeridos con valores por defecto cuando no aplican.
+      const resumen: any = {
+        id: clienteId,
+        fecha_creacion: "",
+        cliente_id: clienteId,
+        fecha_movimiento: "",
+        tipo: "ajuste",
+        origen: "manual",
+        medio_pago: "efectivo",
+        referencia: undefined,
+        concepto: undefined,
+        debe,
+        haber,
+        saldo,
+        usuario_id: "",
+        razon_social: cliente ? cliente.razon_social : "Cliente no encontrado",
+        cuit_cuil: cliente ? cliente.cuit_cuil : "",
+        condicion_iva: cliente ? cliente.condicion_iva : "",
+      };
+
+      return resumen as CtaCorrienteConCliente;
+    });
+
+    // Guardar en el estado correspondiente
+    setCtasCorrientesByClientes(ctsCorrientesGroupedByClientes);
+    return ctsCorrientesGroupedByClientes;
+  };
   const getCompleteData = async <T extends Record<string, any>>({
     api,
     setData,
@@ -840,6 +922,11 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         refreshPedidoByIdAndTable,
         getCtrlCarrozadoByCarrozadoId,
         ctrlCarrozadoByCarrozadoId,
+        getCuentasCorrientesByClientes,
+        ctasCorrientesByClientes,
+        cuentasCorrientes,
+        setCuentasCorrientes,
+        getCuentasCorrientes,
       }}
     >
       {children}

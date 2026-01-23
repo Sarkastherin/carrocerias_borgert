@@ -71,10 +71,12 @@ export type PedidosBD = {
   fecha_entrega_estimada: string;
   status: (typeof statusOptions)[number]["value"];
   vendedor_id: string;
+  armador_id?: string;
 };
 export type PedidosTable = PedidosBD & {
   cliente_nombre: string;
-  vendedor_nombre: string;
+  vendedor_nombre?: string;
+  armador_nombre?: string;
 };
 export type CarroceriaBD = {
   id: string;
@@ -173,7 +175,7 @@ export type OrdenesBD = {
   fecha_creacion: string;
   pedido_id: string;
   tipo_orden: (typeof tipoOrdenOptions)[number]["value"];
-  responsable: string;
+  responsable_id: string;
   fecha_ejecucion: string;
   url_archivo: string;
   status?: string;

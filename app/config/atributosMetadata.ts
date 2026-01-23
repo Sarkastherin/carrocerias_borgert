@@ -174,6 +174,7 @@ export const atributosConMetadata: AtributoMetadata[] = [
     label: "Espesor chapa",
     fieldType: "select",
     options: espesorOptions,
+    unit: "mm",
   },
   {
     value: "tipo_zocalo",
@@ -389,12 +390,54 @@ export const atributosConMetadata: AtributoMetadata[] = [
     placeholder: "Observaciones adicionales",
     disabledDefaultValues: true,
   },
+  // Datos de camión relacionados con carrocería
   {
     value: "centro_eje",
     label: "Centro de eje",
     fieldType: "number",
     placeholder: "Medida en metros",
     min: 0,
+    unit: "mm",
+  },
+  {
+    value: "marca",
+    label: "Marca",
+    fieldType: "text",
+    placeholder: "marca del camión",
+  },
+  {
+    value: "modelo",
+    label: "Modelo",
+    fieldType: "text",
+    placeholder: "modelo del camión",
+  },
+  {
+    value: "patente",
+    label: "Patente",
+    fieldType: "text",
+    placeholder: "patente del camión",
+  },
+  {
+    value: "tipo_larguero",
+    label: "Tipo de larguero",
+    fieldType: "select",
+    placeholder: "Seleccione tipo de larguero",
+    options: [
+      { value: "recto", label: "Recto" },
+      { value: "curvo", label: "Curvo" },
+    ],
+  },
+  {
+    value: "med_larguero",
+    label: "Medida de larguero",
+    fieldType: "text",
+    placeholder: "medida del larguero",
+  },
+   {
+    value: "voladizo_trasero",
+    label: "Medida de voladizo trasero",
+    fieldType: "text",
+    placeholder: "medida del voladizo trasero",
   },
 ];
 
@@ -430,7 +473,9 @@ export const getAtributoMetadataWithOptions = (
 };
 
 // Mantener compatibilidad con el array original
-export const atributos = atributosConMetadata.filter(attr => !attr.disabledDefaultValues).map((attr) => ({
-  value: attr.value,
-  label: attr.label,
-}));
+export const atributos = atributosConMetadata
+  .filter((attr) => !attr.disabledDefaultValues)
+  .map((attr) => ({
+    value: attr.value,
+    label: attr.label,
+  }));

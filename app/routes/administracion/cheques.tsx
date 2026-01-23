@@ -10,11 +10,10 @@ import { useNavigate } from "react-router";
 import LoadingComponent from "~/components/LoadingComponent";
 import { formatCuit } from "~/components/Inputs";
 
-
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Clientes" },
-    { name: "description", content: "Bienvenido a la gestión de clientes" },
+    { title: "Cheques" },
+    { name: "description", content: "Bienvenido a la gestión de cheques" },
   ];
 }
 const clienteColumns: TableColumn<ClientesBD>[] = [
@@ -48,7 +47,7 @@ const clienteColumns: TableColumn<ClientesBD>[] = [
     sortable: true,
   },
 ];
-export default function ClientesHome() {
+export default function Cheques() {
   const { getClientes, clientes, setCliente } = useData();
   const navigate = useNavigate();
   useEffect(() => {

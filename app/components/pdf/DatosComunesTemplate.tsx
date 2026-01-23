@@ -5,9 +5,13 @@ import { Subtitle, Box, Row, Cell, TitleBox } from "./pdfComponents";
 export const DatosPedido = ({
   pedidoData,
   formData,
+  responsable,
+  title_responsable
 }: {
   pedidoData?: PedidosUI;
   formData?: Partial<OrdenesBD>;
+  responsable: string;
+  title_responsable: "Armador" | "Pintor" | "Montajista" | "Responsable de Control";
 }) => (
   <View>
     <Subtitle>Datos del Pedido</Subtitle>
@@ -29,7 +33,7 @@ export const DatosPedido = ({
       </Row>
       <Row isLast>
         <Cell title="Cliente" value={pedidoData?.cliente_nombre} isFirst />
-        <Cell title="Armador" value={formData?.responsable} />
+        <Cell title={title_responsable} value={responsable} />
       </Row>
     </Box>
   </View>

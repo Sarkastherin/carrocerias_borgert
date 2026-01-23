@@ -239,7 +239,6 @@ export function EntityTable<T>({
   // ...existing code...
   useEffect(() => {
     const isFilter = Object.values(filters).some((v) => v);
-    console.log("Filters applied on mount:", isFilter); 
     if(isFilter) {
       showConfirmation(
         "Hay filtros aplicados desde tu última visita. ¿Deseas limpiar los filtros?", 
@@ -356,7 +355,7 @@ export function EntityTable<T>({
               ]
             : undefined
         }
-        defaultSortAsc={true}
+        //defaultSortAsc={true}
       />
     </>
   );

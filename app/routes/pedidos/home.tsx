@@ -49,8 +49,8 @@ const pedidoColumns: TableColumn<PedidosTable>[] = [
     sortable: true,
   },
   {
-    name: "Vendedor",
-    selector: (row) => row.vendedor_nombre || "",
+    name: "Armador",
+    selector: (row) => row.armador_nombre || "",
     width: "200px",
     sortable: true,
   },
@@ -122,7 +122,7 @@ export default function PedidosHome() {
                 autoFilter: true,
               },
               { key: "cliente_nombre", label: "Cliente", autoFilter: true },
-              { key: "vendedor_id", label: "Vendedor", autoFilter: true },
+              { key: "armador_id", label: "Armador", autoFilter: true },
               {
                 key: "status",
                 label: "Estado",

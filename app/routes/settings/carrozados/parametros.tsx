@@ -13,7 +13,6 @@ import SettingsFormModal from "~/components/modals/customs/SettingsFormModal";
 import { useParams } from "react-router";
 import { carrozadoAPI } from "~/backend/sheetServices";
 import { ImageUp } from "lucide-react";
-import { Input, InputWithIcon } from "~/components/Inputs";
 import { AddImageModal } from "~/components/modals/customs/AddImageModal";
 export default function SettingsLayoutCarrozado() {
   const { carrozadoId } = useParams();

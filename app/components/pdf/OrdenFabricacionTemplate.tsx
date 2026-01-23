@@ -16,16 +16,18 @@ import { DatosPedido, DatosCamion, DatosColor } from "./DatosComunesTemplate";
 interface OrdenFabricacionProps {
   pedidoData?: PedidosUI;
   formData: Partial<OrdenesBD>;
+  responsable: string;
 }
 export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
   pedidoData,
   formData,
+  responsable
 }) => (
   <Document>
     <PageTemplate>
       <HeaderTemplate title="Pedido de Fabricación" />
-      <View>
-        <DatosPedido pedidoData={pedidoData} formData={formData} />
+      <View style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <DatosPedido pedidoData={pedidoData} formData={formData} title_responsable={"Armador"} responsable={responsable}/>
         <DatosCamion pedidoData={pedidoData} />
         <View>
           <Subtitle>Detalles de la Carrocería</Subtitle>

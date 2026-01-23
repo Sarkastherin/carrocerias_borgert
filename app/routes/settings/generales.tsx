@@ -9,6 +9,7 @@ import {
   carroceriaAPI,
   pedidosAPI,
   trabajoChasisAPI,
+  controlCarrozadoAPI,
 } from "~/backend/sheetServices";
 import { useSettingsData, capitalize } from "~/config/settingsConfig";
 import LoadingComponent from "~/components/LoadingComponent";
@@ -70,7 +71,7 @@ export default function SettingsLayout() {
         if (configType === "colores" && additionalData?.tipo) {
           const exists = currentData.some(
             (item) =>
-              item.nombre && 
+              item.nombre &&
               item.nombre.trim().toLowerCase() === normalizedName &&
               item.tipo === additionalData.tipo
           );
@@ -102,8 +103,10 @@ export default function SettingsLayout() {
             "puertas traseras",
             "personal",
             "tipos de trabajos",
+            "items de control",
           ].includes(configType)
         ) {
+          console.log("Retornando early return - configType no válido");
           return { inUse: false, count: 0 };
         }
 
@@ -188,6 +191,20 @@ export default function SettingsLayout() {
                   : 1
                 : 0;
             return { inUse: trabajosCount > 0, count: trabajosCount };
+
+          case "items de control":
+            const responseControlCarrozado = await controlCarrozadoAPI.read({
+              columnName: "item_control_id",
+              value: elementId,
+              multiple: true,
+            });
+            const controlCount =
+              responseControlCarrozado.success && responseControlCarrozado.data
+                ? Array.isArray(responseControlCarrozado.data)
+                  ? responseControlCarrozado.data.length
+                  : 1
+                : 0;
+            return { inUse: controlCount > 0, count: controlCount };
         }
 
         return { inUse: false, count: 0 };
@@ -227,16 +244,18 @@ export default function SettingsLayout() {
             { reset, setSuccessMessage, setErrorMessage }: any
           ) => {
             if (mode === "create") {
-              if (!validateUniqueNameBeforeCreate(data.nombre, configTitle, data)) {
+              if (
+                !validateUniqueNameBeforeCreate(data.nombre, configTitle, data)
+              ) {
                 let errorMessage = `Ya existe un ${configTitle.slice(0, -1)} con el nombre "${data.nombre}"`;
-                
+
                 // Para colores, incluir información del tipo en el mensaje de error
                 if (configTitle === "colores" && data.tipo) {
                   errorMessage += ` del tipo "${data.tipo}"`;
                 }
-                
+
                 errorMessage += ". Por favor, utiliza un nombre diferente.";
-                
+
                 setErrorMessage(errorMessage);
                 return { success: false, keepOpen: true };
               }
@@ -341,12 +360,7 @@ export default function SettingsLayout() {
         });
       }
     },
-    [
-      validateElementInUse,
-      activeTab,
-      openModal,
-      itemsConfiguraciones,
-    ]
+    [validateElementInUse, activeTab, openModal, itemsConfiguraciones]
   );
 
   const actionColumn = useMemo(

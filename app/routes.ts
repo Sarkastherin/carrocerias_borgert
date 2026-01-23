@@ -45,5 +45,10 @@ export default [
       route("configuracion", "routes/ayuda/configuracion.tsx"),
       route("configuraciones-avanzadas", "routes/ayuda/configuraciones-avanzadas.tsx"),
     ]),
+    ...prefix("administracion", [
+      route("cuentas-corrientes", "routes/administracion/cuentas-corrientes.tsx"),
+      route("cuentas-corrientes/:ctaCteId", "routes/administracion/cuenta-corriente.tsx"),
+      route("cheques", "routes/administracion/cheques.tsx"),
+    ]),
   ]),
 ] satisfies RouteConfig;

@@ -1,5 +1,6 @@
 import { createCrud } from "./crudFactory";
 import type { ClientesBD } from "~/types/clientes";
+import type { CtasCorrientesDB, ChequesDB } from "~/types/ctas_corrientes";
 import type {
   CarroceriaBD,
   PedidosBD,
@@ -93,4 +94,14 @@ export const controlesAPI =  createCrud<ControlesBD>({
   sheetId: import.meta.env.VITE_SHEET_ID_ORDENES,
   nameSheet: "Controles",
   nameFile: "Órdenes de Trabajo",
+});
+export const ctaCorrienteAPI = createCrud<CtasCorrientesDB>({
+  sheetId: import.meta.env.VITE_SHEET_ID_CTAS_CORRI,
+  nameSheet: "movimientos",
+  nameFile: "Cuentas Corrientes",
+});
+export const chequesAPI = createCrud<ChequesDB>({
+  sheetId: import.meta.env.VITE_SHEET_ID_CTAS_CORRI,
+  nameSheet: "cheques",
+  nameFile: "Cheques",
 });

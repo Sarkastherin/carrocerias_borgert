@@ -16,7 +16,6 @@ export const styles = StyleSheet.create({
     padding: 30,
     fontFamily: "Helvetica", // Fuente base del documento
     color: "#434343",
-    
   },
   title: {
     fontSize: 20,
@@ -29,7 +28,7 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderBottom: "1px solid #444",
-    marginBottom: 20,
+    marginBottom: 15,
     paddingBottom: 5,
   },
   cell: {
@@ -51,11 +50,11 @@ export const styles = StyleSheet.create({
 export const Subtitle = ({ children }: { children: React.ReactNode }) => (
   <Text
     style={{
-      fontSize: 12,
+      fontSize: 11,
       fontFamily: "Helvetica",
       fontWeight: "bold",
-      paddingBottom: 6,
-      paddingTop: 12,
+      paddingBottom: 8,
+      paddingTop:0,
     }}
   >
     {children}
@@ -130,12 +129,16 @@ export const Cell = ({
     <Text
       style={{
         flex: flex ?? 1,
-        padding: "4px 6px",
+        padding: "3px",
         borderLeft: isFirst ? "none" : "1px dashed #ccc",
       }}
     >
-      {title && <Text style={{ fontWeight: "bold", fontSize: 10 }}>{title}: </Text>}
-      <Text style={{fontSize: 10, fontWeight: bold ? "bold" : "normal"}}>{newValue}</Text>
+      {title && (
+        <Text style={{ fontWeight: "bold", fontSize: 9 }}>{title}: </Text>
+      )}
+      <Text style={{ fontSize: 9, fontWeight: bold ? "bold" : "normal" }}>
+        {newValue}
+      </Text>
     </Text>
   );
 };
@@ -210,12 +213,12 @@ export const FooterTemplate = () => {
 };
 
 // Componente para manejar múltiples páginas con header repetido
-export const MultiPageTemplate = ({ 
-  title, 
-  children 
-}: { 
-  title: string; 
-  children: React.ReactNode 
+export const MultiPageTemplate = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
 }) => {
   return (
     <Document>
@@ -223,9 +226,7 @@ export const MultiPageTemplate = ({
         <View fixed>
           <HeaderTemplate title={title} />
         </View>
-        <View style={{ paddingTop: 20 }}>
-          {children}
-        </View>
+        <View>{children}</View>
         <FooterTemplate />
         <Text
           fixed
@@ -238,7 +239,7 @@ export const MultiPageTemplate = ({
             fontSize: 8,
             textAlign: "center",
             color: "#999",
-            width:"90%"
+            width: "90%",
           }}
         ></Text>
       </Page>

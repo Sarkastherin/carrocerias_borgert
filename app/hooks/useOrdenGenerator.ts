@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { pdf } from "@react-pdf/renderer";
 import type { OrdenesBD, PedidosUI } from "~/types/pedidos";
 import { OrdenFabricacionTemplate } from "~/components/pdf/OrdenFabricacionTemplate";
@@ -9,9 +9,7 @@ import { uploadOrderPDF } from "~/backend/driveAPI";
 import { ordenesAPI, pedidosAPI } from "~/backend/sheetServices";
 import { tipoOrdenOptions } from "~/types/pedidos";
 import type { ControlCarrozadoDB } from "~/types/settings";
-interface OrdenData {
-  [key: string]: any;
-}
+import { useData } from "~/context/DataContext";
 
 interface PDFGenerationOptions {
   tipoOrden: (typeof tipoOrdenOptions)[number]["value"];
@@ -21,16 +19,24 @@ interface PDFGenerationOptions {
 }
 
 export const useOrdenGenerator = () => {
+  const { personal, getPersonal } = useData();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!personal) getPersonal();
+  }, []);
 
   const generateOrdenPDF = async ({
     tipoOrden,
     formData,
     pedidoData,
-    itemsControl
+    itemsControl,
   }: PDFGenerationOptions): Promise<Blob> => {
+    if (!personal) return new Blob();
+    const dataResponsable = personal.find((p) => p.id === formData.responsable_id)
+    const responsable = dataResponsable ? `${dataResponsable.nombre} ${dataResponsable.apellido}` : "No asignado";
     setIsGenerating(true);
     setError(null);
 
@@ -43,25 +49,29 @@ export const useOrdenGenerator = () => {
           pdfDocument = React.createElement(OrdenFabricacionTemplate, {
             pedidoData,
             formData,
+            responsable,
           });
           break;
         case "pintura":
           pdfDocument = React.createElement(OrdenPinturaTemplate, {
             pedidoData,
             formData,
+            responsable,
           });
           break;
         case "montaje":
           pdfDocument = React.createElement(OrdenMontajeTemplate, {
             pedidoData,
             formData,
+            responsable,
           });
           break;
         case "carrozado":
           pdfDocument = React.createElement(ControlCarrozadoTemplate, {
             pedidoData,
             formData,
-            itemsControl
+            responsable,
+            itemsControl,
           });
           break;
         default:
@@ -129,7 +139,7 @@ export const useOrdenGenerator = () => {
     urlFile: string,
     pedidoId: string,
     tipoOrden: (typeof tipoOrdenOptions)[number]["value"],
-    responsable?: string,
+    responsable_id?: string,
     order?: OrdenesBD
   ) => {
     try {
@@ -137,7 +147,7 @@ export const useOrdenGenerator = () => {
       const ordenData = {
         pedido_id: pedidoId,
         tipo_orden: tipoOrden, // campo correcto según el tipo
-        responsable: responsable || "sistema", // valor por defecto si no se proporciona
+        responsable_id: responsable_id || "sistema", // valor por defecto si no se proporciona
         fecha_ejecucion: "", // dejar vacío para que se llene luego
         url_archivo: urlFile,
         fecha_creacion: new Date().toISOString().split("T")[0], // formato YYYY-MM-DD
@@ -155,6 +165,7 @@ export const useOrdenGenerator = () => {
         await pedidosAPI.update(pedidoId, {
           fecha_fabricacion: new Date().toISOString().split("T")[0],
           status: "en_produccion",
+          armador_id: responsable_id || "sistema",
         });
       }
       if (ordenData.tipo_orden === "pintura") {
@@ -169,7 +180,12 @@ export const useOrdenGenerator = () => {
       );
     }
   };
-  const closeOrder = async (orderId: string, formData: Partial<OrdenesBD>, tipoOrden: (typeof tipoOrdenOptions)[number]["value"], pedidoId: string) => {
+  const closeOrder = async (
+    orderId: string,
+    formData: Partial<OrdenesBD>,
+    tipoOrden: (typeof tipoOrdenOptions)[number]["value"],
+    pedidoId: string
+  ) => {
     try {
       const result = await ordenesAPI.update(orderId, formData);
       if (!result.success) {

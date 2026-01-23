@@ -40,7 +40,7 @@ export type ReadOptions = {
 };
 
 export type CRUDMethods<T> = {
-  create: (dataForm: Omit<T, "id">) => Promise<ApiResponse<T>>;
+  create: (dataForm: Omit<T, "id" | "fecha_creacion">) => Promise<ApiResponse<T>>;
   read: (options?: ReadOptions) => Promise<ApiResponse<T | T[]>>;
   update: (id: string, dataForm: Partial<Omit<T, "id">>) => Promise<ApiResponse<UpdateData>>;
   delete: (id: string) => Promise<ApiResponse<DeleteData>>;
@@ -70,7 +70,7 @@ export const createCrud = <T extends { id: string }>({
   });
 
   return {
-    create: async (dataForm: Omit<T, "id">): Promise<ApiResponse<T>> => {
+    create: async (dataForm: Omit<T, "id" | "fecha_creacion">): Promise<ApiResponse<T>> => {
       try {
         const newId = crypto.randomUUID();
         const response = await apiEndpoint.insert({

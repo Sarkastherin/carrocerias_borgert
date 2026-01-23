@@ -53,7 +53,7 @@ const ordenConfigs: Record<typeof tipoOrdenOptions[number]["value"], OrdenConfig
       "Generar orden de trabajo para la fabricación de la carrocería según las especificaciones del pedido.",
     fields: [
       {
-        name: "responsable",
+        name: "responsable_id",
         label: "Responsable asignado",
         type: "select",
         placeholder: "Nombre del responsable",
@@ -70,7 +70,7 @@ const ordenConfigs: Record<typeof tipoOrdenOptions[number]["value"], OrdenConfig
       "Generar orden de trabajo para la pintura y acabados de componentes de la carrocería.",
     fields: [
       {
-        name: "responsable",
+        name: "responsable_id",
         label: "Responsable asignado",
         type: "select",
         placeholder: "Nombre del responsable",
@@ -87,7 +87,7 @@ const ordenConfigs: Record<typeof tipoOrdenOptions[number]["value"], OrdenConfig
       "Generar orden de trabajo para la colocación y ensamblaje de componentes de la carrocería.",
     fields: [
       {
-        name: "responsable",
+        name: "responsable_id",
         label: "Responsable asignado",
         type: "select",
         placeholder: "Nombre del responsable",
@@ -125,7 +125,6 @@ export default function ControlesModal({
     createRegisterAndUpdatePedido,
     closeOrder,
     generateFileName,
-    isGenerating,
     isSaving,
     error: generatorError,
   } = useOrdenGenerator();
@@ -173,12 +172,11 @@ export default function ControlesModal({
   }, []);
   const getPersonalBySector = (sector?: string) => {
     if (!personal) return [];
-    if(!sector) return personal.filter((p) => p.activo).map((p) => `${p.nombre} ${p.apellido}`);
+    if(!sector) return personal.filter((p) => p.activo);
     return personal
       .filter(
         (p) => p.activo && p.sector.toLowerCase().includes(sector.toLowerCase())
-      )
-      .map((p) => `${p.nombre} ${p.apellido}`);
+      );
   };
   const HeaderOrder = () => {
     return (
@@ -220,7 +218,6 @@ export default function ControlesModal({
 
   // Obtener opciones de personal según el tipo de orden
   const getPersonalOptions = () => {
-    console.log("tipoOrden en getPersonalOptions:", tipoOrden);
     switch (tipoOrden) {
       case "fabricacion":
         return getPersonalBySector("fabricacion");
@@ -292,7 +289,7 @@ export default function ControlesModal({
         urlFile,
         pedidoData?.id || "",
         tipoOrden,
-        formData.responsable,
+        formData.responsable_id,
         orderData
       );
       await getOrdenesByPedidoId(
@@ -356,10 +353,10 @@ export default function ControlesModal({
               >
                 <option value="">Seleccionar...</option>
                 {/* Si es el campo responsable, usar opciones dinámicas del personal */}
-                {field.name === "responsable"
-                  ? getPersonalOptions().map((option) => (
-                      <option key={option} value={option}>
-                        {option}
+                {field.name === "responsable_id"
+                  ? getPersonalOptions().map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {`${p.nombre} ${p.apellido}`}
                       </option>
                     ))
                   : field.options?.map((option) => (
@@ -461,7 +458,7 @@ export default function ControlesModal({
                   Responsable:
                 </span>
                 <span className="ml-2 text-gray-900 dark:text-white capitalize">
-                  {orderData?.responsable || "No asignado"}
+                  {orderData?.responsable_id || "No asignado"}
                 </span>
               </div>
             </div>

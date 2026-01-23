@@ -16,16 +16,18 @@ import { DatosPedido, DatosCamion } from "./DatosComunesTemplate";
 interface OrdenMontajeProps {
   pedidoData?: PedidosUI;
   formData: Partial<OrdenesBD>;
+  responsable: string;
 }
 export const OrdenMontajeTemplate: React.FC<OrdenMontajeProps> = ({
   pedidoData,
   formData,
+  responsable,
 }) => (
   <Document>
     <PageTemplate>
       <HeaderTemplate title="Datos de Colocación" />
       <View>
-        <DatosPedido pedidoData={pedidoData} formData={formData} />
+        <DatosPedido pedidoData={pedidoData} formData={formData} title_responsable="Montajista" responsable={responsable} />
         <DatosCamion pedidoData={pedidoData}  convertToCM />
         <View>
           <Subtitle>Accesorios</Subtitle>

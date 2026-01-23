@@ -1,5 +1,5 @@
 import type { Route } from "./+types/home";
-import { ReceiptText, NotebookTabs, FileCog } from "lucide-react";
+import { ReceiptText, NotebookTabs, FileCog, Wallet, Banknote } from "lucide-react";
 import pkg from "package.json";
 import type { CardLinkProps } from "~/components/GlassCard";
 import { LogoComponent } from "~/components/LogoComponent";
@@ -16,28 +16,39 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 export const modules: CardLinkProps[] = [
-    {
-      name: "Pedidos",
-      description: "Gestiona tus pedidos y controla tus avances.",
-      icon: ReceiptText,
-      path: "/pedidos",
-    },
-    {
-      name: "Clientes",
-      description: "Organiza tus clientes y gestiona su información.",
-      icon: NotebookTabs,
-      path: "/clientes",
-    },
-    {
-      name: "Parametros",
-      description: "Gestiona los parametros y configuraciones.",
-      icon: FileCog,
-      path: "/settings",
-    },
-  ];
+  {
+    name: "Pedidos",
+    description: "Gestiona tus pedidos y controla tus avances.",
+    icon: ReceiptText,
+    path: "/pedidos",
+  },
+  {
+    name: "Clientes",
+    description: "Organiza tus clientes y gestiona su información.",
+    icon: NotebookTabs,
+    path: "/clientes",
+  },
+  {
+    name: "Parametros",
+    description: "Gestiona los parametros y configuraciones.",
+    icon: FileCog,
+    path: "/settings",
+  },
+  /* {
+    name: "Cuentas Corrientes",
+    description: "Gestiona las cuentas corrientes de tus clientes.",
+    icon: Wallet,
+    path: "administracion/cuentas-corrientes",
+  },
+  {
+    name: "Cheques",
+    description: "Gestiona los cheques de tus clientes.",
+    icon: Banknote,
+    path: "administracion/cheques",
+  }, */
+];
 
 export default function HomePage() {
-  
   //
   return (
     <div

@@ -253,7 +253,34 @@ export function CurrencyInput({
   };
 
   const parseCurrency = (formattedValue: string): string => {
-    return formattedValue.replace(/\./g, "").replace(/,/g, ".");
+    if (!formattedValue) return "";
+    // Remove spaces
+    let s = formattedValue.replace(/\s/g, "");
+
+    // If contains both comma and dot, assume comma is decimal separator
+    if (s.includes(",") && s.includes(".")) {
+      return s.replace(/\./g, "").replace(/,/g, ".");
+    }
+
+    // If contains comma only, treat comma as decimal separator
+    if (s.includes(",")) {
+      return s.replace(/\./g, "").replace(/,/g, ".");
+    }
+
+    // If contains dot(s) only:
+    if (s.includes(".")) {
+      const parts = s.split(".");
+      if (parts.length > 2) {
+        // Multiple dots likely thousand separators: remove all
+        return parts.join("");
+      }
+      if (parts.length === 2) {
+        // Single dot: treat as decimal separator
+        return parts[0] + "." + parts[1];
+      }
+    }
+
+    return s;
   };
 
   useEffect(() => {
@@ -328,17 +355,6 @@ export function CuitInput({
 }: CuitInputProps) {
   const [displayValue, setDisplayValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
-
-  // Función para formatear CUIT: "12345678901" -> "12-34567890-1"
-  const formatCuit = (value: string): string => {
-    if (!value) return "";
-    const cleaned = value.replace(/\D/g, ""); // Solo números
-    if (cleaned.length <= 2) return cleaned;
-    if (cleaned.length <= 10) {
-      return `${cleaned.slice(0, 2)}-${cleaned.slice(2)}`;
-    }
-    return `${cleaned.slice(0, 2)}-${cleaned.slice(2, 10)}-${cleaned.slice(10, 11)}`;
-  };
 
   // Función para extraer solo números del CUIT formateado
   const parseCuit = (formattedValue: string): string => {
@@ -738,3 +754,13 @@ export function SelectFieldCustom<T extends { id: string }>({
     </div>
   );
 }
+// Función para formatear CUIT: "12345678901" -> "12-34567890-1"
+export const formatCuit = (cuit: string): string => {
+  if (!cuit) return "";
+  const cleaned = cuit.replace(/\D/g, ""); // Solo números
+  if (cleaned.length <= 2) return cleaned;
+  if (cleaned.length <= 10) {
+    return `${cleaned.slice(0, 2)}-${cleaned.slice(2)}`;
+  }
+  return `${cleaned.slice(0, 2)}-${cleaned.slice(2, 10)}-${cleaned.slice(10, 11)}`;
+};

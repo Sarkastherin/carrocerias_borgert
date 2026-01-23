@@ -54,7 +54,7 @@ const ordenConfigs: Record<
       "Generar orden de trabajo para la fabricación de la carrocería según las especificaciones del pedido.",
     fields: [
       {
-        name: "responsable",
+        name: "responsable_id",
         label: "Responsable asignado",
         type: "select",
         placeholder: "Nombre del responsable",
@@ -71,7 +71,7 @@ const ordenConfigs: Record<
       "Generar orden de trabajo para la pintura y acabados de componentes de la carrocería.",
     fields: [
       {
-        name: "responsable",
+        name: "responsable_id",
         label: "Responsable asignado",
         type: "select",
         placeholder: "Nombre del responsable",
@@ -88,7 +88,7 @@ const ordenConfigs: Record<
       "Generar orden de trabajo para la colocación y ensamblaje de componentes de la carrocería.",
     fields: [
       {
-        name: "responsable",
+        name: "responsable_id",
         label: "Responsable asignado",
         type: "select",
         placeholder: "Nombre del responsable",
@@ -126,7 +126,6 @@ export default function OrdenTrabajoModal({
     createRegisterAndUpdatePedido,
     closeOrder,
     generateFileName,
-    isGenerating,
     isSaving,
     error: generatorError,
   } = useOrdenGenerator();
@@ -174,11 +173,10 @@ export default function OrdenTrabajoModal({
   }, []);
   const getPersonalBySector = (sector: string) => {
     if (!personal) return [];
-    return personal
-      .filter(
-        (p) => p.activo && p.sector.toLowerCase().includes(sector.toLowerCase())
-      )
-      .map((p) => `${p.nombre} ${p.apellido}`);
+    const filteredPersonal = personal.filter(
+      (p) => p.activo && p.sector.toLowerCase().includes(sector.toLowerCase())
+    );
+    return filteredPersonal
   };
   const HeaderOrder = () => {
     return (
@@ -290,7 +288,7 @@ export default function OrdenTrabajoModal({
         urlFile,
         pedidoData?.id || "",
         tipoOrden,
-        formData.responsable,
+        formData.responsable_id,
         orderData
       );
       await getOrdenesByPedidoId(pedidoData?.id || "", true);
@@ -364,11 +362,11 @@ export default function OrdenTrabajoModal({
                 error={errors[field.name]}
               >
                 <option value="">Seleccionar...</option>
-                {/* Si es el campo responsable, usar opciones dinámicas del personal */}
-                {field.name === "responsable"
-                  ? getPersonalOptions().map((option) => (
-                      <option key={option} value={option}>
-                        {option}
+                {/* Si es el campo responsable_id, usar opciones dinámicas del personal */}
+                {field.name === "responsable_id"
+                  ? getPersonalOptions().map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {`${p.nombre} ${p.apellido}`}
                       </option>
                     ))
                   : field.options?.map((option) => (
@@ -470,7 +468,7 @@ export default function OrdenTrabajoModal({
                   Responsable:
                 </span>
                 <span className="ml-2 text-gray-900 dark:text-white capitalize">
-                  {orderData?.responsable || "No asignado"}
+                  {orderData?.responsable_id || "No asignado"}
                 </span>
               </div>
             </div>
