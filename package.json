@@ -2,7 +2,7 @@
   "name": "carrocerias_borgert",
   "private": true,
   "type": "module",
-  "version": "1.0.34",
+  "version": "1.0.35",
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
