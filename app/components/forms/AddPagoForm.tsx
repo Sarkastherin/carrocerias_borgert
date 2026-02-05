@@ -1,34 +1,37 @@
 import { Input, Textarea, Select, CurrencyInput } from "../Inputs";
-import { Button } from "../Buttons";
+import { Button, ButtonLink } from "../Buttons";
 import { useForm } from "react-hook-form";
 import { optionsMedioPago } from "~/types/ctas_corrientes";
-import type { CtasCorrientesDB } from "~/types/ctas_corrientes";
+import type { CtasCtesDB } from "~/types/ctas_corrientes";
 import { useState } from "react";
 import { ctaCorrienteAPI } from "~/backend/sheetServices";
-import BancosComponent from "../Bancos";
 import LoadingComponent from "../LoadingComponent";
 import { CheckCircle, AlertCircle, DollarSign } from "lucide-react";
 import { useData } from "~/context/DataContext";
 import type { TipoMovimiento } from "../modals/customs/MovimientoModal";
-
-export type AddPagoFormProps = CtasCorrientesDB;
+import FileUploderComponent, {updateFilePDFCtaCte} from "../FileUpladerComponent";
+export type AddPagoFormProps = CtasCtesDB;
 
 type FormState = "form" | "loading" | "success" | "error";
-const variantsTypes: { [key: string]: { filter: string; medio_pago: string } } = {
-  efectivo: { filter: "manual", medio_pago: "" },
-  carroceria_usada: { filter: "vehiculo", medio_pago: "carroceria_usada" },
-  nota_credito: { filter: "otro", medio_pago: "no aplica" },
-};
+const variantsTypes: { [key: string]: { filter: string; medio_pago: string } } =
+  {
+    efectivo: { filter: "manual", medio_pago: "" },
+    carroceria_usada: { filter: "vehiculo", medio_pago: "carroceria_usada" },
+    nota_credito: { filter: "otro", medio_pago: "no aplica" },
+  };
 
 export const AddPagoForm = ({
   clienteId,
   type,
+  redirect,
 }: {
   clienteId?: string;
   type: TipoMovimiento;
+  redirect?: boolean;
 }) => {
+  const [file, setFile] = useState<File | null>(null);
   const [formState, setFormState] = useState<FormState>("form");
-  const { getCuentasCorrientes, getCuentasCorrientesByClientes } = useData();
+  const { getCtaCteWithCheques, getCtasCtesByClientes } = useData();
   const optionsMedioPagoFiltered = () => {
     const text = variantsTypes[type].filter;
     return optionsMedioPago.filter((op) => op.origen === text);
@@ -38,7 +41,7 @@ export const AddPagoForm = ({
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors, isSubmitting },
   } = useForm<AddPagoFormProps>({
     mode: "onBlur",
     defaultValues: {
@@ -54,13 +57,18 @@ export const AddPagoForm = ({
   const onSubmit = async (data: AddPagoFormProps) => {
     setFormState("loading");
     try {
+      if(file) {
+      const fileLink = await updateFilePDFCtaCte(file);
+      data.documento_cta_cte = fileLink;
+      setValue("documento_cta_cte", fileLink, { shouldDirty: true });
+    }
       // 1. Crear el movimiento en cuentas corrientes
       const response = await ctaCorrienteAPI.create(data);
       if (!response.success)
         throw new Error("Error creating movimiento in cuenta corriente");
       // 2. Refrescar los datos en el contexto
-      await getCuentasCorrientes();
-      await getCuentasCorrientesByClientes();
+      await getCtaCteWithCheques(true);
+      await getCtasCtesByClientes();
       // 3. Actualizar el estado del formulario a éxito
       setFormState("success");
     } catch (error) {
@@ -68,15 +76,12 @@ export const AddPagoForm = ({
       setFormState("error");
     }
   };
-  const onError = (errors: any) => {
-    console.log("Form errors:", errors);
-  };
 
   return (
     <div className="w-full">
       {/* FORMULARIO PRINCIPAL */}
       {formState === "form" && (
-        <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Sección 1: Datos del Movimiento */}
           <fieldset className="border border-gray-300 dark:border-gray-600 rounded-lg p-5 bg-white dark:bg-gray-800">
             <legend className="px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -132,6 +137,12 @@ export const AddPagoForm = ({
             <legend className="px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
               📝 Detalles Adicionales
             </legend>
+            <div className="mb-4 space-y-1">
+              <FileUploderComponent
+                value={watch("documento_cta_cte") || ""}
+                setFile={setFile}
+              />
+            </div>
             <Textarea
               label="Concepto / Detalle del movimiento"
               placeholder="Describa el motivo o concepto del movimiento"
@@ -161,7 +172,9 @@ export const AddPagoForm = ({
               disabled={isSubmitting}
               className="w-full md:w-auto"
             >
-              {isSubmitting ? "Registrando..." : "✓ Registrar Pago"}
+              {isSubmitting
+                ? "Registrando..."
+                : `✓ Registrar ${type === "nota_credito" ? "Nota de Crédito" : "Pago"}`}
             </Button>
           </div>
         </form>
@@ -190,6 +203,16 @@ export const AddPagoForm = ({
                 <p className="text-sm text-green-700 dark:text-green-400 mt-1">
                   El movimiento ha sido guardado en el sistema.
                 </p>
+                {redirect && (
+                  <div className="mt-6 w-fit ms-auto">
+                    <ButtonLink
+                      to={`/administracion/cuentas-corrientes/${clienteId}`}
+                      variant="green"
+                    >
+                      Ir a la cuenta corriente
+                    </ButtonLink>
+                  </div>
+                )}
               </div>
             </div>
           </div>

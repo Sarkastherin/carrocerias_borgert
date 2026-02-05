@@ -201,7 +201,7 @@ export default function ControlesModal({
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
                 <span className="font-medium">
-                  Cliente: {pedidoData.cliente_nombre}
+                  Cliente: {pedidoData.razon_social}
                 </span>
               </div>
               {pedidoData.carroceria && (

@@ -56,6 +56,7 @@ type EntityTableProps<T> = {
   noDataComponent?: JSX.Element;
   inactiveField?: string; // Campo para identificar elementos inactivos (ej: "activo")
   alternativeStorageKey?: string; // Clave alternativa para almacenamiento local
+  disableRowClick?: boolean; // Deshabilita el click en filas y el cursor pointer
 };
 const options = {
   rowsPerPageText: "Filas por página",
@@ -70,6 +71,7 @@ export function EntityTable<T>({
   noDataComponent,
   inactiveField,
   alternativeStorageKey,
+  disableRowClick = false,
 }: EntityTableProps<T>) {
   const { theme } = useUI();
   const location = useLocation();
@@ -279,6 +281,7 @@ export function EntityTable<T>({
                 {type === "dateRange" ? (
                   <div className="flex gap-2 items-center">
                     <Input
+                    label="Desde"
                       type="date"
                       value={filters[`${key}_from`] ?? ""}
                       onChange={(e) =>
@@ -288,6 +291,7 @@ export function EntityTable<T>({
                     <span className="text-sm">a</span>
                     <Input
                       type="date"
+                      label="Hasta"
                       value={filters[`${key}_to`] ?? ""}
                       onChange={(e) =>
                         handleChange(`${key}_to`, e.target.value, autoFilter)
@@ -296,6 +300,7 @@ export function EntityTable<T>({
                   </div>
                 ) : type === "select" ? (
                   <Select
+                  label={label}
                     value={filters[key] ?? ""}
                     onChange={(e) =>
                       handleChange(key, e.target.value, autoFilter)
@@ -307,6 +312,7 @@ export function EntityTable<T>({
                   <Input
                     type="search"
                     placeholder={label}
+                    label={label}
                     value={filters[key] ?? ""}
                     onChange={(e) =>
                       handleChange(key, e.target.value, autoFilter)
@@ -334,8 +340,8 @@ export function EntityTable<T>({
         paginationPerPage={30}
         paginationDefaultPage={currentPage}
         onChangePage={handlePageChange}
-        onRowClicked={onRowClick}
-        pointerOnHover
+        onRowClicked={!disableRowClick ? onRowClick : undefined}
+        pointerOnHover={!disableRowClick}
         highlightOnHover
         paginationComponentOptions={options}
         noDataComponent={

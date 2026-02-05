@@ -62,7 +62,6 @@ export const useOrdenGenerator = () => {
         case "montaje":
           pdfDocument = React.createElement(OrdenMontajeTemplate, {
             pedidoData,
-            formData,
             responsable,
           });
           break;
@@ -171,6 +170,11 @@ export const useOrdenGenerator = () => {
       if (ordenData.tipo_orden === "pintura") {
         await pedidosAPI.update(pedidoId, {
           status: "en_pintura",
+        });
+      }
+      if (ordenData.tipo_orden === "montaje") {
+        await pedidosAPI.update(pedidoId, {
+          status: "pintada",
         });
       }
     } catch (error) {

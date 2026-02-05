@@ -1,14 +1,19 @@
-import { use, useEffect } from "react";
+import { useEffect } from "react";
 import type { Route } from "../+types/home";
 import { useData } from "~/context/DataContext";
 import { ButtonLink, ButtonLinkAdd } from "~/components/Buttons";
 import { PlusIcon } from "lucide-react";
 import { EntityTable } from "~/components/EntityTable";
-import type { ClientesBD } from "~/types/clientes";
 import type { TableColumn } from "react-data-table-component";
-import { useNavigate } from "react-router";
 import LoadingComponent from "~/components/LoadingComponent";
-import { formatCuit } from "~/components/Inputs";
+import type { ChequesWithTerceros } from "~/types/ctas_corrientes";
+import { capitalize } from "~/config/settingsConfig";
+import { formatDateUStoES } from "~/utils/formatDate";
+import { BadgeStatusCheque } from "~/components/Badge";
+import { useUIModals } from "~/context/ModalsContext";
+import { useNavigate } from "react-router";
+import { Subheader } from "~/components/Headers";
+import { Banknote } from "lucide-react";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -16,102 +21,124 @@ export function meta({}: Route.MetaArgs) {
     { name: "description", content: "Bienvenido a la gestión de cheques" },
   ];
 }
-const clienteColumns: TableColumn<ClientesBD>[] = [
+const chequesColumns: TableColumn<ChequesWithTerceros>[] = [
   {
-    name: "Razón Social",
-    selector: (row) => row.razon_social,
+    name: "Fecha de pago",
+    selector: (row) => formatDateUStoES(row.fecha_cobro),
+    sortable: true,
+    width: "150px",
+  },
+   {
+    name: "Tipo de Cheque",
+    selector: (row) => capitalize(row.tipo),
+    width: "150px",
+  },
+  {
+    name: "Banco",
+    selector: (row) => row.nombre_banco,
+    sortable: true,
+    width: "150px",
+  },
+  {
+    name: "Número",
+    selector: (row) => row.numero,
     sortable: true,
   },
   {
-    name: "Nombre de Contacto",
-    selector: (row) => row.nombre_contacto,
+    name: "Importe",
+    selector: (row) =>
+      row.importe.toLocaleString("es-AR", {
+        style: "currency",
+        currency: "ARS",
+      }),
+    sortable: true,
+    width: "150px",
+  },
+  {
+    name: "Origen",
+    selector: (row) => row.cliente.razon_social,
     sortable: true,
   },
   {
-    name: "Teléfono",
-    selector: (row) => row.telefono,
-  },
-  {
-    name: "Provincia",
-    selector: (row) => row.provincia,
+    name: "Destino",
+    selector: (row) => row.proveedor?.razon_social || "-",
     sortable: true,
   },
   {
-    name: "Localidad",
-    selector: (row) => row.localidad,
-    sortable: true,
-  },
-  {
-    name: "CUIT/CUIL",
-    selector: (row) => formatCuit(row.cuit_cuil || ""),
+    name: "Estado",
+    cell: (row) => (
+      <BadgeStatusCheque status={row.status}>
+        {capitalize(row.status) || "-"}
+      </BadgeStatusCheque>
+    ),
+    width: "120px",
     sortable: true,
   },
 ];
 export default function Cheques() {
-  const { getClientes, clientes, setCliente } = useData();
   const navigate = useNavigate();
+  const { openModal } = useUIModals();
+  const { chequesWithClients, getChequesWithTerceros } = useData();
   useEffect(() => {
-    setCliente(null);
-    if (!clientes) getClientes();
+    if (!chequesWithClients) getChequesWithTerceros();
   }, []);
-  const handleRowClick = (row: ClientesBD) => {
-    setCliente(row);
-    navigate(`/clientes/${row.id}`);
+  const handleRowClick = (row: ChequesWithTerceros) => {
+    openModalActionCheque(row);
   };
-  if (!clientes) {
+  const openModalActionCheque = (row: ChequesWithTerceros) => {
+    navigate(`/administracion/${row.id}`, { state: { cheque: row } });
+  };
+  if (!chequesWithClients) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <LoadingComponent content="Cargando clientes..." />
+          <LoadingComponent content="Cargando cheques..." />
         </div>
       </div>
     );
   }
-  const uniqueProvincias = Array.from(
-    new Set(
-      clientes
-        .map((c) => c.provincia)
-        .filter((p) => p)
-        .sort((a, b) => a.localeCompare(b))
-    )
-  );
-  const uniqueLocalidades = Array.from(
-    new Set(
-      clientes
-        .map((c) => c.localidad)
-        .filter((l) => l)
-        .sort((a, b) => a.localeCompare(b))
-    )
-  );
+
   return (
     <>
-      {clientes.length === 0 ? (
+      {chequesWithClients.length === 0 ? (
         <div className="min-h-screen flex items-center justify-center">
           <div className="flex flex-col text-center space-y-3 text-text-secondary">
             <img
               src="/search.png"
-              alt="No hay Clientes"
+              alt="No hay cheques"
               className="w-48 h-48 mx-auto mb-4"
             />
-            <p className="text-xl font-semibold">No hay Clientes.</p>
+            <p className="text-xl font-semibold">No hay cheques.</p>
             <p className="text-sm">
-              Puede agregar Clientes haciendo clic en el botón de abajo
+              Puede agregar Clientes creando un nuevo movimiento desde Cuentas
+              Corrientes
             </p>
             <div className="w-fit mx-auto">
-              <ButtonLink variant="primary" to="/clientes/nuevo">
+              <ButtonLink
+                variant="primary"
+                to="/administracion/nuevo-movimiento"
+              >
                 <div className="flex items-center justify-center gap-2">
                   <PlusIcon className="w-4 h-4" />
-                  Agregar Cliente
+                  Ir a Cuentas Corrientes
                 </div>
               </ButtonLink>
             </div>
           </div>
         </div>
       ) : (
-        <div className="p-6">
+        <div className="px-6">
+          <Subheader
+            title="Cheques"
+            icon={{
+              component: Banknote,
+              color: "text-green-500 dark:text-green-400",
+            }}
+            back_path="/"
+          />
           <EntityTable
-            data={clientes}
-            columns={clienteColumns}
+            data={chequesWithClients}
+            columns={chequesColumns}
             onRowClick={(row) => handleRowClick(row)}
             inactiveField="activo" // Campo para identificar clientes inactivos
             filterFields={[
@@ -125,41 +152,8 @@ export default function Cheques() {
                 label: "CUIT/CUIL",
                 autoFilter: true,
               },
-              {
-                key: "provincia",
-                label: "Provincia",
-                autoFilter: true,
-                type: "select",
-                options: (
-                  <>
-                    <option value="">Todas</option>
-                    {uniqueProvincias.map((provincia) => (
-                      <option key={provincia} value={provincia}>
-                        {provincia}
-                      </option>
-                    ))}
-                  </>
-                ),
-              },
-              {
-                key: "localidad",
-                label: "Localidad",
-                autoFilter: true,
-                type: "select",
-                options: (
-                  <>
-                    <option value="">Todas</option>
-                    {uniqueLocalidades.map((localidad) => (
-                      <option key={localidad} value={localidad}>
-                        {localidad}
-                      </option>
-                    ))}
-                  </>
-                ),
-              },
             ]}
           />
-          <ButtonLinkAdd to="/clientes/nuevo">Nuevo Cliente</ButtonLinkAdd>
         </div>
       )}
     </>

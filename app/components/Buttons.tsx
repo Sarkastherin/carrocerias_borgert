@@ -22,30 +22,31 @@ export const variants = {
   yellow:
     "text-zinc-800 bg-yellow hover:bg-yellow-hover focus:ring-yellow-focus",
   purple: "text-white bg-purple hover:bg-purple-hover focus:ring-purple-focus",
+  orange: "text-white bg-orange-600 hover:bg-orange-700 focus:ring-orange-300 dark:bg-orange-500 dark:hover:bg-orange-600 dark:focus:ring-orange-800",
 
   // Variantes de superficie
   light: `text-[${COLOR_TOKENS.TEXT_PRIMARY}] bg-[${COLOR_TOKENS.SURFACE}] border border-[${COLOR_TOKENS.BORDER}] hover:bg-slate-100 focus:ring-slate-100 dark:bg-slate-800 dark:text-white dark:border-slate-600 dark:hover:bg-slate-700 dark:hover:border-slate-600 dark:focus:ring-slate-700`,
   dark: "text-white bg-stone-800 hover:bg-stone-800 focus:ring-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700 dark:focus:ring-stone-700 dark:border-stone-700",
 
   // Variantes outline usando tokens semánticos
-  outlinePrimary: `text-[${COLOR_TOKENS.PRIMARY}] hover:text-white border border-[${COLOR_TOKENS.PRIMARY}] hover:bg-[${COLOR_TOKENS.BUTTON_PRIMARY_HOVER}] focus:ring-[${COLOR_TOKENS.PRIMARY_FOCUS}]`,
-  outlineSuccess: `text-[${COLOR_TOKENS.SUCCESS}] hover:text-white border border-[${COLOR_TOKENS.SUCCESS}] hover:bg-green-hover focus:ring-green-focus`,
-  outlineWarning: `text-[${COLOR_TOKENS.WARNING}] hover:text-white border border-[${COLOR_TOKENS.WARNING}] hover:bg-yellow-hover focus:ring-yellow-focus`,
-  outlineError: `text-[${COLOR_TOKENS.ERROR}] hover:text-white border border-[${COLOR_TOKENS.ERROR}] hover:bg-red-hover focus:ring-red-focus`,
+  outlinePrimary: `text-[${COLOR_TOKENS.PRIMARY}] hover:text-white focus:text-white active:text-white border border-[${COLOR_TOKENS.PRIMARY}] hover:bg-[${COLOR_TOKENS.BUTTON_PRIMARY_HOVER}] focus:bg-[${COLOR_TOKENS.BUTTON_PRIMARY_HOVER}] active:bg-[${COLOR_TOKENS.BUTTON_PRIMARY_HOVER}] focus:ring-4 focus:ring-[${COLOR_TOKENS.PRIMARY_FOCUS}]`,
+  outlineSuccess: `text-[${COLOR_TOKENS.SUCCESS}] hover:text-white focus:text-white active:text-white border border-[${COLOR_TOKENS.SUCCESS}] hover:bg-green-hover focus:bg-green-hover active:bg-green-hover focus:ring-4 focus:ring-green-focus`,
+  outlineWarning: `text-[${COLOR_TOKENS.WARNING}] hover:text-white focus:text-white active:text-white border border-[${COLOR_TOKENS.WARNING}] hover:bg-yellow-hover focus:bg-yellow-hover active:bg-yellow-hover focus:ring-4 focus:ring-yellow-focus`,
+  outlineError: `text-[${COLOR_TOKENS.ERROR}] hover:text-white focus:text-white active:text-white border border-[${COLOR_TOKENS.ERROR}] hover:bg-red-hover focus:bg-red-hover active:bg-red-hover focus:ring-4 focus:ring-red-focus`,
 
   // Mantener variantes legacy para compatibilidad
   outlineBlue:
-    "text-blue hover:text-white border border-blue hover:bg-blue-hover focus:ring-blue-focus",
+    "text-blue hover:text-white focus:text-white active:text-white border border-blue hover:bg-blue-hover focus:bg-blue-hover active:bg-blue-hover focus:ring-4 focus:ring-blue-focus",
   outlineGreen:
-    "text-green hover:text-white border border-green hover:bg-green-hover focus:ring-green-focus",
+    "text-green hover:text-white focus:text-white active:text-white border border-green hover:bg-green-hover focus:bg-green-hover active:bg-green-hover focus:ring-4 focus:ring-green-focus",
   outlineRed:
-    "text-red hover:text-white border border-red hover:bg-red-hover focus:ring-red-focus",
+    "text-red hover:text-white focus:text-white active:text-white border border-red hover:bg-red-hover focus:bg-red-hover active:bg-red-hover focus:ring-4 focus:ring-red-focus",
   outlineYellow:
-    "text-zinc-800 hover:text-white border border-yellow hover:bg-yellow-hover focus:ring-yellow-focus",
+    "text-yellow hover:text-white focus:text-white active:text-white border border-yellow hover:bg-yellow-hover focus:bg-yellow-hover active:bg-yellow-hover focus:ring-4 focus:ring-yellow-focus",
   outlinePurple:
-    "text-purple hover:text-white border border-purple hover:bg-purple-hover focus:ring-purple-focus",
+    "text-purple hover:text-white focus:text-white active:text-white border border-purple hover:bg-purple-hover focus:bg-purple-hover active:bg-purple-hover focus:ring-4 focus:ring-purple-focus",
   outlineDark:
-    "text-stone-800 hover:text-white border border-stone-800 hover:bg-stone-800 focus:ring-stone-300 dark:border-stone-600 dark:text-stone-400 dark:hover:text-white dark:hover:bg-stone-600 dark:focus:ring-gray-800",
+    "text-stone-800 hover:text-white focus:text-white active:text-white border border-stone-800 hover:bg-stone-800 focus:bg-stone-800 active:bg-stone-800 focus:ring-4 focus:ring-stone-300 dark:border-stone-600 dark:text-stone-400 dark:hover:text-white dark:focus:text-white dark:active:text-white dark:hover:bg-stone-600 dark:focus:bg-stone-600 dark:active:bg-stone-600 dark:focus:ring-gray-800",
 };
 const basesClass =
   "w-full cursor-pointer font-medium focus:outline-none focus:ring-4 text-center rounded-lg disabled:cursor-not-allowed disabled:opacity-50 transition-all";

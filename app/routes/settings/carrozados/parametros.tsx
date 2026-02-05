@@ -262,7 +262,7 @@ export default function SettingsLayoutCarrozado() {
                           </h2>
                         </span>
                         <div className="w-fit">
-                          <Button variant="blue" onClick={handleOpenModalImage} disabled>
+                          <Button variant="blue" onClick={handleOpenModalImage} >
                             <ImageUp className="inline mr-2 h-5 w-5" />
                             Agregar imagen
                           </Button>

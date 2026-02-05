@@ -1,14 +1,12 @@
 import { useForm } from "react-hook-form";
-import type {
-  ClientesBD,
-} from "~/types/clientes";
 import { useUIModals } from "~/context/ModalsContext";
 import { useData } from "~/context/DataContext";
 import { useState } from "react";
-import { clientesAPI } from "~/backend/sheetServices";
+import {proveedoresAPI} from "~/backend/sheetServices";
 import { useNavigate } from "react-router";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
 import { useFormNavigationBlock } from "./useFormNavigationBlock";
+import type { ProveedoresBD } from "~/types/proveedores";
 // Función para validar CUIT/CUIL
 const validateCuit = (cuit: string): boolean => {
   if (!cuit) return false;
@@ -31,34 +29,33 @@ const validateCuit = (cuit: string): boolean => {
   return calculatedDigit === checkDigit;
 };
 
-export function useClienteForm({
+export function useProveedorForm({
   modal = false,
   onSuccess,
   onError,
   onLoadingStart,
   onLoadingEnd,
-  handleSelectedCliente,
+  handleSelectedProveedor,
 }: {
   modal?: boolean;
   onSuccess?: (message: string) => void;
   onError?: (message: string) => void;
   onLoadingStart?: () => void;
   onLoadingEnd?: () => void;
-  handleSelectedCliente?: (item: ClientesBD) => void;
+  handleSelectedProveedor?: (item: ProveedoresBD) => void;
 }) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const { showLoading, showSuccess, showError, showInfo, closeModal } = useUIModals();
-  const { cliente, getClientes, checkCuitExists } = useData();
-  const isEditMode = Boolean(cliente);
-  const existingCliente = cliente as ClientesBD | null;
-  const form = useForm<ClientesBD>({
-    defaultValues: existingCliente
-      ? existingCliente
+  const { proveedor, getProveedores, checkCuitExists } = useData();
+  const isEditMode = Boolean(proveedor);
+  const existingProveedor = proveedor as ProveedoresBD | null;
+  const form = useForm<ProveedoresBD>({
+    defaultValues: existingProveedor
+      ? existingProveedor
       : {
           razon_social: "",
-          nombre_contacto: "",
           telefono: "",
           email: "",
           cuit_cuil: "",
@@ -68,9 +65,6 @@ export function useClienteForm({
           localidad_id: "",
           localidad: "",
           pais: "Argentina",
-          condicion_iva: "",
-          medio_contacto: "",
-          vendedor_id: "",
           activo: true,
           observaciones: "",
         },
@@ -85,13 +79,13 @@ export function useClienteForm({
         : false,
     isSubmitSuccessful: form.formState.isSubmitSuccessful,
     message:
-      "Tienes cambios sin guardar en clientes. Si sales ahora, perderás todos los cambios realizados.",
+      "Tienes cambios sin guardar en proveedores. Si sales ahora, perderás todos los cambios realizados.",
     title: "¿Salir sin guardar?",
     confirmText: "Sí, salir",
     cancelText: "No, continuar editando",
   });
 
-  const handleSubmit = async (formData: ClientesBD) => {
+  const handleSubmit = async (formData: ProveedoresBD) => {
     try {
       showLoading("Validando datos...");
       // Validar CUIT antes de enviar
@@ -108,11 +102,11 @@ export function useClienteForm({
       if (formData.cuit_cuil) {
         const cuitExists = await checkCuitExists(
           formData.cuit_cuil,
-          isEditMode ? existingCliente?.id : undefined
+          isEditMode ? existingProveedor?.id : undefined
         );
 
         if (cuitExists) {
-          const errorMsg = "Ya existe un cliente registrado con este CUIT/CUIL";
+          const errorMsg = "Ya existe un proveedor registrado con este CUIT/CUIL";
           if (modal && onError) {
             onError(errorMsg);
           } else {
@@ -149,7 +143,7 @@ export function useClienteForm({
         onLoadingStart();
       } else {
         showLoading(
-          isEditMode ? "Actualizando cliente..." : "Creando nuevo cliente..."
+          isEditMode ? "Actualizando proveedor..." : "Creando nuevo proveedor..."
         );
       }
 
@@ -172,21 +166,21 @@ export function useClienteForm({
         }
         let effectiveDirtyFields = { ...form.formState.dirtyFields };
 
-        const updatePayload = prepareUpdatePayload<ClientesBD>({
+        const updatePayload = prepareUpdatePayload<ProveedoresBD>({
           dirtyFields: effectiveDirtyFields,
           formData: formData,
         });
-        const response = await clientesAPI.update(
-          existingCliente?.id || "",
+        const response = await proveedoresAPI.update(
+          existingProveedor?.id || "",
           updatePayload
         );
         if (!response.success) {
           console.log(response);
           throw new Error(
-            response.message || "Error desconocido al actualizar el cliente"
+            response.message || "Error desconocido al actualizar el proveedor"
           );
         }
-        await getClientes();
+        await getProveedores();
 
         // Resetear el formulario después de una actualización exitosa
         form.reset(formData);
@@ -199,22 +193,22 @@ export function useClienteForm({
 
         // Mostrar éxito
         if (modal && onSuccess) {
-          onSuccess("Cliente actualizado exitosamente");
+          onSuccess("Proveedor actualizado exitosamente");
         } else {
-          showSuccess("Cliente actualizado exitosamente");
+          showSuccess("Proveedor actualizado exitosamente");
           // Pequeño delay para asegurar que el estado se actualice antes de la navegación
           setTimeout(() => {
-            navigate("/clientes");
+            navigate("/proveedores");
           }, 100);
         }
       } else {
-        const response = await clientesAPI.create(formData);
+        const response = await proveedoresAPI.create(formData);
         if (!response.success) {
           throw new Error(
-            response.message || "Error desconocido al crear el cliente"
+            response.message || "Error desconocido al crear el proveedor"
           );
         }
-        await getClientes();
+        await getProveedores();
 
         // Resetear el formulario después de una creación exitosa
         form.reset();
@@ -225,19 +219,19 @@ export function useClienteForm({
           onLoadingEnd();
         }
 
-        // Ejecutar handleSelectedCliente si está disponible (desde modal de pedidos)
-        if (handleSelectedCliente && response.data) {
-          handleSelectedCliente(response.data as ClientesBD);
+        // Ejecutar handleSelectedProveedor si está disponible (desde modal de pedidos)
+        if (handleSelectedProveedor && response.data) {
+          handleSelectedProveedor(response.data as ProveedoresBD);
         }
 
         // Mostrar éxito
         if (modal && onSuccess) {
-          onSuccess("Cliente creado exitosamente");
+          onSuccess("Proveedor creado exitosamente");
         } else {
-          showSuccess("Cliente creado exitosamente");
+          showSuccess("Proveedor creado exitosamente");
           // Pequeño delay para asegurar que el estado se actualice antes de la navegación
           setTimeout(() => {
-            navigate("/clientes");
+            navigate("/proveedores");
           }, 100);
         }
       }
@@ -254,7 +248,7 @@ export function useClienteForm({
           ? error.message
           : typeof error === "string"
             ? error
-            : "Error al guardar el cliente";
+            : "Error al guardar el proveedor";
 
       if (modal && onError) {
         onError(errorMsg);
@@ -279,7 +273,7 @@ export function useClienteForm({
     isLoading,
 
     // Helper texts
-    submitButtonText: isEditMode ? "Actualizar Cliente" : "Crear Cliente",
-    formTitle: isEditMode ? "Editar Cliente" : "Nuevo Cliente",
+    submitButtonText: isEditMode ? "Actualizar Proveedor" : "Crear Proveedor",
+    formTitle: isEditMode ? "Editar Proveedor" : "Nuevo Proveedor",
   };
 }

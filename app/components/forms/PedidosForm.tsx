@@ -1,21 +1,17 @@
-import { Input, Select, CurrencyInput, SelectFieldCustom } from "../Inputs";
+import { Input, Select, CurrencyInput } from "../Inputs";
 import { Button } from "../Buttons";
 import { usePedidosForm } from "~/hooks/usePedidosForm";
 import { CardToggle } from "../CardToggle";
 import ClienteField from "../ClienteField";
 import { useData } from "~/context/DataContext";
-import { UserRoundPlus } from "lucide-react";
+
 import { useDataLoader } from "~/hooks/useDataLoader";
-import { useUIModals } from "~/context/ModalsContext";
-import ClienteNuevoModal from "../modals/customs/ClienteNuevoModal";
 import { FooterForm } from "./Footer";
 import LoadingComponent from "../LoadingComponent";
-import { formaPagoOptions, statusOptions } from "~/types/pedidos";
-import type { ClientesBD } from "~/types/clientes";
+import { statusOptions } from "~/types/pedidos";
 
 export default function PedidosForm() {
   const { personal, getPersonal } = useData();
-  const { openModal, closeModal } = useUIModals();
 
   const { isLoading: isLoadingData } = useDataLoader({
     loaders: getPersonal,
@@ -33,29 +29,6 @@ export default function PedidosForm() {
     setValue,
     isEditMode,
   } = usePedidosForm();
-  const handleOpenClienteModal = () => {
-    openModal("CUSTOM", {
-      component: ClienteNuevoModal,
-      props: {},
-    });
-  };
-  const handleSelectedCliente = (selectItem: ClientesBD) => {
-    const clienteId = selectItem.id;
-    if (clienteId) {
-      openModal("LOADING", {
-        title: "Cargando datos del cliente...",
-        message: "",
-      });
-      setValue("cliente_id", clienteId, { shouldDirty: true });
-      setValue("cliente_nombre", selectItem.razon_social, {
-        shouldDirty: true,
-      });
-      setValue("vendedor_id", selectItem.vendedor_id || "", {
-        shouldDirty: true,
-      });
-      closeModal();
-    }
-  };
   const handlePrecioChange = () => {
     const valorTasacion = watch("valor_tasacion") || 0;
     const precioTotal = watch("precio_total") || 0;
@@ -86,37 +59,13 @@ export default function PedidosForm() {
                     error={errors.fecha_pedido?.message}
                   />
                   <div className="flex-1">
-                    <div className="flex gap-1 items-end">
-                      <div className="w-full">
-                        <ClienteField
-                          value={watch("cliente_nombre")}
-                          onChange={(selectItem) =>
-                            handleSelectedCliente(selectItem)
-                          }
-                          required={true}
-                        />
-                        {errors.cliente_id && (
-                          <span className="block mt-0.5 text-red-500 text-xs">
-                            {errors.cliente_id.message}
-                          </span>
-                        )}
-                        <input
-                          type="hidden"
-                          {...register("cliente_id", {
-                            required: "Debe seleccionar un cliente",
-                          })}
-                        />
-                      </div>
-                      <div className="w-fit">
-                        <button
-                          type="button"
-                          className="w-full cursor-pointer text-center rounded-lg text-text-secondary bg-white border border-slate-300 hover:bg-slate-100 dark:bg-slate-800 dark:text-white dark:border-slate-600 dark:hover:bg-slate-700 dark:hover:border-slate-600 p-3"
-                          onClick={handleOpenClienteModal}
-                        >
-                          <UserRoundPlus className="size-4" />
-                        </button>
-                      </div>
-                    </div>
+                    <ClienteField
+                      value={watch("razon_social")}
+                      required={true}
+                      setValue={setValue}
+                      errors={errors}
+                      register={register}
+                    />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -131,7 +80,7 @@ export default function PedidosForm() {
                     <option value="">Seleccione un vendedor</option>
                     {personal
                       ?.filter(
-                        (item) => item.activo && item.sector === "ventas"
+                        (item) => item.activo && item.sector === "ventas",
                       )
                       .map((empleado) => (
                         <option key={empleado.id} value={empleado.id}>
@@ -184,7 +133,7 @@ export default function PedidosForm() {
                     valueAsNumber: true,
                   })}
                 />
-                
+
                 <CurrencyInput
                   label="Valor de tasación (aplica a carrocería usada)"
                   value={watch("valor_tasacion")}

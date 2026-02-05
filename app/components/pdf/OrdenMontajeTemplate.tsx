@@ -11,24 +11,27 @@ import {
   HeaderTemplate,
   FooterTemplate,
 } from "./pdfComponents";
-import { DatosPedido, DatosCamion } from "./DatosComunesTemplate";
+import { DatosPedido, DatosCamion, DatosCarroceria } from "./DatosComunesTemplate";
 
 interface OrdenMontajeProps {
   pedidoData?: PedidosUI;
-  formData: Partial<OrdenesBD>;
   responsable: string;
 }
 export const OrdenMontajeTemplate: React.FC<OrdenMontajeProps> = ({
   pedidoData,
-  formData,
   responsable,
 }) => (
   <Document>
     <PageTemplate>
       <HeaderTemplate title="Datos de Colocación" />
-      <View>
-        <DatosPedido pedidoData={pedidoData} formData={formData} title_responsable="Montajista" responsable={responsable} />
-        <DatosCamion pedidoData={pedidoData}  convertToCM />
+      <View style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <DatosPedido
+          pedidoData={pedidoData}
+          title_responsable="Montajista"
+          responsable={responsable}
+        />
+        <DatosCamion pedidoData={pedidoData} convertToCM />
+        <DatosCarroceria pedidoData={pedidoData} convertToCM />
         <View>
           <Subtitle>Accesorios</Subtitle>
           <View style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -37,12 +40,11 @@ export const OrdenMontajeTemplate: React.FC<OrdenMontajeProps> = ({
                 <Cell
                   title="Cajón de herramientas"
                   value={
-                    (pedidoData?.carroceria?.med_cajon_herramientas?? 0) > 0
+                    (pedidoData?.carroceria?.med_cajon_herramientas ?? 0) > 0
                       ? "Sí"
                       : "No"
                   }
                   isFirst
-                  
                 />
                 <Cell
                   title="Medida"
@@ -134,8 +136,7 @@ export const OrdenMontajeTemplate: React.FC<OrdenMontajeProps> = ({
                 <Cell
                   title="Alargues sobre cumbrera"
                   value={
-                    pedidoData?.carroceria?.alargue_tipo_2 ===
-                    "sobre cumbrera"
+                    pedidoData?.carroceria?.alargue_tipo_2 === "sobre cumbrera"
                       ? "Sí"
                       : "No"
                   }
@@ -155,8 +156,7 @@ export const OrdenMontajeTemplate: React.FC<OrdenMontajeProps> = ({
                 <Cell
                   title="Tipo"
                   value={
-                    pedidoData?.carroceria?.alargue_tipo_2 ===
-                    "sobre cumbrera"
+                    pedidoData?.carroceria?.alargue_tipo_2 === "sobre cumbrera"
                       ? pedidoData?.carroceria?.quiebre_alargue_2
                         ? "Con quiebre"
                         : "Común"
@@ -208,16 +208,18 @@ export const OrdenMontajeTemplate: React.FC<OrdenMontajeProps> = ({
               )}
           </View>
         </View>
-        <Subtitle>Observaciones</Subtitle>
-        <View
-          style={{
-            fontSize: 10,
-            fontFamily: "Helvetica",
-            border: "1px solid #ccc",
-            borderRadius: 4,
-            height: 90,
-          }}
-        ></View>
+        <View>
+          <Subtitle>Observaciones</Subtitle>
+          <View
+            style={{
+              fontSize: 10,
+              fontFamily: "Helvetica",
+              border: "1px solid #ccc",
+              borderRadius: 4,
+              height: 60,
+            }}
+          ></View>
+        </View>
       </View>
       {/* Footer */}
       <FooterTemplate />

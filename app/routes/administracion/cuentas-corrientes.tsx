@@ -7,9 +7,10 @@ import { EntityTable } from "~/components/EntityTable";
 import type { TableColumn } from "react-data-table-component";
 import { useNavigate } from "react-router";
 import LoadingComponent from "~/components/LoadingComponent";
-import type { CtaCorrienteConCliente } from "~/types/ctas_corrientes";
+import type { CtaCteConCliente } from "~/types/ctas_corrientes";
 import { formatCuit } from "~/components/Inputs";
-
+import { Subheader } from "~/components/Headers";
+import { Wallet } from "lucide-react";
 // Función para formatear CUIT: "12345678901" -> "12-34567890-1"
 
 export function meta({}: Route.MetaArgs) {
@@ -22,7 +23,7 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-const ctasCorrientes: TableColumn<CtaCorrienteConCliente>[] = [
+const ctasCorrientes: TableColumn<CtaCteConCliente>[] = [
   {
     name: "Razón Social",
     selector: (row) => row.razon_social,
@@ -55,16 +56,16 @@ const ctasCorrientes: TableColumn<CtaCorrienteConCliente>[] = [
   },
 ];
 export default function CuentasCorrientes() {
-  const { getCuentasCorrientesByClientes, ctasCorrientesByClientes} =
+  const { getCtasCtesByClientes, ctasCtesByClientes} =
     useData();
   const navigate = useNavigate();
   useEffect(() => {
-    if (!ctasCorrientesByClientes) getCuentasCorrientesByClientes();
+    if (!ctasCtesByClientes) getCtasCtesByClientes();
   }, []);
-  const handleRowClick = (row: CtaCorrienteConCliente) => {
+  const handleRowClick = (row: CtaCteConCliente) => {
     navigate(`${row.id}`, { state: { cliente: row } });
   };
-  if (!ctasCorrientesByClientes) {
+  if (!ctasCtesByClientes) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -76,7 +77,7 @@ export default function CuentasCorrientes() {
 
   return (
     <>
-      {ctasCorrientesByClientes.length === 0 ? (
+      {ctasCtesByClientes.length === 0 ? (
         <div className="min-h-screen flex items-center justify-center">
           <div className="flex flex-col text-center space-y-3 text-text-secondary">
             <img
@@ -90,7 +91,7 @@ export default function CuentasCorrientes() {
               el botón de abajo
             </p>
             <div className="w-fit mx-auto">
-              <ButtonLink variant="primary" to="/clientes/nuevo">
+              <ButtonLink variant="primary" to="/administracion/nuevo-movimiento">
                 <div className="flex items-center justify-center gap-2">
                   <PlusIcon className="w-4 h-4" />
                   Agregar Movimiento
@@ -100,9 +101,17 @@ export default function CuentasCorrientes() {
           </div>
         </div>
       ) : (
-        <div className="p-6">
+        <div className="px-6">
+          <Subheader
+            title="Cuentas Corrientes"
+            icon={{
+              component: Wallet,
+              color: "text-yellow-500 dark:text-yellow-400",
+            }}
+            back_path="/"
+          />
           <EntityTable
-            data={ctasCorrientesByClientes}
+            data={ctasCtesByClientes}
             columns={ctasCorrientes}
             onRowClick={(row) => handleRowClick(row)}
             inactiveField="activo" // Campo para identificar clientes inactivos
@@ -119,7 +128,7 @@ export default function CuentasCorrientes() {
               },
             ]}
           />
-          <ButtonLinkAdd to="/clientes/nuevo">Nuevo Movimiento</ButtonLinkAdd>
+          <ButtonLinkAdd variant="yellow" to="/administracion/nuevo-movimiento">Nuevo Movimiento</ButtonLinkAdd>
         </div>
       )}
     </>

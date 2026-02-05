@@ -17,6 +17,7 @@ import {
   controlesAPI,
   ctaCorrienteAPI,
   chequesAPI,
+  proveedoresAPI,
 } from "~/backend/sheetServices";
 import type { ClientesBD } from "~/types/clientes";
 import { useUIModals } from "./ModalsContext";
@@ -45,18 +46,25 @@ import type {
 } from "~/types/settings";
 import type { CRUDMethods } from "~/backend/crudFactory";
 import type {
-  CtasCorrientesDB,
+  CtasCtesDB,
   ChequesDB,
-  CtaCorrienteConCliente,
+  CtaCteConCliente,
+  ChequesWithTerceros,
+  BancosProps,
+  CtasCtesWithCheque,
 } from "~/types/ctas_corrientes";
+import type { ProveedoresBD } from "~/types/proveedores";
+
 type DataContextType = {
   clientes: ClientesBD[] | null;
-  setClientes: React.Dispatch<React.SetStateAction<ClientesBD[] | null>>;
+  proveedores: ProveedoresBD[] | null;
   getClientes: () => Promise<ClientesBD[]>;
+  getProveedores: () => Promise<ProveedoresBD[]>;
   cliente: ClientesBD | null;
+  proveedor: ProveedoresBD | null;
   setCliente: React.Dispatch<React.SetStateAction<ClientesBD | null>>;
+  setProveedor: React.Dispatch<React.SetStateAction<ProveedoresBD | null>>;
   pedidos: PedidosTable[] | null;
-  setPedidos: React.Dispatch<React.SetStateAction<PedidosTable[] | null>>;
   getPedidos: () => Promise<PedidosTable[]>;
   pedido: PedidosUI | null;
   setPedido: React.Dispatch<React.SetStateAction<PedidosUI | null>>;
@@ -74,6 +82,7 @@ type DataContextType = {
   getConfigTrabajosChasis: () => Promise<ConfigTrabajosChasisBD[]>;
   deletePedidoById: (id: string) => Promise<void>;
   deleteClienteById: (id: string) => Promise<void>;
+  deleteProveedorById: (id: string) => Promise<void>;
   checkCuitExists: (cuit: string, excludeId?: string) => Promise<boolean>;
   configItemsControl: ConfigItemsControlBD[] | null;
   getConfigItemsControl: () => Promise<ConfigItemsControlBD[]>;
@@ -90,29 +99,34 @@ type DataContextType = {
   getOrdenes: () => Promise<OrdenesBD[]>;
   getOrdenesByPedidoId: (
     pedidoId: string,
-    refresh?: boolean
+    refresh?: boolean,
   ) => Promise<OrdenesBD[]>;
   ordenesByPedido: OrdenesBD[] | null;
-  setOrdenesByPedido: React.Dispatch<React.SetStateAction<OrdenesBD[] | null>>;
   getControlesByPedidoId: (
     pedidoId: string,
-    refresh?: boolean
+    refresh?: boolean,
   ) => Promise<ControlesBD[]>;
   controlesByPedido: ControlesBD[] | null;
-  setControlesByPedido: React.Dispatch<
-    React.SetStateAction<ControlesBD[] | null>
-  >;
   refreshPedidoByIdAndTable: (table: Tables) => Promise<void>;
   getCtrlCarrozadoByCarrozadoId: (
-    carrozadoId: string
+    carrozadoId: string,
   ) => Promise<ControlCarrozadoDB[] | null>;
   ctrlCarrozadoByCarrozadoId: ControlCarrozadoDB[] | null;
-  getCuentasCorrientesByClientes: () => Promise<CtaCorrienteConCliente[]>;
-  ctasCorrientesByClientes: CtaCorrienteConCliente[] | null;
-  cuentasCorrientes: CtasCorrientesDB[] | null;
-  setCuentasCorrientes: React.Dispatch<React.SetStateAction<CtasCorrientesDB[] | null>>;
-  getCuentasCorrientes: () => Promise<CtasCorrientesDB[]>;
-  
+  getCtasCtesByClientes: () => Promise<CtaCteConCliente[]>;
+  ctasCtesByClientes: CtaCteConCliente[] | null;
+  ctasCtes: CtasCtesDB[] | null;
+  getCtasCtes: () => Promise<CtasCtesDB[]>;
+  cheques: ChequesDB[] | null;
+  getCheques: () => Promise<ChequesDB[]>;
+  getChequesWithTerceros: (forceRefresh?: boolean) => Promise<void>;
+  chequesWithClients: ChequesWithTerceros[] | null;
+  getBancos: () => Promise<BancosProps[]>;
+  bancos: BancosProps[] | null;
+  refreshChequesWithTerceros: () => Promise<boolean>;
+  ctaCteWithCheques: CtasCtesWithCheque[] | null;
+  getCtaCteWithCheques: (
+    forceRefresh?: boolean,
+  ) => Promise<CtasCtesWithCheque[]>;
 };
 type Tables = "carroceria" | "trabajo_chasis" | "camion";
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -120,7 +134,9 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const { showError } = useUIModals();
   const [clientes, setClientes] = useState<ClientesBD[] | null>(null);
+  const [proveedores, setProveedores] = useState<ProveedoresBD[] | null>(null);
   const [cliente, setCliente] = useState<ClientesBD | null>(null);
+  const [proveedor, setProveedor] = useState<ProveedoresBD | null>(null);
   const [pedidos, setPedidos] = useState<PedidosTable[] | null>(null);
   const [pedido, setPedido] = useState<PedidosUI | null>(null);
   const [colores, setColores] = useState<ColoresBD[] | null>(null);
@@ -144,7 +160,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   >(null);
   const [ordenes, setOrdenes] = useState<OrdenesBD[] | null>(null);
   const [ordenesByPedido, setOrdenesByPedido] = useState<OrdenesBD[] | null>(
-    null
+    null,
   );
   const [controles, setControles] = useState<ControlesBD[] | null>(null);
   const [controlesByPedido, setControlesByPedido] = useState<
@@ -158,16 +174,28 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const [ctrlCarrozadoByCarrozadoId, setctrlCarrozadoByCarrozadoId] = useState<
     ControlCarrozadoDB[] | null
   >(null);
-  const [cuentasCorrientes, setCuentasCorrientes] = useState<
-    CtasCorrientesDB[] | null
+  const [ctasCtes, setCtasCtes] = useState<CtasCtesDB[] | null>(null);
+  const [ctasCtesByClientes, setCtasCtesByClientes] = useState<
+    CtaCteConCliente[] | null
   >(null);
-  const [ctasCorrientesByClientes, setCtasCorrientesByClientes] = useState<
-    CtaCorrienteConCliente[] | null
+  const [cheques, setCheques] = useState<ChequesDB[] | null>(null);
+  const [chequesWithClients, setChequesWithClients] = useState<
+    ChequesWithTerceros[] | null
+  >(null);
+  const [bancos, setBancos] = useState<BancosProps[] | null>(null);
+  const [ctaCteWithCheques, setCtaCteWithCheques] = useState<
+    CtasCtesWithCheque[] | null
   >(null);
   const getClientes = async () => {
     return await getCompleteData({
       api: clientesAPI,
       setData: setClientes,
+    });
+  };
+  const getProveedores = async () => {
+    return await getCompleteData({
+      api: proveedoresAPI,
+      setData: setProveedores,
     });
   };
   const getPedidos = async () => {
@@ -185,12 +213,8 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       const armador = resPersonal.find((a) => a.id === pedido.armador_id);
       return {
         ...pedido,
-        cliente_nombre: cliente
-          ? cliente.razon_social
-          : "Cliente no encontrado",
-        armador_nombre: armador
-          ? `${armador.nombre} ${armador.apellido}`
-          : "-",
+        razon_social: cliente ? cliente.razon_social : "Cliente no encontrado",
+        armador_nombre: armador ? `${armador.nombre} ${armador.apellido}` : "-",
       };
     });
     setPedidos(pedidosConCliente);
@@ -225,7 +249,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   };
   const getCarroceriaPedido = async (
     dataCarrocerias: CarroceriaUI[] | null,
-    idPedido: string
+    idPedido: string,
   ) => {
     if (!dataCarrocerias) {
       throw new Error("No se pudieron cargar las carrocerías.");
@@ -251,7 +275,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     }
     const carroceriaPedido = await getCarroceriaPedido(
       dataCarrocerias,
-      idPedido
+      idPedido,
     );
     /* Obtener Carrozado */
     await getNombreCarrozado(carroceriaPedido);
@@ -267,7 +291,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     // Trabajos en chasis del pedido
     const trabajosChasisPedido = await getTabajosChasisByPedidoId(
       dataTrabajosChasis,
-      idPedido
+      idPedido,
     );
     // Camion
     let dataCamiones: CamionBD[] | null = camiones;
@@ -294,7 +318,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
   const getNombrePuertaTrasera = async (
-    carroceriaPedido: CarroceriaUI | null
+    carroceriaPedido: CarroceriaUI | null,
   ) => {
     if (!carroceriaPedido) return;
     const puertaTraseraId = carroceriaPedido?.puerta_trasera_id;
@@ -330,14 +354,14 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   /* Fin Valores Carrocerías  */
   const getCamionByPedidoId = async (
     dataCamiones: CamionBD[] | null,
-    idPedido: string
+    idPedido: string,
   ) => {
     if (!dataCamiones) throw new Error("No se pudieron cargar los camiones.");
     return dataCamiones.find((c) => c.pedido_id === idPedido) || null;
   };
   const getTabajosChasisByPedidoId = async (
     dataTrabajosChasis: TrabajoChasisUI[] | null,
-    idPedido: string
+    idPedido: string,
   ) => {
     if (!dataTrabajosChasis)
       throw new Error("No se pudieron cargar los trabajos en chasis.");
@@ -376,7 +400,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         const dataCarrocerias = await getCarrocerias();
         const carroceriaPedido = await getCarroceriaPedido(
           dataCarrocerias,
-          idPedido
+          idPedido,
         );
         /* Obtener Carrozado */
         await getNombreCarrozado(carroceriaPedido);
@@ -401,7 +425,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         const dataTrabajosChasis = await getTrabajosChasis();
         const trabajosChasisPedido = await getTabajosChasisByPedidoId(
           dataTrabajosChasis,
-          idPedido
+          idPedido,
         );
         setPedido({
           ...pedido,
@@ -548,6 +572,60 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       throw error;
     }
   };
+  const deleteProveedorById = async (id: string) => {
+    try {
+      // 1. Verificar si el cliente tiene pedidos asociados
+      const responseCheques = await chequesAPI.read({
+        columnName: "proveedor_id",
+        value: id,
+        multiple: true,
+      });
+
+      // Si la consulta fue exitosa y hay datos, significa que tiene pedidos asociados
+      if (responseCheques.success && responseCheques.data) {
+        const chequesAsociados = Array.isArray(responseCheques.data)
+          ? responseCheques.data
+          : [responseCheques.data];
+
+        if (chequesAsociados.length > 0) {
+          // Cliente tiene pedidos asociados, mostrar error
+          const errorMessage = `No se puede eliminar el cliente porque tiene ${chequesAsociados.length} cheque(s) asociado(s). Elimine primero los cheques relacionados.`;
+          showError(errorMessage);
+          throw new Error(errorMessage);
+        }
+      }
+
+      // 2. Si no tiene pedidos asociados, proceder a eliminar el cliente
+      const deleteProveedorResponse = await proveedoresAPI.delete(id);
+
+      if (!deleteProveedorResponse.success) {
+        logDetailedError(deleteProveedorResponse.error);
+        const formattedError = getFormattedError(deleteProveedorResponse.error);
+        showError(formattedError);
+        throw new Error(formattedError);
+      }
+
+      // 3. Actualizar el estado local
+      setProveedor(null);
+
+      // Actualizar la lista de proveedores
+      if (proveedores) {
+        setProveedores(proveedores.filter((c) => c.id !== id));
+      }
+    } catch (error) {
+      logDetailedError(error);
+      // Si el error ya fue formateado arriba, no lo formatees de nuevo
+      if (
+        error instanceof Error &&
+        error.message.includes("cheque(s) asociado(s)")
+      ) {
+        throw error;
+      }
+      const formattedError = getFormattedError(error);
+      showError(formattedError);
+      throw error;
+    }
+  };
   const getCarrocerias = async () => {
     return await getCompleteData({
       api: carroceriaAPI,
@@ -590,7 +668,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     setCarrozados((prev) => {
       if (!prev) return prev;
       return prev.map((carrozado) =>
-        carrozado.id === id ? { ...carrozado, ...data } : carrozado
+        carrozado.id === id ? { ...carrozado, ...data } : carrozado,
       );
     });
   };
@@ -643,7 +721,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       ?.filter((control) => control.carrozado_id === id)
       .map((control) => {
         const configItem = datConfigItems?.find(
-          (item) => item.id === control.item_control_id
+          (item) => item.id === control.item_control_id,
         );
         if (configItem) {
           control.item_control_nombre = configItem.nombre;
@@ -656,7 +734,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   };
   const checkCuitExists = async (
     cuit: string,
-    excludeId?: string
+    excludeId?: string,
   ): Promise<boolean> => {
     try {
       // Buscar clientes con el CUIT especificado
@@ -682,7 +760,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       // Si se proporciona excludeId (caso de edición), filtrar ese cliente
       if (excludeId) {
         const otrosClientes = clientesConCuit.filter(
-          (cliente) => cliente.id !== excludeId
+          (cliente) => cliente.id !== excludeId,
         );
         return otrosClientes.length > 0;
       }
@@ -722,7 +800,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       const ordensData = await getOrdenes();
       // Buscar las ordenes del pedido especifico
       const existeingOrdenes = ordensData.filter(
-        (orden) => orden.pedido_id === pedidoId
+        (orden) => orden.pedido_id === pedidoId,
       );
       if (!existeingOrdenes || existeingOrdenes.length === 0) {
         setOrdenesByPedido(null);
@@ -733,7 +811,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       //Si ya hay ordenes cargadas, buscar en el cache
       const existeingOrdenes = ordenes.filter(
-        (orden) => orden.pedido_id === pedidoId
+        (orden) => orden.pedido_id === pedidoId,
       );
       if (!existeingOrdenes || existeingOrdenes.length === 0) {
         setOrdenesByPedido(null);
@@ -745,7 +823,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   };
   const getControlesByPedidoId = async (
     pedidoId: string,
-    refresh?: boolean
+    refresh?: boolean,
   ) => {
     if (
       controlesByPedido &&
@@ -761,7 +839,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       const controlesData = await getControles();
       // Buscar los controles del pedido especifico
       const existeingControles = controlesData.filter(
-        (control) => control.pedido_id === pedidoId
+        (control) => control.pedido_id === pedidoId,
       );
       if (!existeingControles || existeingControles.length === 0) {
         setControlesByPedido(null);
@@ -772,7 +850,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       //Si ya hay controles cargados, buscar en el cache
       const existeingControles = controles.filter(
-        (control) => control.pedido_id === pedidoId
+        (control) => control.pedido_id === pedidoId,
       );
       if (!existeingControles || existeingControles.length === 0) {
         setControlesByPedido(null);
@@ -782,33 +860,62 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       return existeingControles;
     }
   };
-  const getCuentasCorrientes = async () => {
+  const getCtasCtes = async () => {
     return await getCompleteData({
       api: ctaCorrienteAPI,
-      setData: setCuentasCorrientes,
+      setData: setCtasCtes,
     });
   };
-  const getCuentasCorrientesByClientes = async () => {
-    let dataCtasCorrientes: CtasCorrientesDB[] | null = cuentasCorrientes;
+  const getCtaCteWithCheques = async (forceRefresh?: boolean) => {
+    let dataCtasCorrientes: CtasCtesDB[] | null = ctasCtes;
+    let dataCheques: ChequesDB[] | null = cheques;
+    if (!dataCtasCorrientes || forceRefresh) {
+      dataCtasCorrientes = await getCtasCtes();
+    }
+    if (!dataCheques || forceRefresh) {
+      dataCheques = await getCheques();
+    }
+    // Mapear cuentas corrientes con datos de cheques
+    const ctasCorrientesWithCheques: CtasCtesWithCheque[] = (
+      dataCtasCorrientes || []
+    ).map((cta) => {
+      const cheque = (dataCheques || []).filter(
+        (ch) => ch.cta_cte_id === cta.id,
+      );
+      return {
+        ...cta,
+        cheques: cheque || undefined,
+      };
+    });
+    setCtaCteWithCheques(ctasCorrientesWithCheques);
+    return ctasCorrientesWithCheques;
+  };
+  const getCtasCtesByClientes = async () => {
+    let dataCtasCorrientes: CtasCtesDB[] | null = ctasCtes;
     let datClientes: ClientesBD[] | null = clientes;
     if (!dataCtasCorrientes) {
-      dataCtasCorrientes = await getCuentasCorrientes();
+      dataCtasCorrientes = await getCtasCtes();
     }
     if (!datClientes) {
       datClientes = await getClientes();
     }
     // Agrupar por cliente_id sumando debe y haber, y calculando saldo = debe - haber
-    const grouped = (dataCtasCorrientes || []).reduce((acc, cta) => {
-      const key = cta.cliente_id;
-      if (!acc[key]) {
-        acc[key] = { debe: 0, haber: 0 };
-      }
-      acc[key].debe += Number(cta.debe) || 0;
-      acc[key].haber += Number(cta.haber) || 0;
-      return acc;
-    }, {} as Record<string, { debe: number; haber: number }>);
+    const grouped = (dataCtasCorrientes || []).reduce(
+      (acc, cta) => {
+        const key = cta.cliente_id;
+        if (!acc[key]) {
+          acc[key] = { debe: 0, haber: 0 };
+        }
+        acc[key].debe += Number(cta.debe) || 0;
+        acc[key].haber += Number(cta.haber) || 0;
+        return acc;
+      },
+      {} as Record<string, { debe: number; haber: number }>,
+    );
 
-    const ctsCorrientesGroupedByClientes: CtaCorrienteConCliente[] = Object.entries(grouped).map(([clienteId, sums]) => {
+    const ctaCtesGroupedByClientes: CtaCteConCliente[] = Object.entries(
+      grouped,
+    ).map(([clienteId, sums]) => {
       const cliente = (datClientes || []).find((c) => c.id === clienteId);
       const debe = sums.debe;
       const haber = sums.haber;
@@ -834,12 +941,102 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         condicion_iva: cliente ? cliente.condicion_iva : "",
       };
 
-      return resumen as CtaCorrienteConCliente;
+      return resumen as CtaCteConCliente;
     });
 
     // Guardar en el estado correspondiente
-    setCtasCorrientesByClientes(ctsCorrientesGroupedByClientes);
-    return ctsCorrientesGroupedByClientes;
+    setCtasCtesByClientes(ctaCtesGroupedByClientes);
+    return ctaCtesGroupedByClientes;
+  };
+  const getCheques = async () => {
+    return await getCompleteData({
+      api: chequesAPI,
+      setData: setCheques,
+    });
+  };
+  const getChequesWithTerceros = async (forceRefresh?: boolean) => {
+    let dataCheques: ChequesDB[] | null = cheques;
+    let datClientes: ClientesBD[] | null = clientes;
+    let dataCtasCtes: CtasCtesDB[] | null = ctasCtes;
+    let bancosData: BancosProps[] | null = bancos;
+    let proveedoresData: ProveedoresBD[] | null = proveedores;
+    if (!bancosData) {
+      bancosData = await getBancos();
+    }
+    if (!dataCheques || forceRefresh) {
+      dataCheques = await getCheques();
+    }
+    if (!datClientes) {
+      datClientes = await getClientes();
+    }
+    if (!dataCtasCtes) {
+      dataCtasCtes = await getCtasCtes();
+    }
+    if (!proveedoresData) {
+      proveedoresData = await getProveedores();
+    }
+    // Mapear cheques con datos de clientes
+    const chequesConClientes: ChequesWithTerceros[] = (dataCheques || []).map(
+      (cheque) => {
+        const ctaCte = (ctasCtes || []).find(
+          (cc) => cc.id === cheque.cta_cte_id,
+        );
+        if (!ctaCte)
+          throw new Error("Cuenta corriente no encontrada para el cheque.");
+        if (!ctaCte.cliente_id)
+          throw new Error("Cuenta corriente sin cliente asociado.");
+        const cliente = (datClientes || []).find(
+          (c) => c.id === ctaCte.cliente_id,
+        );
+        if (!cliente)
+          throw new Error("Cliente no encontrado para la cuenta corriente.");
+        let dataEndosante: ProveedoresBD | null = null;
+
+        if (cheque.proveedor_id) {
+          dataEndosante =
+            (proveedoresData || []).find((p) => p.id === cheque.proveedor_id) ||
+            null;
+          if (!dataEndosante)
+            throw new Error("Proveedor no encontrado para el cheque.");
+        }
+        return {
+          ...cheque,
+          ctaCte: ctaCte,
+          cliente: cliente,
+          nombre_banco:
+            bancosData?.find((banco) => banco.value === cheque.banco)?.label ||
+            "",
+          proveedor: dataEndosante || undefined,
+        };
+      },
+    );
+    setChequesWithClients(chequesConClientes);
+  };
+  const refreshChequesWithTerceros = async () => {
+    try {
+      // Forzar recarga completa de cheques desde la base de datos
+      await getChequesWithTerceros(true);
+      return true;
+    } catch (error) {
+      throw new Error("Error refreshing cheques with terceros:" + error);
+    }
+  };
+  const fetchBancos = async () => {
+    try {
+      const data = await fetch("/bancos.json").then((res) => res.json());
+      return data;
+    } catch (error) {
+      console.error("Error fetching bancos:", error);
+      return [];
+    }
+  };
+  const getBancos = async () => {
+    if (!bancos) {
+      const data = await fetchBancos();
+      setBancos(data);
+      return data;
+    }
+    return bancos;
   };
   const getCompleteData = async <T extends Record<string, any>>({
     api,
@@ -878,12 +1075,10 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     <DataContext.Provider
       value={{
         clientes,
-        setClientes,
         getClientes,
         cliente,
         setCliente,
         pedidos,
-        setPedidos,
         getPedidos,
         pedido,
         setPedido,
@@ -915,18 +1110,29 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         getOrdenes,
         getOrdenesByPedidoId,
         ordenesByPedido,
-        setOrdenesByPedido,
         getControlesByPedidoId,
         controlesByPedido,
-        setControlesByPedido,
         refreshPedidoByIdAndTable,
         getCtrlCarrozadoByCarrozadoId,
         ctrlCarrozadoByCarrozadoId,
-        getCuentasCorrientesByClientes,
-        ctasCorrientesByClientes,
-        cuentasCorrientes,
-        setCuentasCorrientes,
-        getCuentasCorrientes,
+        getCtasCtesByClientes,
+        ctasCtesByClientes,
+        ctasCtes,
+        cheques,
+        getCheques,
+        getChequesWithTerceros,
+        chequesWithClients,
+        getBancos,
+        bancos,
+        getProveedores,
+        proveedores,
+        setProveedor,
+        deleteProveedorById,
+        proveedor,
+        refreshChequesWithTerceros,
+        ctaCteWithCheques,
+        getCtaCteWithCheques,
+        getCtasCtes,
       }}
     >
       {children}

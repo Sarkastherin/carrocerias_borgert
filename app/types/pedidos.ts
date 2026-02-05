@@ -16,6 +16,7 @@ export const statusOptions = [
   { value: "nuevo", label: "🆕 Nuevo" },
   { value: "en_produccion", label: "🏭 En Producción" },
   { value: "en_pintura", label: "🎨 En Pintura" },
+  { value: "pintada", label: "🖌️ Pintada" },
   { value: "finalizado", label: "✅ Finalizado" },
   { value: "entregado", label: "📦 Entregado" },
   { value: "cancelado", label: "❌ Cancelado" },
@@ -74,7 +75,7 @@ export type PedidosBD = {
   armador_id?: string;
 };
 export type PedidosTable = PedidosBD & {
-  cliente_nombre: string;
+  razon_social: string;
   vendedor_nombre?: string;
   armador_nombre?: string;
 };
@@ -134,6 +135,7 @@ export type CarroceriaBD = {
   med_alargue_2: number | null;
   quiebre_alargue_2: boolean;
   observaciones: string;
+  documento_carroceria?: string;
 };
 export type CamionBD = {
   id: string;
@@ -147,6 +149,9 @@ export type CamionBD = {
   centro_eje: number;
   voladizo_trasero: number;
   observaciones?: string;
+  documento_camion?: string;
+  contacto_telefono?: string;
+  contacto_nombre?: string;
 };
 export type TrabajoChasisBD = {
   id: string;

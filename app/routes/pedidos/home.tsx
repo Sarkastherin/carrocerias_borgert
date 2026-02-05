@@ -8,9 +8,11 @@ import type { PedidosBD, PedidosTable } from "~/types/pedidos";
 import type { TableColumn } from "react-data-table-component";
 import { useNavigate } from "react-router";
 import { formatDateUStoES } from "~/utils/formatDate";
-import { BadgeStatus } from "~/components/Badge";
+import { BadgeStatusPedido } from "~/components/Badge";
 import LoadingComponent from "~/components/LoadingComponent";
 import { statusOptions } from "~/types/pedidos";
+import { Subheader } from "~/components/Headers";
+import { ReceiptText } from "lucide-react";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Pedidos" },
@@ -26,7 +28,7 @@ const pedidoColumns: TableColumn<PedidosTable>[] = [
   },
   {
     name: "Cliente",
-    selector: (row) => row.cliente_nombre|| "",
+    selector: (row) => row.razon_social|| "",
     sortable: true,
   },
   {
@@ -56,7 +58,7 @@ const pedidoColumns: TableColumn<PedidosTable>[] = [
   },
   {
     name: "Estado",
-    cell: (row) => <BadgeStatus status={row.status}>{row.status.slice(0, 1).toUpperCase() + row.status.replaceAll("_", " ").slice(1)}</BadgeStatus>,
+    cell: (row) => <BadgeStatusPedido status={row.status}>{row.status.slice(0, 1).toUpperCase() + row.status.replaceAll("_", " ").slice(1)}</BadgeStatusPedido>,
     width: "150px",
     sortable: true,
   },
@@ -80,6 +82,7 @@ export default function PedidosHome() {
       </div>
     );
   }
+  
   return (
     <>
       {pedidos.length === 0 ? (
@@ -105,7 +108,15 @@ export default function PedidosHome() {
           </div>
         </div>
       ) : (
-        <div className="p-6">
+        <div className="px-6">
+          <Subheader
+            title="Pedidos"
+            icon={{
+              component: ReceiptText,
+              color: "text-purple-600 dark:text-purple-400",
+            }}
+            back_path="/"
+          />
           <EntityTable
             data={pedidos.sort((a,b) => {
               //ordenear por numero de pedido desc
@@ -121,7 +132,7 @@ export default function PedidosHome() {
                 label: "Número de Pedido",
                 autoFilter: true,
               },
-              { key: "cliente_nombre", label: "Cliente", autoFilter: true },
+              { key: "razon_social", label: "Cliente", autoFilter: true },
               { key: "armador_id", label: "Armador", autoFilter: true },
               {
                 key: "status",

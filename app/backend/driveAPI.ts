@@ -344,13 +344,6 @@ export async function createOrderFolderStructure(
       yearFolder.id
     );
 
-    const folderStructure = {
-      main: { name: mainFolder.name, id: mainFolder.id },
-      year: { name: yearFolder.name, id: yearFolder.id },
-      type: { name: typeFolder.name, id: typeFolder.id },
-      finalId: typeFolder.id,
-    };
-
     // Verificar que el ID final sea válido
     if (!typeFolder.id) {
       throw new Error("El ID de la carpeta final no es válido");

@@ -13,7 +13,7 @@ import {
 import { useEffect, useState } from "react";
 import { useData } from "~/context/DataContext";
 import LoadingComponent from "~/components/LoadingComponent";
-import { BadgeStatus } from "~/components/Badge";
+import { BadgeStatusPedido } from "~/components/Badge";
 import { Button } from "~/components/Buttons";
 import { useUIModals } from "~/context/ModalsContext";
 import type { IconType } from "~/components/IconComponent";
@@ -186,10 +186,10 @@ export default function PedidosLayout() {
                   Estado:{" "}
                   <span className="font-medium text-text-primary">
                     {
-                      <BadgeStatus status={pedido.status}>
+                      <BadgeStatusPedido status={pedido.status}>
                         {pedido.status.slice(0, 1).toUpperCase() +
                           pedido.status.replaceAll("_", " ").slice(1)}
-                      </BadgeStatus>
+                      </BadgeStatusPedido>
                     }
                   </span>
                 </span>

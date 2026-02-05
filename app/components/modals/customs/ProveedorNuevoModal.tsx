@@ -3,13 +3,15 @@ import ClienteForm from "../../forms/ClienteForm";
 import { useState } from "react";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import type { ClientesBD } from "~/types/clientes";
+import type { ProveedoresBD } from "~/types/proveedores";
+import ProveedorForm from "~/components/forms/ProveedorForm";
 
-export default function ClienteNuevoModal({
+export default function ProveedorNuevoModal({
   onClose,
-  handleSelectedCliente,
+  handleSelectedProveedor,
 }: {
   onClose: () => void;
-  handleSelectedCliente?: (item: ClientesBD) => void;
+  handleSelectedProveedor?: (item: ProveedoresBD) => void;
 }) {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -44,7 +46,7 @@ export default function ClienteNuevoModal({
   return (
     <ModalBase 
       open={true} 
-      title="Agregar Nuevo Cliente" 
+      title="Agregar Nuevo Proveedor" 
       onClose={onClose} 
       zIndex={40}
       width="max-w-4xl"
@@ -66,14 +68,14 @@ export default function ClienteNuevoModal({
           </div>
         )}
 
-        <ClienteForm 
+        <ProveedorForm 
           modal 
           onSuccess={handleSuccess}
           onError={handleError}
           onLoadingStart={handleLoadingStart}
           onLoadingEnd={handleLoadingEnd}
           isLoading={isLoading}
-          handleSelectedCliente={handleSelectedCliente}
+          handleSelectedProveedor={handleSelectedProveedor}
         />
       </div>
     </ModalBase>

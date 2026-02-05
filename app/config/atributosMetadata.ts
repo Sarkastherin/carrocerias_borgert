@@ -62,7 +62,7 @@ export const cintasOptions = [
 export const tiposArcosOptions = [
   { value: "Estándar", label: "Estándar" },
   { value: "Reforzado", label: "Reforzado" },
-  { value: "Mixtos", label: "Mixtos" },
+  { value: "Reforzados + Estándar", label: "Reforzados + Estándar" },
   { value: "N/A", label: "No aplica" },
 ];
 export const tiposBoquillasOptions = [
@@ -73,6 +73,7 @@ export const tiposBoquillasOptions = [
 export const ubicacionOptions = [
   { value: "Lado conductor", label: "Lado conductor" },
   { value: "Lado acompañante", label: "Lado acompañante" },
+  { value: "A confirmar", label: "A confirmar" },
   { value: "N/A", label: "No aplica" },
 ];
 export const atributosConMetadata: AtributoMetadata[] = [

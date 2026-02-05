@@ -11,22 +11,18 @@ import LoadingComponent from "~/components/LoadingComponent";
 import { formatCuit } from "~/components/Inputs";
 import { Subheader } from "~/components/Headers";
 import { Users } from "lucide-react";
-
+import type { ProveedoresBD } from "~/types/proveedores";
+import UploadFile from "../developer";
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Clientes" },
-    { name: "description", content: "Bienvenido a la gestión de clientes" },
+    { title: "Proveedores" },
+    { name: "description", content: "Bienvenido a la gestión de proveedores" },
   ];
 }
-const clienteColumns: TableColumn<ClientesBD>[] = [
+const proveedorColumns: TableColumn<ProveedoresBD>[] = [
   {
     name: "Razón Social",
     selector: (row) => row.razon_social,
-    sortable: true,
-  },
-  {
-    name: "Nombre de Contacto",
-    selector: (row) => row.nombre_contacto,
     sortable: true,
   },
   {
@@ -49,29 +45,29 @@ const clienteColumns: TableColumn<ClientesBD>[] = [
     sortable: true,
   },
 ];
-export default function ClientesHome() {
-  const { getClientes, clientes, setCliente } = useData();
+export default function ProveedoresHome() {
+  const { getProveedores, proveedores, setProveedor } = useData();
   const navigate = useNavigate();
   useEffect(() => {
-    setCliente(null);
-    if (!clientes) getClientes();
+    setProveedor(null);
+    if (!proveedores) getProveedores();
   }, []);
-  const handleRowClick = (row: ClientesBD) => {
-    setCliente(row);
-    navigate(`/clientes/${row.id}`);
+  const handleRowClick = (row: ProveedoresBD) => {
+    setProveedor(row);
+    navigate(`/proveedores/${row.id}`);
   };
-  if (!clientes) {
+  if (!proveedores) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <LoadingComponent content="Cargando clientes..." />
+          <LoadingComponent content="Cargando proveedores..." />
         </div>
       </div>
     );
   }
   const uniqueProvincias = Array.from(
     new Set(
-      clientes
+      proveedores
         .map((c) => c.provincia)
         .filter((p) => p)
         .sort((a, b) => a.localeCompare(b))
@@ -79,7 +75,7 @@ export default function ClientesHome() {
   );
   const uniqueLocalidades = Array.from(
     new Set(
-      clientes
+      proveedores
         .map((c) => c.localidad)
         .filter((l) => l)
         .sort((a, b) => a.localeCompare(b))
@@ -87,23 +83,23 @@ export default function ClientesHome() {
   );
   return (
     <>
-      {clientes.length === 0 ? (
+      {proveedores.length === 0 ? (
         <div className="min-h-screen flex items-center justify-center">
           <div className="flex flex-col text-center space-y-3 text-text-secondary">
             <img
               src="/search.png"
-              alt="No hay Clientes"
+              alt="No hay Proveedores"
               className="w-48 h-48 mx-auto mb-4"
             />
-            <p className="text-xl font-semibold">No hay Clientes.</p>
+            <p className="text-xl font-semibold">No hay Proveedores.</p>
             <p className="text-sm">
-              Puede agregar Clientes haciendo clic en el botón de abajo
+              Puede agregar Proveedores haciendo clic en el botón de abajo
             </p>
             <div className="w-fit mx-auto">
-              <ButtonLink variant="primary" to="/clientes/nuevo">
+              <ButtonLink variant="primary" to="/proveedores/nuevo">
                 <div className="flex items-center justify-center gap-2">
                   <PlusIcon className="w-4 h-4" />
-                  Agregar Cliente
+                  Agregar Proveedor
                 </div>
               </ButtonLink>
             </div>
@@ -111,17 +107,18 @@ export default function ClientesHome() {
         </div>
       ) : (
         <div className="px-6">
+          <UploadFile/>
           <Subheader
-            title="Clientes"
+            title="Proveedores"
             icon={{
               component: Users,
-              color: "text-blue-600 dark:text-blue-400",
+              color: "text-orange-600 dark:text-orange-400",
             }}
             back_path="/"
           />
           <EntityTable
-            data={clientes}
-            columns={clienteColumns}
+            data={proveedores}
+            columns={proveedorColumns}
             onRowClick={(row) => handleRowClick(row)}
             inactiveField="activo" // Campo para identificar clientes inactivos
             filterFields={[
@@ -169,7 +166,7 @@ export default function ClientesHome() {
               },
             ]}
           />
-          <ButtonLinkAdd to="/clientes/nuevo">Nuevo Cliente</ButtonLinkAdd>
+          <ButtonLinkAdd variant="orange" to="/proveedores/nuevo">Nuevo Proveedor</ButtonLinkAdd>
         </div>
       )}
     </>

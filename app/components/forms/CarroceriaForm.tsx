@@ -19,8 +19,10 @@ import {
 } from "~/config/atributosMetadata";
 import { useEffect, useState } from "react";
 import { useUIModals } from "~/context/ModalsContext";
+import FileUploderComponent from "../FileUpladerComponent";
 
 export default function CarroceriaForm() {
+  const [file, setFile] = useState<File | null>(null);
   const { openModal, closeModal } = useUIModals();
   const {
     colores,
@@ -33,7 +35,7 @@ export default function CarroceriaForm() {
     setSelectedCarrozado,
     getCarrozadoByID,
   } = useData(true);
-const [carrozadoId, setCarrozadoId] = useState<string>("");
+  const [carrozadoId, setCarrozadoId] = useState<string>("");
   const { isLoading: isLoadingData } = useDataLoader({
     loaders: [getColores, getCarrozados, getPuertasTraseras],
     forceLoad: true,
@@ -50,7 +52,7 @@ const [carrozadoId, setCarrozadoId] = useState<string>("");
     watch,
     setValue,
     resetForm,
-  } = useCarroceriaForm();
+  } = useCarroceriaForm(file);
 
   // Reset selectedCarrozado al montar el componente
   useEffect(() => {
@@ -76,10 +78,10 @@ const [carrozadoId, setCarrozadoId] = useState<string>("");
     }
   };
 
-  useEffect(() => {    
+  useEffect(() => {
     if (!selectedCarrozado) return;
     setIsLoading(true);
-    if(selectedCarrozado.length === 0) {
+    if (selectedCarrozado.length === 0) {
       setIsLoading(false);
       resetForm();
       setValue("tipo_carrozado_id", carrozadoId);
@@ -97,14 +99,14 @@ const [carrozadoId, setCarrozadoId] = useState<string>("");
   }, [selectedCarrozado, setValue, setIsLoading]);
 
   const handleChangeMaterialField = (
-    e: React.ChangeEvent<HTMLSelectElement>
+    e: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     const selectedMaterial = e.target.value;
     if (selectedMaterial === "fibra") {
       setValue("espesor_chapa", "0");
     }
   };
-  
+
   const handleChangeArcosField = (e: React.ChangeEvent<HTMLSelectElement>) => {
     console.log("Arcos changed:", e.target.value);
     const selectedArcos = e.target.value;
@@ -308,6 +310,7 @@ const [carrozadoId, setCarrozadoId] = useState<string>("");
                   onChange={(checked) =>
                     setValue("corte_guardabarros", checked)
                   }
+                  disabled={watch("tipo_zocalo") === "gross_nuevo"}
                   error={errors.corte_guardabarros?.message}
                 />
                 <ToggleCheckbox
@@ -337,6 +340,12 @@ const [carrozadoId, setCarrozadoId] = useState<string>("");
                   label="Tipo zócalo"
                   {...register("tipo_zocalo", {
                     required: "Este campo es obligatorio",
+                    onChange: (e) => {
+                      if (e.target.value === "gross_nuevo")
+                        setValue("corte_guardabarros", false, {
+                          shouldDirty: true,
+                        });
+                    },
                   })}
                   requiredField
                   error={errors.tipo_zocalo?.message}
@@ -488,6 +497,10 @@ const [carrozadoId, setCarrozadoId] = useState<string>("");
                 </div>
               </fieldset>
             </CardToggle>
+            <FileUploderComponent
+              value={watch("documento_carroceria") || ""}
+              setFile={setFile}
+            />
             <Textarea
               label="Observaciones"
               placeholder="Datos adicionales, aclaraciones, etc."

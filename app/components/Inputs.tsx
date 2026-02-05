@@ -8,8 +8,7 @@ import type {
 import { ChevronDown, IdCard, Phone, Banknote, Upload } from "lucide-react";
 import type { IconType } from "./IconComponent";
 import { getIcon } from "./IconComponent";
-import { Badge } from "./Badge";
-import type { MouseEventHandler, MouseEvent } from "react";
+import type { MouseEvent } from "react";
 type CommonInputsProps = {
   id?: string;
   label?: string;
@@ -66,7 +65,7 @@ export function Label({
   requiredField?: boolean;
 }) {
   return (
-    <span className={`block mb-2 text-sm ${label ? "" : "sr-only"}`}>
+    <span className={`block mb-2 text-sm font-semibold ${label ? "" : "sr-only"}`}>
       {label}
       <span className="text-red-500">{requiredField ? " *" : ""}</span>
     </span>
@@ -83,12 +82,21 @@ export function Input({
 }: InputProps) {
   if (label === "Razón Social") {
   }
+  const typeCustum = type === "number" ? "text" : type;
+  const handleInput: React.FormEventHandler<HTMLInputElement> = (event) => {
+    if (type === "number") {
+      const input = event.target as HTMLInputElement;
+      input.value = input.value.replace(/[^0-9]/g, "");
+    }
+    props.onInput?.(event);
+  };
   return (
     <label htmlFor={id} className={hidden ? "sr-only" : ""}>
       <Label label={label ?? ""} requiredField={requiredField} />
       <input
-        type={type ? type : "text"}
+        type={typeCustum ? typeCustum : "text"}
         {...props}
+        onInput={handleInput}
         autoComplete="off"
         className={`dark:[&::-webkit-calendar-picker-indicator]:invert
  ${basesClass(error ?? "")}`}
@@ -111,13 +119,22 @@ export function InputWithIcon({
   if (label === "Razón Social") {
   }
   const IconComponent = getIcon({ icon, size: 5 });
+  const typeCustum = type === "number" ? "text" : type;
+  const handleInput: React.FormEventHandler<HTMLInputElement> = (event) => {
+    if (type === "number") {
+      const input = event.target as HTMLInputElement;
+      input.value = input.value.replace(/[^0-9]/g, "");
+    }
+    props.onInput?.(event);
+  };
   return (
     <label htmlFor={id} className={hidden ? "sr-only" : ""}>
       <Label label={label ?? ""} requiredField={requiredField} />
       <div className="relative">
         <input
-          type={type ? type : "text"}
+          type={typeCustum ? typeCustum : "text"}
           {...props}
+          onInput={handleInput}
           autoComplete="off"
           className={`dark:[&::-webkit-calendar-picker-indicator]:invert pr-12
  ${basesClass(error ?? "")}`}
@@ -523,7 +540,7 @@ export function PhoneInput({
 
   useEffect(() => {
     if (value !== undefined && !isFocused) {
-      setDisplayValue(formatPhone(value));
+      setDisplayValue(formatPhone(String(value)));
     }
   }, [value, isFocused]);
 
@@ -591,7 +608,7 @@ export function PhoneInput({
   );
 }
 
-export function FileInput({
+export function FileInputCard({
   id,
   label,
   error,
@@ -652,6 +669,53 @@ export function FileInput({
     </div>
   );
 }
+
+export function FileInput({
+  id,
+  label,
+  error,
+  hidden,
+  requiredField,
+  accept,
+  onChange,
+  ...props
+}: InputProps & { accept?: string }) {
+  const [selectedFileName, setSelectedFileName] = useState<string>("Ningún archivo seleccionado");
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    setSelectedFileName(file ? file.name : "Ningún archivo seleccionado");
+    onChange?.(e);
+  };
+
+  return (
+    <div className={hidden ? "sr-only" : ""}>
+      <Label label={label ?? ""} requiredField={requiredField} />
+      <div className={`flex items-center gap-0 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden ${
+        error ? "border-red-500 ring-2 ring-red-500" : ""
+      }`}>
+        <label
+          htmlFor={id}
+          className="px-4 py-2.5 bg-gray-600 dark:bg-gray-800 text-white text-sm font-medium cursor-pointer hover:bg-gray-700 dark:hover:bg-gray-900 transition-colors duration-200 whitespace-nowrap"
+        >
+          Seleccionar archivo
+        </label>
+        <span className="flex-1 px-4 py-2.5 text-sm text-text-secondary truncate">
+          {selectedFileName}
+        </span>
+        <input
+          id={id}
+          type="file"
+          accept={accept}
+          onChange={handleFileChange}
+          className="sr-only"
+          {...props}
+        />
+      </div>
+      {error && <SpanError error={error} />}
+    </div>
+  );
+}
 type SelectFieldCustomProps<T extends Record<string, any> & { id: string }> = {
   label: string;
   requiredField?: boolean;
@@ -679,7 +743,8 @@ export function SelectFieldCustom<T extends { id: string }>({
   const handleFilterSearchInput: React.ChangeEventHandler<HTMLInputElement> = (
     e
   ) => {
-    const filterText = e.currentTarget.value.toLowerCase();
+    console.log("Input value:", e.currentTarget.value);
+    const filterText = e.currentTarget.value.toLowerCase()
     if (data) {
       const filtered = data.filter((item) => {
         const value = item[keyOfData];
@@ -727,7 +792,7 @@ export function SelectFieldCustom<T extends { id: string }>({
         </span>
       </button>
       <div
-        className={`absolute z-10 w-full bg-slate-100 dark:bg-slate-900 p-4 mt-2 rounded-xl border border-slate-300 dark:border-gray-700 ${isDropdownOpen ? "" : "hidden"} transition-all ease-in-out duration-300`}
+        className={`absolute z-[10] w-full bg-slate-100 dark:bg-slate-900 p-4 mt-2 rounded-xl border border-slate-300 dark:border-gray-700 ${isDropdownOpen ? "" : "hidden"} transition-all ease-in-out duration-300`}
       >
         <Input
           type="search"

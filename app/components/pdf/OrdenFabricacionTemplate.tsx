@@ -27,7 +27,7 @@ export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
     <PageTemplate>
       <HeaderTemplate title="Pedido de Fabricación" />
       <View style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <DatosPedido pedidoData={pedidoData} formData={formData} title_responsable={"Armador"} responsable={responsable}/>
+        <DatosPedido pedidoData={pedidoData} title_responsable={"Armador"} responsable={responsable}/>
         <DatosCamion pedidoData={pedidoData} />
         <View>
           <Subtitle>Detalles de la Carrocería</Subtitle>

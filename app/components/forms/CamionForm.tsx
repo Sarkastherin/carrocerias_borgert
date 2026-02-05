@@ -1,19 +1,24 @@
-import { Input, Textarea, Select, InputWithIcon } from "../Inputs";
-import { Button } from "../Buttons";
+import { Input, Textarea, Select, InputWithIcon, FileInput } from "../Inputs";
+import { Button, ButtonLink } from "../Buttons";
 import { useCamionForm } from "~/hooks/useCamionForm";
 import { CardToggle } from "../CardToggle";
 import { RulerDimensionLine } from "lucide-react";
 import { FooterForm } from "./Footer";
+import { FileText } from "lucide-react";
+import { useState, type ChangeEvent } from "react";
+import FileUploderComponent from "../FileUpladerComponent";
 
 export default function CamionForm() {
+  const [file, setFile] = useState<File | null>(null);
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
     onSubmit,
     isLoading,
     submitButtonText,
-  } = useCamionForm();
+  } = useCamionForm(file);
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <CardToggle title="Datos del camión">
@@ -92,6 +97,18 @@ export default function CamionForm() {
           />
         </fieldset>
       </CardToggle>
+
+      {watch("marca") === "scania" && (
+        <div className="font-bold p-4 bg-yellow-100 border border-yellow-300 text-yellow-800 rounded dark:bg-yellow-200 dark:border-yellow-400 dark:text-yellow-900">
+          ⚠️ SCANIA V4x2 – Atención: Requiere modificación de escaleras del lado
+          acompañante por interferencia con el tanque.
+        </div>
+      )}
+      <FileUploderComponent
+        value={watch("documento_camion") || ""}
+        setFile={setFile}
+      />
+
       <Textarea label="Observaciones" {...register("observaciones")} />
       <FooterForm>
         <Button type="submit" variant="blue" disabled={isLoading}>

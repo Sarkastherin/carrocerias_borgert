@@ -1,13 +1,13 @@
-import { Input, Textarea, Select, CuitInput, PhoneInput } from "../Inputs";
+import { Input, CuitInput, PhoneInput } from "../Inputs";
 import { Button } from "../Buttons";
 import { AddressFields } from "../AddressFields";
-import { useClienteForm } from "~/hooks/useClienteForm";
+import { useProveedorForm } from "~/hooks/useProveedorForm";
 import { CardToggle } from "../CardToggle";
 import { useData } from "~/context/DataContext";
 import { useUIModals } from "~/context/ModalsContext";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import type { ClientesBD } from "~/types/clientes";
+import type { ProveedoresBD } from "~/types/proveedores";
 
 type ClienteFormProps = {
   modal?: boolean;
@@ -16,21 +16,21 @@ type ClienteFormProps = {
   onLoadingStart?: () => void;
   onLoadingEnd?: () => void;
   isLoading?: boolean;
-  handleSelectedCliente?: (item: ClientesBD) => void;
+  handleSelectedProveedor?: (item: ProveedoresBD) => void;
 };
 
-export default function ClienteForm({
+export default function ProveedorForm({
   modal,
   onSuccess,
   onError,
   onLoadingStart,
   onLoadingEnd,
   isLoading: externalIsLoading,
-  handleSelectedCliente,
+  handleSelectedProveedor,
 }: ClienteFormProps) {
   const navigate = useNavigate();
   const { showConfirmation } = useUIModals();
-  const { getPersonal, personal, deleteClienteById, cliente } = useData();
+  const { getPersonal, personal, deleteProveedorById, proveedor } = useData();
   const [isDeleting, setIsDeleting] = useState(false);
   const {
     register,
@@ -41,13 +41,13 @@ export default function ClienteForm({
     submitButtonText,
     setValue,
     watch,
-  } = useClienteForm({
+  } = useProveedorForm({
     modal: modal,
     onSuccess,
     onError,
     onLoadingStart,
     onLoadingEnd,
-    handleSelectedCliente,
+    handleSelectedProveedor,
   });
 
   // Usar el loading externo si está disponible, sino usar el interno
@@ -55,33 +55,32 @@ export default function ClienteForm({
     externalIsLoading !== undefined ? externalIsLoading : internalIsLoading;
 
   // Determinar si estamos en modo edición
-  const isEditMode = Boolean(cliente);
-  const existingCliente = cliente;
-
-  const handleDeleteCliente = async () => {
-    if (!existingCliente) return;
+  const isEditMode = Boolean(proveedor);
+  const existingProveedor = proveedor;
+  const handleDeleteProveedor = async () => {
+    if (!existingProveedor) return;
 
     showConfirmation(
-      `¿Estás seguro de que deseas eliminar el cliente "${existingCliente.razon_social}"? Esta acción no se puede deshacer. Si el cliente tiene pedidos asociados, no podrá ser eliminado.`,
+      `¿Estás seguro de que deseas eliminar el proveedor "${existingProveedor.razon_social}"? Esta acción no se puede deshacer. Si el proveedor tiene pedidos asociados, no podrá ser eliminado.`,
       async () => {
         try {
           setIsDeleting(true);
-          await deleteClienteById(existingCliente.id);
+          await deleteProveedorById(existingProveedor.id);
           if (modal) {
             // Si estamos en modal, cerrar el modal
             // Necesitarás importar closeModal del useUIModals si existe
           } else {
-            // Si no estamos en modal, navegar a la lista de clientes
-            navigate("/clientes");
+            // Si no estamos en modal, navegar a la lista de proveedores
+            navigate("/proveedores");
           }
         } catch (error) {
-          console.error("Error eliminando cliente:", error);
+          console.error("Error eliminando proveedor:", error);
         } finally {
           setIsDeleting(false);
         }
       },
       {
-        title: "Eliminar Cliente",
+        title: "Eliminar Proveedor",
         confirmText: "Eliminar",
         cancelText: "Cancelar",
       }
@@ -101,7 +100,7 @@ export default function ClienteForm({
     <>
       {personal && (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <CardToggle title="Información del Cliente">
+          <CardToggle title="Información del Proveedor">
             <fieldset className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="md:col-span-2 lg:col-span-3">
                 <Input
@@ -112,14 +111,6 @@ export default function ClienteForm({
                   })}
                   error={errors.razon_social?.message}
                   requiredField={true}
-                />
-              </div>
-              <div className="md:col-span-2 lg:col-span-3">
-                <Input
-                  label="Nombre de Contacto"
-                  placeholder="Juan Encargado Pérez"
-                  {...register("nombre_contacto")}
-                  error={errors.nombre_contacto?.message}
                 />
               </div>
 
@@ -176,67 +167,20 @@ export default function ClienteForm({
               />
             </fieldset>
           </CardToggle>
-          <CardToggle title="Otros Datos">
-            <fieldset className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Select
-                label="Condición frente al IVA"
-                requiredField={true}
-                {...register("condicion_iva")}
-                error={errors.condicion_iva?.message}
-              >
-                <option value="">Sin selección</option>
-                <option value="Responsable Inscripto">
-                  Responsable Inscripto
-                </option>
-                <option value="Monotributista">Monotributista</option>
-                <option value="Exento">Exento</option>
-                <option value="Consumidor Final">Consumidor Final</option>
-              </Select>
-              <Select
-                label="Vendedor Asignado"
-                requiredField={true}
-                {...register("vendedor_id")}
-                error={errors.vendedor_id?.message}
-              >
-                <option value="">Sin selección</option>
-                {personal
-                  ?.filter((item) => item.sector === "ventas")
-                  .map((empleado) => (
-                    <option key={empleado.id} value={empleado.id}>
-                      {`${empleado.nombre} ${empleado.apellido}`}
-                    </option>
-                  ))}
-              </Select>
-
-              <Select label="Activo" {...register("activo")}>
-                <option value="">Sin selección</option>
-                <option value="true">Sí</option>
-                <option value="false">No</option>
-              </Select>
-              <div className="md:col-span-2 lg:col-span-3">
-                <Textarea
-                  label="Observaciones"
-                  placeholder="Datos o condiciones adicionales del cliente"
-                  {...register("observaciones")}
-                  error={errors.observaciones?.message}
-                />
-              </div>
-            </fieldset>
-          </CardToggle>
 
           {/* Zona de Peligro - Solo mostrar en modo edición */}
-          {isEditMode && existingCliente && (
+          {isEditMode && existingProveedor && (
             <CardToggle title="Zona de Peligro">
               <div className="p-4 border border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-900/20">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                   <h4 className="text-sm font-semibold text-red-700 dark:text-red-400">
-                    Eliminar Cliente
+                    Eliminar Proveedor
                   </h4>
                 </div>
                 <p className="text-sm text-red-600 dark:text-red-300 mb-4 leading-relaxed">
-                  Una vez eliminado, este cliente y todos sus datos se perderán
-                  permanentemente. Si el cliente tiene pedidos asociados, no
+                  Una vez eliminado, este proveedor y todos sus datos se perderán
+                  permanentemente. Si el proveedor tiene pedidos asociados, no
                   podrá ser eliminado hasta que se eliminen primero los pedidos.
                 </p>
                 <div className="w-fit">
@@ -244,11 +188,11 @@ export default function ClienteForm({
                     type="button"
                     variant="red"
                     size="sm"
-                    onClick={handleDeleteCliente}
+                    onClick={handleDeleteProveedor}
                     disabled={isDeleting}
                     className="text-sm"
                   >
-                    {isDeleting ? "Eliminando..." : "Eliminar Cliente"}
+                    {isDeleting ? "Eliminando..." : "Eliminar Proveedor"}
                   </Button>
                 </div>
               </div>

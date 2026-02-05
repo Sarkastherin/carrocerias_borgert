@@ -9,6 +9,7 @@ export default [
   route("login", "routes/login.tsx"),
   // Ruta de desarrollo para PDF (sin layout para pantalla completa)
   route("dev/pdf", "routes/dev.pdf.tsx"),
+  route("dev", "routes/developer.tsx"),
 
   layout("layouts/main.tsx", [
     index("routes/home.tsx"),
@@ -16,6 +17,11 @@ export default [
       route("/", "routes/clientes/home.tsx"),
       route("nuevo", "routes/clientes/nuevo.tsx"),
       route(":clienteId", "routes/clientes/cliente.tsx"),
+    ]),
+    ...prefix("proveedores", [
+      route("/", "routes/proveedores/home.tsx"),
+      route("nuevo", "routes/proveedores/nuevo.tsx"),
+      route(":proveedorId", "routes/proveedores/proveedor.tsx"),
     ]),
     ...prefix("pedidos", [
       route("/", "routes/pedidos/home.tsx"),
@@ -47,8 +53,11 @@ export default [
     ]),
     ...prefix("administracion", [
       route("cuentas-corrientes", "routes/administracion/cuentas-corrientes.tsx"),
+      route("nuevo-movimiento", "routes/administracion/nuevo-movimiento.tsx"),
       route("cuentas-corrientes/:ctaCteId", "routes/administracion/cuenta-corriente.tsx"),
       route("cheques", "routes/administracion/cheques.tsx"),
+      route(":chequeId", "routes/administracion/chequeID.tsx"),
+      
     ]),
   ]),
 ] satisfies RouteConfig;

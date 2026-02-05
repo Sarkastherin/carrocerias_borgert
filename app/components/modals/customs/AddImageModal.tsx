@@ -1,5 +1,5 @@
 import ModalBase from "../ModalBase";
-import { FileInput } from "~/components/Inputs";
+import { FileInputCard } from "~/components/Inputs";
 import { Button } from "~/components/Buttons";
 import { useState } from "react";
 import { carrozadoAPI } from "~/backend/sheetServices";
@@ -88,7 +88,7 @@ export function AddImageModal({ onClose, carrozadoId }: AddImageModalProps) {
           portada
         </p>
 
-        <FileInput
+        <FileInputCard
           accept="image/*"
           label="Imagen de carrocería"
           onChange={(e) =>

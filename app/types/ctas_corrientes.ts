@@ -1,3 +1,6 @@
+import type { ClientesBD } from "./clientes";
+import type { ProveedoresBD } from "./proveedores";
+
 export const optionsTypeMov = [
   { value: "deuda", label: "Deuda" },
   { value: "pago", label: "Pago" },
@@ -20,12 +23,15 @@ export const optionsTipoCheque = [
   { value: "echeq", label: "Echeq" },
 ];
 export const optionsStatusCheque = [
-  { value: "disponible", label: "Disponible" },
+  { value: "recibido", label: "Recibido" },
   { value: "depositado", label: "Depositado" },
+  { value: "acreditado", label: "Acreditado" },
   { value: "endosado", label: "Endosado" },
   { value: "rechazado", label: "Rechazado" },
+  { value: "anulado", label: "Anulado" },
+  { value: "vencido", label: "Vencido" },
 ];
-export type CtasCorrientesDB = {
+export type CtasCtesDB = {
   id: string;
   fecha_creacion: string;
   cliente_id: string;
@@ -37,10 +43,10 @@ export type CtasCorrientesDB = {
   concepto?: string;
   debe: number;
   haber: number;
-  saldo: number;
-  usuario_id: string;
+  usuario_id?: string;
+  documento_cta_cte?: string;
 };
-export type CtaCorrienteConCliente = CtasCorrientesDB & {
+export type CtaCteConCliente = CtasCtesDB & {
   razon_social: string;
   cuit_cuil: string;
   condicion_iva: string;
@@ -56,6 +62,26 @@ export type ChequesDB = {
   fecha_cobro: string;
   importe: number;
   status: (typeof optionsStatusCheque)[number]["value"];
-  destino: string;
+  proveedor_id?: string;
+  fecha_deposito?: string;
+  fecha_acreditacion?: string;
+  fecha_endoso?: string;
+  fecha_anulacion?: string;
+  motivo_anulacion?: string;
+  fecha_rechazo?: string;
+  motivo_rechazo?: string;
   observacion?: string;
+};
+export type ChequesWithTerceros = ChequesDB & {
+  ctaCte: CtasCtesDB;
+  cliente: ClientesBD;
+  nombre_banco: string;
+  proveedor?: ProveedoresBD;
+}
+export type BancosProps = {
+  value: string;
+  label: string;
+}
+export type CtasCtesWithCheque = CtasCtesDB & {
+  cheques?: ChequesDB[];
 };

@@ -17,7 +17,7 @@ import { useData } from "~/context/DataContext";
 import { Badge } from "~/components/Badge";
 import PDFIcon from "~/components/icons/PDFIcon";
 import { formatDateUStoES } from "~/utils/formatDate";
-
+import { LinkDocument } from "~/components/FileUpladerComponent";
 interface OrdenTrabajoModalProps {
   onClose: () => void;
   tipoOrden: (typeof tipoOrdenOptions)[number]["value"];
@@ -113,7 +113,7 @@ export default function OrdenTrabajoModal({
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [orderData, setOrderData] = useState<OrdenesBD | undefined>(
-    order || undefined
+    order || undefined,
   );
   // Hook para acceder al personal desde el contexto global
   const { personal, getPersonal, getOrdenesByPedidoId, getPedidos, setPedido } =
@@ -174,9 +174,9 @@ export default function OrdenTrabajoModal({
   const getPersonalBySector = (sector: string) => {
     if (!personal) return [];
     const filteredPersonal = personal.filter(
-      (p) => p.activo && p.sector.toLowerCase().includes(sector.toLowerCase())
+      (p) => p.activo && p.sector.toLowerCase().includes(sector.toLowerCase()),
     );
-    return filteredPersonal
+    return filteredPersonal;
   };
   const HeaderOrder = () => {
     return (
@@ -201,7 +201,7 @@ export default function OrdenTrabajoModal({
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
                 <span className="font-medium">
-                  Cliente: {pedidoData.cliente_nombre}
+                  Cliente: {pedidoData.razon_social}
                 </span>
               </div>
               {pedidoData.carroceria && (
@@ -289,24 +289,27 @@ export default function OrdenTrabajoModal({
         pedidoData?.id || "",
         tipoOrden,
         formData.responsable_id,
-        orderData
+        orderData,
       );
       await getOrdenesByPedidoId(pedidoData?.id || "", true);
       setOrderData((prev) =>
-        prev ? ({ ...prev, ...formData } as OrdenesBD) : prev
+        prev ? ({ ...prev, ...formData } as OrdenesBD) : prev,
       );
-      if (tipoOrden === "fabricacion" || tipoOrden === "pintura") {
-        await getPedidos();
-        setPedido((prev) =>
-          prev
-            ? {
-                ...prev,
-                status:
-                  tipoOrden === "fabricacion" ? "en_produccion" : "en_pintura",
-              }
-            : prev
-        );
-      }
+      await getPedidos();
+      const statusUpdate =
+        tipoOrden === "fabricacion"
+          ? "en_produccion"
+          : tipoOrden === "pintura"
+            ? "en_pintura"
+            : "pintada";
+      setPedido((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: statusUpdate,
+            }
+          : prev,
+      );
       setStep("success");
     } catch (error) {
       console.error("Error guardando orden:", error);
@@ -321,12 +324,12 @@ export default function OrdenTrabajoModal({
         orderData?.id,
         formData,
         tipoOrden,
-        pedidoData?.id || ""
+        pedidoData?.id || "",
       );
       await getOrdenesByPedidoId(pedidoData?.id || "", true);
       // actualizar orderData con los datos actualizados en formData
       setOrderData((prev) =>
-        prev ? ({ ...prev, ...formData } as OrdenesBD) : prev
+        prev ? ({ ...prev, ...formData } as OrdenesBD) : prev,
       );
       if (tipoOrden === "montaje" && formData.status === "completada") {
         await getPedidos();
@@ -657,18 +660,41 @@ export default function OrdenTrabajoModal({
       <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
         La orden de trabajo se ha guardado en Google Drive
       </p>
+      {pedidoData &&
+        (pedidoData.camion?.documento_camion ||
+          pedidoData.carroceria?.documento_carroceria) && (
+          <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex flex-col items-center w-md mx-auto">
+            <p className="font-semibold text-sm text-gray-600 dark:text-gray-300 mb-2">Este pedido tiene documentos adjuntos.</p>
+            {pedidoData.camion?.documento_camion && (
+              <LinkDocument
+                value={pedidoData.camion.documento_camion}
+                label="Documento del Camión"
+              />
+            )}
+            {pedidoData.carroceria?.documento_carroceria && (
+              <LinkDocument
+                value={pedidoData.carroceria.documento_carroceria}
+                label="Documento de la Carrocería"
+              />
+            )}
+          </div>
+        )}
 
-      <div className="space-y-3">
-        <Button variant="green" onClick={onClose} className="w-full">
-          Finalizar
-        </Button>
-        <Button
-          variant="outlinePrimary"
-          onClick={() => setStep("preview")}
-          className="w-full"
-        >
-          Ver Orden
-        </Button>
+      <div className="flex gap-3 pt-4 justify-center">
+        <div className="w-44">
+          <Button variant="green" onClick={onClose}>
+            Finalizar
+          </Button>
+        </div>
+        <div className="w-44">
+          <Button
+            variant="outlinePrimary"
+            onClick={() => setStep("preview")}
+            className="w-full"
+          >
+            Ver Orden
+          </Button>
+        </div>
       </div>
     </div>
   );

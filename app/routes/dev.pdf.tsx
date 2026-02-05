@@ -23,8 +23,9 @@ export default function PDFDev() {
     saldo_restante: 0,
     vendedor_id: "fb3fe8a9-4ffd-492b-bc14-43b3a1e9a542",
     status: "nuevo",
-    cliente_nombre: "CARRERA PALACIOS GUSTAVO",
+    razon_social: "CARRERA PALACIOS GUSTAVO",
     vendedor_nombre: "Lucas Alzugaray",
+    armador_nombre: "Juan Pérez",
     carroceria: {
       id: "72838285-3970-4bf2-93ab-eb34b7e0be18",
       fecha_creacion: "2025-11-20",
@@ -132,7 +133,7 @@ export default function PDFDev() {
     cliente: null,
   } as PedidosUI;
   const mockFormData = {
-    responsable: "Juan Pérez",
+    responsable_id: "a5b3d0ba-693d-47c2-85b3-d6f117b49159",
     observaciones:
       "Fabricación prioritaria. Cliente requiere entrega antes del 30/11. Verificar medidas especiales para puertas laterales.",
   };
@@ -511,10 +512,9 @@ export default function PDFDev() {
           border: "none",
         }}
       >
-        <ControlCarrozadoTemplate
+        <OrdenMontajeTemplate
           pedidoData={mockPedidoData}
-          formData={mockFormData}
-          itemsControl={mockItemsControl}
+          responsable="Katherin Guerrero"
         />
       </PDFViewer>
     </div>

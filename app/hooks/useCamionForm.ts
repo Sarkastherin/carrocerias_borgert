@@ -6,12 +6,14 @@ import { useState } from "react";
 import { camionAPI } from "~/backend/sheetServices";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
 import { useFormNavigationBlock } from "./useFormNavigationBlock";
+import { uploadPDFToDrive, createFolderIfNotExists } from "~/backend/driveAPI";
+import { updateFilePDFPedidos } from "~/components/FileUpladerComponent";
 
-export function useCamionForm() {
+export function useCamionForm(file?: File | null) {
   const [isLoading, setIsLoading] = useState(false);
 
   const { showLoading, showSuccess, showError, showInfo } = useUIModals();
-  const { pedido, getPedidos, refreshPedidoByIdAndTable } = useData();
+  const { pedido, refreshPedidoByIdAndTable } = useData();
   const isEditMode = Boolean(pedido);
   const { camion } = pedido || {};
   const existingPedido = camion || null;
@@ -33,21 +35,26 @@ export function useCamionForm() {
           voladizo_trasero: 0,
         },
   });
-  
+
   // Hook para bloquear navegación si hay cambios sin guardar
   useFormNavigationBlock({
     isDirty: form.formState.isDirty,
     isSubmitSuccessful: form.formState.isSubmitSuccessful,
-    message: "Tienes cambios sin guardar en el camión. Si sales ahora, perderás todos los cambios realizados.",
+    message:
+      "Tienes cambios sin guardar en el camión. Si sales ahora, perderás todos los cambios realizados.",
     title: "¿Salir sin guardar?",
     confirmText: "Sí, salir",
     cancelText: "No, continuar editando",
   });
-  
   const handleSubmit = async (formData: CamionBD) => {
     try {
       setIsLoading(true);
       showLoading();
+      if (file) {
+        const fileLink = await updateFilePDFPedidos(file, pedido?.numero_pedido);
+        formData.documento_camion = fileLink;
+        form.setValue("documento_camion", fileLink, { shouldDirty: true });
+      }
       if (existingPedido) {
         // Verificar si hay cambios en el formulario
         const hasDirtyFields =
@@ -60,7 +67,6 @@ export function useCamionForm() {
           showInfo("No se realizaron cambios en el formulario.");
           return;
         }
-        
 
         const updatePayload = prepareUpdatePayload<CamionBD>({
           dirtyFields: form.formState.dirtyFields,
@@ -68,18 +74,18 @@ export function useCamionForm() {
         });
         const response = await camionAPI.update(
           existingPedido?.id || "",
-          updatePayload
+          updatePayload,
         );
         if (!response.success) {
           throw new Error(
-            response.message || "Error desconocido al actualizar el camión"
+            response.message || "Error desconocido al actualizar el camión",
           );
         }
       } else {
         const response = await camionAPI.create(formData);
         if (!response.success) {
           throw new Error(
-            response.message || "Error desconocido al crear el camión"
+            response.message || "Error desconocido al crear el camión",
           );
         }
       }
@@ -90,7 +96,7 @@ export function useCamionForm() {
     } catch (error) {
       setIsLoading(false);
       showError(
-        typeof error === "string" ? error : "Error al guardar el camión"
+        typeof error === "string" ? error : "Error al guardar el camión",
       );
     }
   };

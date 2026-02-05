@@ -1,12 +1,12 @@
 import { useData } from "~/context/DataContext";
 import { useEffect } from "react";
 import { SelectFieldCustom } from "./Inputs";
-import type { ClientesBD } from "~/types/clientes";
 import { useUIModals } from "~/context/ModalsContext";
-import ClienteNuevoModal from "./modals/customs/ClienteNuevoModal";
 import type { UseFormSetValue } from "react-hook-form";
 import { UserRoundPlus } from "lucide-react";
-export default function ClienteField({
+import type { ProveedoresBD } from "~/types/proveedores";
+import ProveedorNuevoModal from "./modals/customs/ProveedorNuevoModal";
+export default function ProveedorField({
   value,
   required = false,
   setValue,
@@ -19,33 +19,30 @@ export default function ClienteField({
   errors: any;
   register: any;
 }) {
-  const { clientes, getClientes } = useData();
+  const { proveedores, getProveedores } = useData();
   const { openModal, closeModal } = useUIModals();
   useEffect(() => {
-    if (!clientes) {
-      getClientes();
+    if (!proveedores) {
+      getProveedores();
     }
   }, []);
-  const handleOpenClienteModal = () => {
+  const handleOpenProveedorModal = () => {
     openModal("CUSTOM", {
-      component: ClienteNuevoModal,
+      component: ProveedorNuevoModal,
       props: {
-        handleSelectedCliente: (item: ClientesBD) => handleSelectedCliente(item)
+        handleSelectedProveedor: (item: ProveedoresBD) => handleSelectedProveedor(item)
       },
     });
   };
-  const handleSelectedCliente = (selectItem: ClientesBD) => {
-    const clienteId = selectItem.id;
-    if (clienteId) {
+  const handleSelectedProveedor = (selectItem: ProveedoresBD) => {
+    const proveedorId = selectItem.id;
+    if (proveedorId) {
       openModal("LOADING", {
-        title: "Cargando datos del cliente...",
+        title: "Cargando datos del proveedor...",
         message: "",
       });
-      setValue("cliente_id", clienteId, { shouldDirty: true });
-      setValue("razon_social", selectItem.razon_social, {
-        shouldDirty: true,
-      });
-      setValue("vendedor_id", selectItem.vendedor_id || "", {
+      setValue("proveedor_id", proveedorId, { shouldDirty: true });
+      setValue("proveedor.razon_social", selectItem.razon_social, {
         shouldDirty: true,
       });
       closeModal();
@@ -55,24 +52,27 @@ export default function ClienteField({
     <div className="flex gap-1 items-end">
       <div className="w-full">
         <SelectFieldCustom
-          label="Cliente"
+          label="Proveedor"
           requiredField={required}
-          disabled={!clientes}
-          placeholderMainInput="Seleccione un cliente"
-          data={clientes || []}
+          disabled={!proveedores}
+          placeholderMainInput="Seleccione un proveedor"
+          data={proveedores || []}
           keyOfData="razon_social"
           initialValue={value}
-          onChange={(selectItem) => handleSelectedCliente(selectItem)}
+          onChange={(selectItem) => handleSelectedProveedor(selectItem)}
         />
-        {errors.cliente_id && (
+        {errors.proveedor_id && (
           <span className="block mt-0.5 text-red-500 text-xs">
-            {errors.cliente_id.message}
+            {errors.proveedor_id.message}
           </span>
         )}
         <input
           type="hidden"
-          {...register("cliente_id", {
-            required: "Debe seleccionar un cliente",
+          {...register("proveedor_id", {
+            required: {
+              value: required,
+              message: "Requerido",
+            },
           })}
         />{/*  */}
       </div>
@@ -80,7 +80,7 @@ export default function ClienteField({
         <button
           type="button"
           className="w-full cursor-pointer text-center rounded-lg text-text-secondary bg-white border border-slate-300 hover:bg-slate-100 dark:bg-slate-800 dark:text-white dark:border-slate-600 dark:hover:bg-slate-700 dark:hover:border-slate-600 p-3"
-          onClick={handleOpenClienteModal}
+          onClick={handleOpenProveedorModal}
         >
           <UserRoundPlus className="size-4" />
         </button>

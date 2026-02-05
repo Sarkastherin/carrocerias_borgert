@@ -2,10 +2,10 @@ import { Input, Textarea, Select, CurrencyInput } from "../Inputs";
 import { Button } from "../Buttons";
 import { useForm, useFieldArray } from "react-hook-form";
 import { optionsTipoCheque } from "~/types/ctas_corrientes";
-import type { CtasCorrientesDB, ChequesDB } from "~/types/ctas_corrientes";
+import type { CtasCtesDB, ChequesDB } from "~/types/ctas_corrientes";
 import { useState, useMemo } from "react";
 import { ctaCorrienteAPI, chequesAPI } from "~/backend/sheetServices";
-import BancosComponent from "../Bancos";
+import { BancosComponentArray } from "../Bancos";
 import LoadingComponent from "../LoadingComponent";
 import {
   CheckCircle,
@@ -15,27 +15,37 @@ import {
   DollarSign,
 } from "lucide-react";
 import { useData } from "~/context/DataContext";
+import { ButtonLinkAdd } from "../Buttons";
+import FileUploderComponent, {
+  updateFilePDFCtaCte,
+} from "../FileUpladerComponent";
 
-export type AddChequeFormProps = CtasCorrientesDB & {
+export type AddChequeFormProps = CtasCtesDB & {
   cheques: ChequesDB[];
 };
 
 type FormState = "form" | "loading" | "success" | "error";
 
-export const AddChequeForm = ({ clienteId }: { clienteId?: string }) => {
+export const AddChequeForm = ({
+  clienteId,
+  redirect,
+}: {
+  clienteId: string;
+  redirect: boolean;
+}) => {
+  const [file, setFile] = useState<File | null>(null);
   const [formState, setFormState] = useState<FormState>("form");
   const [successData, setSuccessData] = useState<any>(null);
   const [totalCheques, setTotalCheques] = useState<number>(0);
-  const { getCuentasCorrientes, getCuentasCorrientesByClientes } = useData();
+  const { getCtaCteWithCheques, getCtasCtesByClientes } = useData();
 
   const {
     register,
     handleSubmit,
     setValue,
     watch,
-    reset,
     control,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors, isSubmitting },
   } = useForm<AddChequeFormProps>({
     mode: "onBlur",
     defaultValues: {
@@ -53,6 +63,7 @@ export const AddChequeForm = ({ clienteId }: { clienteId?: string }) => {
           fecha_cobro: "",
           fecha_ingreso: "",
           observacion: "",
+          status: "recibido",
         } as ChequesDB,
       ],
     },
@@ -76,6 +87,7 @@ export const AddChequeForm = ({ clienteId }: { clienteId?: string }) => {
       fecha_cobro: "",
       fecha_ingreso: "",
       observacion: "",
+      status: "recibido",
     } as ChequesDB);
   };
 
@@ -84,6 +96,11 @@ export const AddChequeForm = ({ clienteId }: { clienteId?: string }) => {
     if (cheques.length === 0) return;
     setFormState("loading");
     try {
+      if (file) {
+        const fileLink = await updateFilePDFCtaCte(file);
+        data.documento_cta_cte = fileLink;
+        setValue("documento_cta_cte", fileLink, { shouldDirty: true });
+      }
       // 1. Crear el movimiento en cuentas corrientes
       const resposeMovimiento = await ctaCorrienteAPI.create(rest);
       if (!resposeMovimiento.success)
@@ -96,15 +113,13 @@ export const AddChequeForm = ({ clienteId }: { clienteId?: string }) => {
         cheques.map(async (cheque) => {
           const responseCheque = await chequesAPI.create({
             ...cheque,
-            status: "disponible",
             cta_cte_id: movimientoId,
           });
           if (!responseCheque.success) throw new Error(responseCheque.message);
-        })
+        }),
       );
-      await getCuentasCorrientes();
-      await getCuentasCorrientesByClientes();
-      // 3. Actualizar el estado del formulario a éxito
+      await getCtaCteWithCheques(true);
+      await getCtasCtesByClientes();
       setFormState("success");
       setSuccessData({
         numeroCheque: cheques[0].numero,
@@ -255,7 +270,7 @@ export const AddChequeForm = ({ clienteId }: { clienteId?: string }) => {
                       }
                       requiredField={true}
                     />
-                    <BancosComponent
+                    <BancosComponentArray
                       register={register}
                       errors={errors}
                       watch={watch}
@@ -317,6 +332,12 @@ export const AddChequeForm = ({ clienteId }: { clienteId?: string }) => {
             <legend className="px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
               📝 Detalles Adicionales
             </legend>
+            <div className="mb-4 space-y-1">
+              <FileUploderComponent
+                value={watch("documento_cta_cte") || ""}
+                setFile={setFile}
+              />
+            </div>
             <Textarea
               label="Concepto / Detalle del movimiento"
               placeholder="Describa el motivo o concepto del movimiento"
@@ -384,6 +405,17 @@ export const AddChequeForm = ({ clienteId }: { clienteId?: string }) => {
                 <p className="text-sm text-green-700 dark:text-green-400 mt-1">
                   El movimiento y cheque han sido guardados en el sistema.
                 </p>
+                {redirect && (
+                  <div className="mt-6 flex gap-3">
+                    <ButtonLinkAdd
+                      to={`/administracion/cuentas-corrientes/${clienteId}`}
+                      variant="green"
+                      className="w-full md:w-auto"
+                    >
+                      Ir a la cuenta corriente
+                    </ButtonLinkAdd>
+                  </div>
+                )}
               </div>
             </div>
           </div>

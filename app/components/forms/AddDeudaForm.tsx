@@ -1,27 +1,30 @@
 import { Input, Textarea, Select, CurrencyInput } from "../Inputs";
-import { Button } from "../Buttons";
+import { Button, ButtonLink } from "../Buttons";
 import { useForm } from "react-hook-form";
 import { optionsMedioPago } from "~/types/ctas_corrientes";
-import type { CtasCorrientesDB } from "~/types/ctas_corrientes";
+import type { CtasCtesDB } from "~/types/ctas_corrientes";
 import { useState } from "react";
 import { ctaCorrienteAPI } from "~/backend/sheetServices";
-import BancosComponent from "../Bancos";
 import LoadingComponent from "../LoadingComponent";
 import { CheckCircle, AlertCircle, DollarSign } from "lucide-react";
 import { useData } from "~/context/DataContext";
-import type { TipoMovimiento } from "../modals/customs/MovimientoModal";
+import FileUploderComponent, {updateFilePDFCtaCte} from "../FileUpladerComponent";
 
-export type AddDeudaFormProps = CtasCorrientesDB;
+export type AddDeudaFormProps = CtasCtesDB;
 
 type FormState = "form" | "loading" | "success" | "error";
 
 export const AddDeudaForm = ({
   clienteId,
+  redirect,
 }: {
   clienteId?: string;
+  redirect?: boolean;
 }) => {
   const [formState, setFormState] = useState<FormState>("form");
-  const { getCuentasCorrientes, getCuentasCorrientesByClientes } = useData();
+  const [file, setFile] = useState<File | null>(null);
+  const { getCtaCteWithCheques, getCtasCtesByClientes, getCtasCtes } =
+    useData();
 
   const {
     register,
@@ -44,13 +47,18 @@ export const AddDeudaForm = ({
   const onSubmit = async (data: AddDeudaFormProps) => {
     setFormState("loading");
     try {
+      if(file) {
+            const fileLink = await updateFilePDFCtaCte(file);
+            data.documento_cta_cte = fileLink;
+            setValue("documento_cta_cte", fileLink, { shouldDirty: true });
+          }
       // 1. Crear el movimiento en cuentas corrientes
       const response = await ctaCorrienteAPI.create(data);
       if (!response.success)
         throw new Error("Error creating movimiento in cuenta corriente");
       // 2. Refrescar los datos en el contexto
-      await getCuentasCorrientes();
-      await getCuentasCorrientesByClientes();
+      await getCtaCteWithCheques(true);
+      await getCtasCtesByClientes();
       // 3. Actualizar el estado del formulario a éxito
       setFormState("success");
     } catch (error) {
@@ -93,12 +101,11 @@ export const AddDeudaForm = ({
                 disabled={true}
               >
                 <option value="">Seleccionar medio de pago</option>
-                {optionsMedioPago
-                  .map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
+                {optionsMedioPago.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </Select>
               <CurrencyInput
                 label="Importe del pago"
@@ -123,6 +130,12 @@ export const AddDeudaForm = ({
             <legend className="px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
               📝 Detalles Adicionales
             </legend>
+            <div className="mb-4 space-y-1">
+              <FileUploderComponent
+                value={watch("documento_cta_cte") || ""}
+                setFile={setFile}
+              />
+            </div>
             <Textarea
               label="Concepto / Detalle del movimiento"
               placeholder="Describa el motivo o concepto del movimiento"
@@ -152,7 +165,7 @@ export const AddDeudaForm = ({
               disabled={isSubmitting}
               className="w-full md:w-auto"
             >
-              {isSubmitting ? "Registrando..." : "✓ Registrar Pago"}
+              {isSubmitting ? "Registrando..." : "✓ Registrar Deuda"}
             </Button>
           </div>
         </form>
@@ -181,6 +194,16 @@ export const AddDeudaForm = ({
                 <p className="text-sm text-green-700 dark:text-green-400 mt-1">
                   El movimiento ha sido guardado en el sistema.
                 </p>
+                {redirect && (
+                  <div className="mt-6 w-fit ms-auto">
+                    <ButtonLink
+                      to={`/administracion/cuentas-corrientes/${clienteId}`}
+                      variant="green"
+                    >
+                      Ir a la cuenta corriente
+                    </ButtonLink>
+                  </div>
+                )}
               </div>
             </div>
           </div>

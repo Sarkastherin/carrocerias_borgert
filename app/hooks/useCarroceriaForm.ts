@@ -6,8 +6,9 @@ import { useState, useEffect } from "react";
 import { carroceriaAPI } from "~/backend/sheetServices";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
 import { useFormNavigationBlock } from "./useFormNavigationBlock";
+import { updateFilePDFPedidos } from "~/components/FileUpladerComponent";
 
-export function useCarroceriaForm() {
+export function useCarroceriaForm(file?: File | null) {
   const [isLoading, setIsLoading] = useState(false);
 
   const { showLoading, showSuccess, showError, showInfo } = useUIModals();
@@ -71,7 +72,7 @@ export function useCarroceriaForm() {
           cant_alargue_1: 0,
           med_alargue_1: 0,
           quiebre_alargue_1: false,
-          alargue_tipo_2: "",
+          alargue_tipo_2: "N/A",
           cant_alargue_2: 0,
           med_alargue_2: 0,
           quiebre_alargue_2: false,
@@ -92,6 +93,11 @@ export function useCarroceriaForm() {
     try {
       setIsLoading(true);
       showLoading();
+      if (file) {
+        const fileLink = await updateFilePDFPedidos(file, pedido?.numero_pedido);
+        formData.documento_carroceria = fileLink;
+        form.setValue("documento_carroceria", fileLink, { shouldDirty: true });
+      }
       if (existingPedido) {
         // Verificar si hay cambios en el formulario
         const hasDirtyFields =

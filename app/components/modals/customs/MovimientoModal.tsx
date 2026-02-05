@@ -15,40 +15,16 @@ export default function MovimientoModal({
   onClose,
   type,
   clienteId,
+  redirect
 }: {
   onClose: () => void;
   type: TipoMovimiento;
-  clienteId?: string;
+  clienteId: string;
+  redirect?: boolean;
 }) {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
-  // Callback para cerrar el modal después de éxito
-  const handleSuccess = (message: string) => {
-    setSuccessMessage(message);
-    setErrorMessage("");
-    // Cerrar el modal después de 2 segundos
-    setTimeout(() => {
-      onClose();
-    }, 2000);
-  };
-
-  const handleError = (message: string) => {
-    setErrorMessage(message);
-    setSuccessMessage("");
-    setIsLoading(false);
-  };
-
-  const handleLoadingStart = () => {
-    setIsLoading(true);
-    setSuccessMessage("");
-    setErrorMessage("");
-  };
-
-  const handleLoadingEnd = () => {
-    setIsLoading(false);
-  };
   const titulo = () => {
     switch (type) {
       case "cheque":
@@ -90,11 +66,11 @@ export default function MovimientoModal({
             <span className="text-sm font-medium">{errorMessage}</span>
           </div>
         )}
-        {type === "cheque" && <AddChequeForm clienteId={clienteId} />}
+        {type === "cheque" && <AddChequeForm clienteId={clienteId} redirect={redirect || false} />}
         {(type !== "cheque" && type !== "deuda") && (
-          <AddPagoForm clienteId={clienteId} type={type}/>
+          <AddPagoForm clienteId={clienteId} type={type} redirect={redirect} />
         )}
-        {type === "deuda" && <AddDeudaForm clienteId={clienteId}/>}
+        {type === "deuda" && <AddDeudaForm clienteId={clienteId} redirect={redirect} />}
       </div>
     </ModalBase>
   );

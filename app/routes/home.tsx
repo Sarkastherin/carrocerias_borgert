@@ -34,7 +34,7 @@ export const modules: CardLinkProps[] = [
     icon: FileCog,
     path: "/settings",
   },
-  /* {
+  {
     name: "Cuentas Corrientes",
     description: "Gestiona las cuentas corrientes de tus clientes.",
     icon: Wallet,
@@ -45,7 +45,13 @@ export const modules: CardLinkProps[] = [
     description: "Gestiona los cheques de tus clientes.",
     icon: Banknote,
     path: "administracion/cheques",
-  }, */
+  },
+  {
+    name: "Proveedores",
+    description: "Gestiona tus terceros y proveedores.",
+    icon: NotebookTabs,
+    path: "/proveedores",
+  }
 ];
 
 export default function HomePage() {
@@ -79,12 +85,15 @@ export default function HomePage() {
             })}
           </div>
         </div>
+        
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: 'url("/cover.jpg")' }}
         >
+          
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black/80"></div>
         </div>
+        
       </main>
       <footer className="p-2 sm:p-4 text-text-secondary text-xs text-center backdrop-blur-sm bg-black/20 border-t border-white/10">
         <div className="flex flex-col sm:flex-row sm:justify-center sm:items-center">
