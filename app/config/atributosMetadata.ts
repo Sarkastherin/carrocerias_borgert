@@ -433,6 +433,7 @@ export const atributosConMetadata: AtributoMetadata[] = [
     label: "Medida de larguero",
     fieldType: "text",
     placeholder: "medida del larguero",
+    unit: "mm",
   },
    {
     value: "voladizo_trasero",
