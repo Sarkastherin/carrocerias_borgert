@@ -1,6 +1,6 @@
 import type React from "react";
 import { Button, variants } from "../Buttons";
-import { Z_INDEX, getZIndexClass } from "~/config/zIndexConfig";
+import { Z_INDEX, getZIndexClass, type ZIndexLevel } from "~/config/zIndexConfig";
 export type ButtonsFooter = {
   label: string;
   handleOnClick: () => void;
@@ -13,7 +13,7 @@ export type FooterModal = {
 type ModalProps = {
   open: boolean;
   title: string;
-  zIndex: number;
+  zIndex?: ZIndexLevel;
   children: React.ReactNode;
   onClose?: () => void;
   footer?: FooterModal;
@@ -31,7 +31,7 @@ export default function ModalBase({
   width = "max-w-md",
 }: ModalProps) {
   // Usar z-index predefinido o el valor personalizado
-  const modalZIndex = typeof zIndex === "number" ? getZIndexClass(zIndex) : getZIndexClass(Z_INDEX.MODAL_BACKDROP);
+  const modalZIndex = getZIndexClass(zIndex ?? Z_INDEX.MODAL_BACKDROP);
   
   return (
     <div

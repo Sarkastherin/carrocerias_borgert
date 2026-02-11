@@ -43,6 +43,7 @@ import type {
   ConfigItemsControlBD,
   DefaultDB,
   ControlCarrozadoDB,
+  DefaultWithPuertas,
 } from "~/types/settings";
 import type { CRUDMethods } from "~/backend/crudFactory";
 import type {
@@ -83,7 +84,11 @@ type DataContextType = {
   deletePedidoById: (id: string) => Promise<void>;
   deleteClienteById: (id: string) => Promise<void>;
   deleteProveedorById: (id: string) => Promise<void>;
-  checkCuitExists: (cuit: string, excludeId?: string) => Promise<boolean>;
+  checkCuitExists: (
+    cuit: string,
+    excludeId?: string,
+    table?: "clientes" | "proveedores",
+  ) => Promise<boolean>;
   configItemsControl: ConfigItemsControlBD[] | null;
   getConfigItemsControl: () => Promise<ConfigItemsControlBD[]>;
   controlCarrozado: ControlCarrozadoDB[] | null;
@@ -127,6 +132,8 @@ type DataContextType = {
   getCtaCteWithCheques: (
     forceRefresh?: boolean,
   ) => Promise<CtasCtesWithCheque[]>;
+  getDefaultsWithPuertas: () => Promise<void>;
+  defaultsWithPuertas: DefaultWithPuertas[] | null;
 };
 type Tables = "carroceria" | "trabajo_chasis" | "camion";
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -185,6 +192,9 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const [bancos, setBancos] = useState<BancosProps[] | null>(null);
   const [ctaCteWithCheques, setCtaCteWithCheques] = useState<
     CtasCtesWithCheque[] | null
+  >(null);
+  const [defaultsWithPuertas, setDefaultsWithPuertas] = useState<
+    DefaultWithPuertas[] | null
   >(null);
   const getClientes = async () => {
     return await getCompleteData({
@@ -696,6 +706,26 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       setData: setConfigItemsControl,
     });
   };
+  const getDefaultsWithPuertas = async () => {
+    let dataDefaults: DefaultDB[] | null = defaults;
+    if (!defaults) {
+      dataDefaults = await getDefaults();
+    }
+    let puertasTraserasData: PuertasTraserasBD[] | null = puertasTraseras;
+    if (!puertasTraseras) {
+      puertasTraserasData = await getPuertasTraseras();
+    }
+    const data = dataDefaults?.map((def) => {
+      const puertaTrasera = puertasTraserasData?.find(
+        (p) => p.id === def.valor,
+      );
+      return {
+        ...def,
+        puerta_trasera_nombre: puertaTrasera ? puertaTrasera.nombre : "-",
+      };
+    });
+    setDefaultsWithPuertas(data || null);
+  };
   const getDefaults = async () => {
     return await getCompleteData({
       api: defaultAPI,
@@ -735,15 +765,26 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const checkCuitExists = async (
     cuit: string,
     excludeId?: string,
+    table: "clientes" | "proveedores" = "clientes",
   ): Promise<boolean> => {
     try {
       // Buscar clientes con el CUIT especificado
-      const response = await clientesAPI.read({
-        columnName: "cuit_cuil",
-        value: cuit,
-        operator: "=",
-        multiple: true,
-      });
+      let response;
+      if (table === "proveedores") {
+        response = await proveedoresAPI.read({
+          columnName: "cuit_cuil",
+          value: cuit,
+          operator: "=",
+          multiple: true,
+        });
+      } else {
+        response = await clientesAPI.read({
+          columnName: "cuit_cuil",
+          value: cuit,
+          operator: "=",
+          multiple: true,
+        });
+      }
 
       if (!response.success) {
         // En caso de error, asumir que no existe (es más seguro)
@@ -1133,6 +1174,8 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         ctaCteWithCheques,
         getCtaCteWithCheques,
         getCtasCtes,
+        getDefaultsWithPuertas,
+        defaultsWithPuertas,
       }}
     >
       {children}

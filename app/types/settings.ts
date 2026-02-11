@@ -40,7 +40,9 @@ export type DefaultDB = {
   valor: string;
   tipo: "fijo" | "seleccionable";
 } & CommonSettingsBD;
-
+export type DefaultWithPuertas = DefaultDB & {
+  puertas_traseras_nombre?: string;
+};
 export type ControlCarrozadoDB = {
   carrozado_id: string;
   item_control_id: string;

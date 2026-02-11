@@ -239,7 +239,6 @@ export const atributosConMetadata: AtributoMetadata[] = [
     label: "Color lona",
     fieldType: "text",
     placeholder: "Color de la lona",
-    disabledDefaultValues: true,
   },
   {
     value: "color_carrozado_id",
@@ -405,18 +404,21 @@ export const atributosConMetadata: AtributoMetadata[] = [
     label: "Marca",
     fieldType: "text",
     placeholder: "marca del camión",
+    disabledDefaultValues: true,
   },
   {
     value: "modelo",
     label: "Modelo",
     fieldType: "text",
     placeholder: "modelo del camión",
+    disabledDefaultValues: true,
   },
   {
     value: "patente",
     label: "Patente",
     fieldType: "text",
     placeholder: "patente del camión",
+    disabledDefaultValues: true,
   },
   {
     value: "tipo_larguero",

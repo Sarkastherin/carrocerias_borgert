@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { useUIModals } from "~/context/ModalsContext";
 import { useData } from "~/context/DataContext";
 import { useState } from "react";
-import {proveedoresAPI} from "~/backend/sheetServices";
+import { proveedoresAPI } from "~/backend/sheetServices";
 import { useNavigate } from "react-router";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
 import { useFormNavigationBlock } from "./useFormNavigationBlock";
@@ -47,7 +47,8 @@ export function useProveedorForm({
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
-  const { showLoading, showSuccess, showError, showInfo, closeModal } = useUIModals();
+  const { showLoading, showSuccess, showError, showInfo, closeModal } =
+    useUIModals();
   const { proveedor, getProveedores, checkCuitExists } = useData();
   const isEditMode = Boolean(proveedor);
   const existingProveedor = proveedor as ProveedoresBD | null;
@@ -102,11 +103,13 @@ export function useProveedorForm({
       if (formData.cuit_cuil) {
         const cuitExists = await checkCuitExists(
           formData.cuit_cuil,
-          isEditMode ? existingProveedor?.id : undefined
+          isEditMode ? existingProveedor?.id : undefined,
+          "proveedores",
         );
 
         if (cuitExists) {
-          const errorMsg = "Ya existe un proveedor registrado con este CUIT/CUIL";
+          const errorMsg =
+            "Ya existe un proveedor registrado con este CUIT/CUIL";
           if (modal && onError) {
             onError(errorMsg);
           } else {
@@ -143,7 +146,9 @@ export function useProveedorForm({
         onLoadingStart();
       } else {
         showLoading(
-          isEditMode ? "Actualizando proveedor..." : "Creando nuevo proveedor..."
+          isEditMode
+            ? "Actualizando proveedor..."
+            : "Creando nuevo proveedor...",
         );
       }
 
@@ -172,12 +177,12 @@ export function useProveedorForm({
         });
         const response = await proveedoresAPI.update(
           existingProveedor?.id || "",
-          updatePayload
+          updatePayload,
         );
         if (!response.success) {
           console.log(response);
           throw new Error(
-            response.message || "Error desconocido al actualizar el proveedor"
+            response.message || "Error desconocido al actualizar el proveedor",
           );
         }
         await getProveedores();
@@ -205,7 +210,7 @@ export function useProveedorForm({
         const response = await proveedoresAPI.create(formData);
         if (!response.success) {
           throw new Error(
-            response.message || "Error desconocido al crear el proveedor"
+            response.message || "Error desconocido al crear el proveedor",
           );
         }
         await getProveedores();

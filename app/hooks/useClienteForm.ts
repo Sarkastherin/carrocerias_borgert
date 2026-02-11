@@ -108,7 +108,8 @@ export function useClienteForm({
       if (formData.cuit_cuil) {
         const cuitExists = await checkCuitExists(
           formData.cuit_cuil,
-          isEditMode ? existingCliente?.id : undefined
+          isEditMode ? existingCliente?.id : undefined,
+          "clientes"
         );
 
         if (cuitExists) {

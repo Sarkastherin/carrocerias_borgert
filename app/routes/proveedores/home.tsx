@@ -107,7 +107,6 @@ export default function ProveedoresHome() {
         </div>
       ) : (
         <div className="px-6">
-          <UploadFile/>
           <Subheader
             title="Proveedores"
             icon={{

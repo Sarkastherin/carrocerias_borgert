@@ -1,4 +1,4 @@
-import React, { useState, useEffect, type JSX, use } from "react";
+import React, { useState, useEffect, type JSX } from "react";
 import DataTable, {
   createTheme,
   type TableColumn,

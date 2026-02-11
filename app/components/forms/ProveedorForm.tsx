@@ -59,7 +59,6 @@ export default function ProveedorForm({
   const existingProveedor = proveedor;
   const handleDeleteProveedor = async () => {
     if (!existingProveedor) return;
-
     showConfirmation(
       `¿Estás seguro de que deseas eliminar el proveedor "${existingProveedor.razon_social}"? Esta acción no se puede deshacer. Si el proveedor tiene pedidos asociados, no podrá ser eliminado.`,
       async () => {

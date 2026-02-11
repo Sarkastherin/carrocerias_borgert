@@ -62,8 +62,12 @@ export const createSettingsConfig = (
       },
       {
         name: "Valor por defecto",
-        selector: (row: any) =>
-          typeof row.valor === "string" ? capitalize(row.valor) : row.valor,
+        selector: (row: any) =>{
+          if(row.puerta_trasera_nombre !== "-") {
+            return `${row.puerta_trasera_nombre}`;
+          }
+          return typeof row.valor === "string" ? capitalize(row.valor) : row.valor;
+        },
         sortable: true,
       },
       {
@@ -221,8 +225,8 @@ export const getSettingsWithData = (
 };
 export const useSettingsData = (carrozadoId?: string) => {
   const { 
-    defaults, 
-    getDefaults, 
+    defaultsWithPuertas, 
+    getDefaultsWithPuertas, 
     controlCarrozado, 
     getControlCarrozado,
     configItemsControl,
@@ -235,15 +239,15 @@ export const useSettingsData = (carrozadoId?: string) => {
 
   // Usar el hook useDataLoader para cargar todos los datos
   const { isLoading } = useDataLoader({
-    loaders: [getDefaults, getControlCarrozado, getConfigItemsControl, getPuertasTraseras, getColores],
-    dependencies: [defaults, controlCarrozado, configItemsControl, puertasTraseras, colores],
+    loaders: [getDefaultsWithPuertas, getControlCarrozado, getConfigItemsControl, getPuertasTraseras, getColores],
+    dependencies: [defaultsWithPuertas, controlCarrozado, configItemsControl, puertasTraseras, colores],
     errorMessage: "Error cargando configuraciones",
   });
 
   // Filtrar datos por carrozadoId si está disponible
   const filteredDefaults = useMemo(() => {
-    if (!defaults || !carrozadoId) return defaults;
-    const defaultaData = defaults.filter(
+    if (!defaultsWithPuertas || !carrozadoId) return defaultsWithPuertas;
+    const defaultaData = defaultsWithPuertas.filter(
       (item) => item.carrozado_id === carrozadoId
     );
     const filteredDefaultsWithLabels = defaultaData.map((item) => {
@@ -254,8 +258,9 @@ export const useSettingsData = (carrozadoId?: string) => {
           item.atributo,
       };
     });
+
     return filteredDefaultsWithLabels;
-  }, [defaults, carrozadoId]);
+  }, [defaultsWithPuertas, carrozadoId]);
 
   const filteredControlCarrozado = useMemo(() => {
     if (!controlCarrozado || !carrozadoId) return controlCarrozado;
@@ -300,14 +305,13 @@ export const useSettingsData = (carrozadoId?: string) => {
   // Crear la configuración de items con datos incorporados
   const itemsConfiguraciones = useMemo(() => {
     if (isLoading) return null;
-
     return getSettingsWithData(
       {
         defaults: filteredDefaults,
         controlCarrozado: filteredControlCarrozado,
       },
       {
-        getDefaults,
+        getDefaults: getDefaultsWithPuertas,
         getControlCarrozado,
       },
       itemsControlOptions,
@@ -323,7 +327,7 @@ export const useSettingsData = (carrozadoId?: string) => {
     isLoading,
     filteredDefaults,
     filteredControlCarrozado,
-    getDefaults,
+    getDefaultsWithPuertas,
     getControlCarrozado,
     itemsControlOptions,
     puertasTraserasOptions,

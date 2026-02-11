@@ -87,6 +87,7 @@ export default function CarroceriaForm() {
       setValue("tipo_carrozado_id", carrozadoId);
       return;
     }
+    console.log("Selected Carrozado:", selectedCarrozado);
     for (const item of selectedCarrozado) {
       const { atributo, valor, tipo } = item;
       setValue(atributo as any, valor);

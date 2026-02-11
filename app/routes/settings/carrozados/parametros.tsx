@@ -167,10 +167,11 @@ export default function SettingsLayoutCarrozado() {
     // Lógica para eliminar el registro
     openModal("CONFIRMATION", {
       title: "Confirmar Eliminación",
-      message: `¿Estás seguro de que deseas eliminar este ${activeTab.slice(0, -1)}? Esta acción no se puede deshacer.`,
+      message: `¿Estás seguro de que deseas eliminar este ${activeTab.slice(0)}? Esta acción no se puede deshacer.`,
       confirmText: "Eliminar",
       cancelText: "Cancelar",
       onConfirm: async () => {
+        console.log("Eliminar fila:", row);
         const activeItem = itemsConfiguraciones?.find(
           (item) => item.title === activeTab
         );
@@ -237,7 +238,6 @@ export default function SettingsLayoutCarrozado() {
     }),
     [handleDelete]
   );
-
   return (
     <div className="flex" style={{ minHeight: "calc(100vh - 67px)" }}>
       {!isLoading && itemsConfiguraciones ? (
