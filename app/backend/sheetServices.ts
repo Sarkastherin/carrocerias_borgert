@@ -1,6 +1,6 @@
 import { createCrud } from "./crudFactory";
 import type { ClientesBD } from "~/types/clientes";
-import type { CtasCtesDB, ChequesDB, ProveedoresProps } from "~/types/ctas_corrientes";
+import type { MvtosDB, ChequesDB } from "~/types/ctas_corrientes";
 import type {
   CarroceriaBD,
   PedidosBD,
@@ -8,6 +8,8 @@ import type {
   TrabajoChasisBD,
   OrdenesBD,
   ControlesBD,
+  DocumentosBD,
+  DocumentosCtasCtesBD,
 } from "~/types/pedidos";
 import type { ProveedoresBD } from "~/types/proveedores";
 import type {
@@ -96,7 +98,7 @@ export const controlesAPI =  createCrud<ControlesBD>({
   nameSheet: "Controles",
   nameFile: "Órdenes de Trabajo",
 });
-export const ctaCorrienteAPI = createCrud<CtasCtesDB>({
+export const mvtosAPI = createCrud<MvtosDB>({
   sheetId: import.meta.env.VITE_SHEET_ID_CTAS_CORRI,
   nameSheet: "movimientos",
   nameFile: "Cuentas Corrientes",
@@ -110,4 +112,14 @@ export const proveedoresAPI = createCrud<ProveedoresBD>({
   sheetId: import.meta.env.VITE_SHEET_ID_PROVEEDORES,
   nameSheet: "Datos",
   nameFile: "Proveedores",
+});
+export const documentosPedidosAPI = createCrud<DocumentosBD>({
+  sheetId: import.meta.env.VITE_SHEET_ID_PEDIDOS,
+  nameSheet: "Documentos",
+  nameFile: "Pedidos",
+});
+export const documentosCtasCtesAPI = createCrud<DocumentosCtasCtesBD>({
+  sheetId: import.meta.env.VITE_SHEET_ID_CTAS_CORRI,
+  nameSheet: "documentos",
+  nameFile: "Cuentas Corrientes",
 });

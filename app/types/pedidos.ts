@@ -11,6 +11,7 @@ import {
   tiposBoquillasOptions,
   ubicacionOptions,
 } from "~/config/atributosMetadata";
+import type { ClientesBD } from "./clientes";
 export const statusOptions = [
   { value: "incompleto", label: "⏳ Incompleto" },
   { value: "nuevo", label: "🆕 Nuevo" },
@@ -56,6 +57,7 @@ export const alarguesOptions = [
   { value: "sobre cumbrera", label: "Sobre Cumbrera" },
   { value: "N/A", label: "No aplica" },
 ];
+export type TipoDocumento = "camion" | "carroceria" | "movimiento";
 
 export type PedidosBD = {
   id: string;
@@ -75,7 +77,7 @@ export type PedidosBD = {
   armador_id?: string;
 };
 export type PedidosTable = PedidosBD & {
-  razon_social: string;
+  cliente: ClientesBD;
   vendedor_nombre?: string;
   armador_nombre?: string;
 };
@@ -149,7 +151,6 @@ export type CamionBD = {
   centro_eje: number;
   voladizo_trasero: number;
   observaciones?: string;
-  documento_camion?: string;
   contacto_telefono?: string;
   contacto_nombre?: string;
 };
@@ -174,6 +175,7 @@ export type PedidosUI = PedidosTable & {
   carroceria: CarroceriaUI | null;
 } & {
   trabajo_chasis: TrabajoChasisUI[];
+  documentos: DocumentosBD[];
 } & { camion: CamionBD | null };
 export type OrdenesBD = {
   id: string;
@@ -196,4 +198,20 @@ export type ControlesBD = {
   url_archivo: string;
   resultado?: string;
   notas?: string;
+};
+export type DocumentosBD = {
+  id: string;
+  fecha_creacion: string;
+  pedido_id: string;
+  tipo_documento: TipoDocumento;
+  nombre: string;
+  url: string;
+};
+export type DocumentosCtasCtesBD = {
+  id: string;
+  fecha_creacion: string;
+  cta_cte_id: string;
+  tipo_documento: TipoDocumento;
+  nombre: string;
+  url: string;
 };

@@ -1,5 +1,6 @@
 import type { ClientesBD } from "./clientes";
 import type { ProveedoresBD } from "./proveedores";
+import type { DocumentosCtasCtesBD } from "./pedidos";
 
 export const optionsTypeMov = [
   { value: "deuda", label: "Deuda" },
@@ -11,12 +12,13 @@ export const optionsOrigen = [
   { value: "manual", label: "Manual" },
   { value: "cheque", label: "Cheque" },
 ];
+
 export const optionsMedioPago = [
-  { value: "efectivo", label: "Efectivo", origen: "manual" },
-  { value: "transferencia", label: "Transferencia", origen: "manual" },
-  { value: "carroceria_usada", label: "Carrocería usada", origen: "vehiculo" },
-  { value: "cheque", label: "Cheque", origen: "cheque" },
-  { value: "no aplica", label: "No aplica", origen: "otro" },
+  { value: "efectivo", label: "Efectivo", tipo: "efectivo" },
+  { value: "transferencia", label: "Transferencia", tipo: "efectivo" },
+  { value: "carroceria_usada", label: "Carrocería usada", tipo: "carroceria_usada" },
+  { value: "cheque", label: "Cheque", tipo: "cheque" },
+  { value: "no aplica", label: "No aplica", tipo: "otro" },
 ];
 export const optionsTipoCheque = [
   { value: "fisico", label: "Físico" },
@@ -31,7 +33,7 @@ export const optionsStatusCheque = [
   { value: "anulado", label: "Anulado" },
   { value: "vencido", label: "Vencido" },
 ];
-export type CtasCtesDB = {
+export type MvtosDB = {
   id: string;
   fecha_creacion: string;
   cliente_id: string;
@@ -44,13 +46,17 @@ export type CtasCtesDB = {
   debe: number;
   haber: number;
   usuario_id?: string;
-  documento_cta_cte?: string;
 };
-export type CtaCteConCliente = CtasCtesDB & {
-  razon_social: string;
-  cuit_cuil: string;
-  condicion_iva: string;
-};
+export type MvtosWithCheques = MvtosDB & {
+  cheques?: ChequesEnriched[];
+  documentos?: DocumentosCtasCtesBD[];
+}
+export type CtaCte = ClientesBD & {
+  debe: number;
+  haber: number;
+  saldo: number;
+  movimientos: MvtosWithCheques[];
+}
 export type ChequesDB = {
   id: string;
   fecha_creacion: string;
@@ -73,7 +79,7 @@ export type ChequesDB = {
   observacion?: string;
 };
 export type ChequesWithTerceros = ChequesDB & {
-  ctaCte: CtasCtesDB;
+  ctaCte: MvtosDB;
   cliente: ClientesBD;
   nombre_banco: string;
   proveedor?: ProveedoresBD;
@@ -82,6 +88,13 @@ export type BancosProps = {
   value: string;
   label: string;
 }
-export type CtasCtesWithCheque = CtasCtesDB & {
+export type CtasCtesWithCheque = MvtosDB & {
   cheques?: ChequesDB[];
+};
+export type ChequesEnriched = ChequesDB & {
+  proveedor?: ProveedoresBD;
+  nombre_banco?: string;
+}
+export type ChequesEnrichWithCtaCte = ChequesEnriched & {
+  ctaCte: CtaCte;
 };

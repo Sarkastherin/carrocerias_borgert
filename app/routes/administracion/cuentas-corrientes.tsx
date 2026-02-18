@@ -7,7 +7,7 @@ import { EntityTable } from "~/components/EntityTable";
 import type { TableColumn } from "react-data-table-component";
 import { useNavigate } from "react-router";
 import LoadingComponent from "~/components/LoadingComponent";
-import type { CtaCteConCliente } from "~/types/ctas_corrientes";
+import type { CtaCte } from "~/types/ctas_corrientes";
 import { formatCuit } from "~/components/Inputs";
 import { Subheader } from "~/components/Headers";
 import { Wallet } from "lucide-react";
@@ -23,7 +23,7 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-const ctasCorrientes: TableColumn<CtaCteConCliente>[] = [
+const ctasCorrientes: TableColumn<CtaCte>[] = [
   {
     name: "Razón Social",
     selector: (row) => row.razon_social,
@@ -40,32 +40,30 @@ const ctasCorrientes: TableColumn<CtaCteConCliente>[] = [
       row.debe
         .toLocaleString("es-AR", { style: "currency", currency: "ARS" }),
     sortable: true,
-    right: true,
   },
   {
     name: "Haber",
     selector: (row) => row.haber.toLocaleString("es-AR", { style: "currency", currency: "ARS" }),
     sortable: true,
-    right: true,
   },
   {
     name: "Saldo",
-    selector: (row) => (row.haber - row.debe).toLocaleString("es-AR", { style: "currency", currency: "ARS" }),
+    selector: (row) => (row.saldo).toLocaleString("es-AR", { style: "currency", currency: "ARS" }),
     sortable: true,
-    right: true,
   },
 ];
 export default function CuentasCorrientes() {
-  const { getCtasCtesByClientes, ctasCtesByClientes} =
+  const { getCtasCtes, ctasCtes, setCtaCte, ctaCte} =
     useData();
   const navigate = useNavigate();
   useEffect(() => {
-    if (!ctasCtesByClientes) getCtasCtesByClientes();
+    if (!ctasCtes) getCtasCtes();
   }, []);
-  const handleRowClick = (row: CtaCteConCliente) => {
-    navigate(`${row.id}`, { state: { cliente: row } });
+  const handleRowClick = (row: CtaCte) => {
+    setCtaCte(row);
+    navigate(`${row.id}`, {state: { ctaCte: row }});
   };
-  if (!ctasCtesByClientes) {
+  if (!ctasCtes) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -77,7 +75,7 @@ export default function CuentasCorrientes() {
 
   return (
     <>
-      {ctasCtesByClientes.length === 0 ? (
+      {ctasCtes.length === 0 ? (
         <div className="min-h-screen flex items-center justify-center">
           <div className="flex flex-col text-center space-y-3 text-text-secondary">
             <img
@@ -111,7 +109,7 @@ export default function CuentasCorrientes() {
             back_path="/"
           />
           <EntityTable
-            data={ctasCtesByClientes}
+            data={ctasCtes}
             columns={ctasCorrientes}
             onRowClick={(row) => handleRowClick(row)}
             inactiveField="activo" // Campo para identificar clientes inactivos

@@ -1,19 +1,22 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { Route } from "../+types/home";
 import { useData } from "~/context/DataContext";
-import { ButtonLink, ButtonLinkAdd } from "~/components/Buttons";
+import { ButtonLink } from "~/components/Buttons";
 import { PlusIcon } from "lucide-react";
 import { EntityTable } from "~/components/EntityTable";
 import type { TableColumn } from "react-data-table-component";
 import LoadingComponent from "~/components/LoadingComponent";
-import type { ChequesWithTerceros } from "~/types/ctas_corrientes";
+import type { ChequesEnrichWithCtaCte } from "~/types/ctas_corrientes";
 import { capitalize } from "~/config/settingsConfig";
 import { formatDateUStoES } from "~/utils/formatDate";
 import { BadgeStatusCheque } from "~/components/Badge";
-import { useUIModals } from "~/context/ModalsContext";
 import { useNavigate } from "react-router";
 import { Subheader } from "~/components/Headers";
 import { Banknote } from "lucide-react";
+import {
+  optionsStatusCheque,
+  optionsTipoCheque,
+} from "~/types/ctas_corrientes";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -21,21 +24,22 @@ export function meta({}: Route.MetaArgs) {
     { name: "description", content: "Bienvenido a la gestión de cheques" },
   ];
 }
-const chequesColumns: TableColumn<ChequesWithTerceros>[] = [
+
+const chequesColumns: TableColumn<ChequesEnrichWithCtaCte>[] = [
   {
     name: "Fecha de pago",
     selector: (row) => formatDateUStoES(row.fecha_cobro),
     sortable: true,
     width: "150px",
   },
-   {
+  {
     name: "Tipo de Cheque",
     selector: (row) => capitalize(row.tipo),
     width: "150px",
   },
   {
     name: "Banco",
-    selector: (row) => row.nombre_banco,
+    selector: (row) => row.nombre_banco || "-",
     sortable: true,
     width: "150px",
   },
@@ -56,7 +60,7 @@ const chequesColumns: TableColumn<ChequesWithTerceros>[] = [
   },
   {
     name: "Origen",
-    selector: (row) => row.cliente.razon_social,
+    selector: (row) => row.ctaCte.razon_social,
     sortable: true,
   },
   {
@@ -75,20 +79,34 @@ const chequesColumns: TableColumn<ChequesWithTerceros>[] = [
     sortable: true,
   },
 ];
+
 export default function Cheques() {
   const navigate = useNavigate();
-  const { openModal } = useUIModals();
-  const { chequesWithClients, getChequesWithTerceros } = useData();
+  const { getCtasCtes, ctasCtes } = useData();
+  const [chequesEnrichedWithCtaCte, setChequesEnrichedWithCtaCte] = useState<
+    ChequesEnrichWithCtaCte[] | null
+  >(null);
   useEffect(() => {
-    if (!chequesWithClients) getChequesWithTerceros();
+    if (!ctasCtes) getCtasCtes();
   }, []);
-  const handleRowClick = (row: ChequesWithTerceros) => {
+  useEffect(() => {
+    if (!ctasCtes) return;
+    const allCheques: ChequesEnrichWithCtaCte[] = ctasCtes.flatMap((cta) =>
+      cta.movimientos.flatMap((mvto) =>
+        mvto.cheques
+          ? mvto.cheques.map((cheque) => ({ ...cheque, ctaCte: cta }))
+          : [],
+      ),
+    );
+    setChequesEnrichedWithCtaCte(allCheques);
+  }, [ctasCtes]);
+  const handleRowClick = (row: ChequesEnrichWithCtaCte) => {
     openModalActionCheque(row);
   };
-  const openModalActionCheque = (row: ChequesWithTerceros) => {
+  const openModalActionCheque = (row: ChequesEnrichWithCtaCte) => {
     navigate(`/administracion/${row.id}`, { state: { cheque: row } });
   };
-  if (!chequesWithClients) {
+  if (!chequesEnrichedWithCtaCte) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -100,7 +118,7 @@ export default function Cheques() {
 
   return (
     <>
-      {chequesWithClients.length === 0 ? (
+      {chequesEnrichedWithCtaCte.length === 0 ? (
         <div className="min-h-screen flex items-center justify-center">
           <div className="flex flex-col text-center space-y-3 text-text-secondary">
             <img
@@ -137,19 +155,51 @@ export default function Cheques() {
             back_path="/"
           />
           <EntityTable
-            data={chequesWithClients}
+            data={chequesEnrichedWithCtaCte}
             columns={chequesColumns}
             onRowClick={(row) => handleRowClick(row)}
             inactiveField="activo" // Campo para identificar clientes inactivos
             filterFields={[
               {
-                key: "razon_social",
+                key: "ctaCte.razon_social",
                 label: "Razón Social",
                 autoFilter: true,
               },
               {
-                key: "cuit_cuil",
+                key: "ctaCte.cuit_cuil",
                 label: "CUIT/CUIL",
+                autoFilter: true,
+              },
+              {
+                key: "tipo",
+                label: "Tipo de Cheque",
+                type: "select",
+                options: (
+                  <>
+                    <option value="">Todos</option>
+                    {optionsTipoCheque.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </>
+                ),
+                autoFilter: true,
+              },
+              {
+                key: "status",
+                label: "Estado",
+                type: "select",
+                options: (
+                  <>
+                    <option value="">Todos</option>
+                    {optionsStatusCheque.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </>
+                ),
                 autoFilter: true,
               },
             ]}

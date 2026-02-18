@@ -1,24 +1,23 @@
 import { Input, Textarea, formatCuit, Select } from "../Inputs";
 import { Button } from "../Buttons";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GlassCard } from "../GlassCard";
 import { useForm } from "react-hook-form";
-import type { ChequesWithTerceros, ChequesDB } from "~/types/ctas_corrientes";
-import { BancosComponent } from "../Bancos";
+import type { ChequesEnrichWithCtaCte, ChequesDB } from "~/types/ctas_corrientes";
 import ProveedorField from "../ProveedorField";
 import { BadgeStatusCheque } from "../Badge";
 import { capitalize } from "~/config/settingsConfig";
 import { useUIModals } from "~/context/ModalsContext";
 import { useFormNavigationBlock } from "~/hooks/useFormNavigationBlock";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
-import { chequesAPI, ctaCorrienteAPI } from "~/backend/sheetServices";
+import { chequesAPI, mvtosAPI } from "~/backend/sheetServices";
 import { useData } from "~/context/DataContext";
 import { useNavigate } from "react-router";
-import type { CtasCtesDB } from "~/types/ctas_corrientes";
+import type { MvtosDB } from "~/types/ctas_corrientes";
 type AccionTypes = "depositar" | "endosar" | "anular" | "acreditar" | "rechazar";
-export default function ChequeForm({ data }: { data?: ChequesWithTerceros }) {
+export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte }) {
   const navigate = useNavigate();
-  const { refreshChequesWithTerceros, getCtasCtes, getCtasCtesByClientes } = useData();
+  const { refreshCtasCtes, getMvtos, getCtasCtes, bancos, getBancos } = useData();
   const { showInfo, showLoading, showError, showSuccess } = useUIModals();
   const [accion, setAccion] = useState<AccionTypes | "">("");
   const {
@@ -34,9 +33,12 @@ export default function ChequeForm({ data }: { data?: ChequesWithTerceros }) {
       dirtyFields,
       isSubmitSuccessful,
     },
-  } = useForm<ChequesWithTerceros>({
+  } = useForm<ChequesEnrichWithCtaCte>({
     defaultValues: data,
   });
+  useEffect(() => {
+      if (!bancos) getBancos();
+    }, [bancos, getBancos]);
   useFormNavigationBlock({
     isDirty:
       isDirty && dirtyFields ? Object.keys(dirtyFields).length > 0 : false,
@@ -55,7 +57,7 @@ export default function ChequeForm({ data }: { data?: ChequesWithTerceros }) {
       monto: number;
     }) => {
       try {
-        const newDeuda: Omit<CtasCtesDB, "id" | "fecha_creacion"> = {
+        const newDeuda: Omit<MvtosDB, "id" | "fecha_creacion"> = {
           cliente_id: clienteId,
           fecha_movimiento: new Date().toISOString().split("T")[0],
           tipo_movimiento: "deuda",
@@ -65,14 +67,12 @@ export default function ChequeForm({ data }: { data?: ChequesWithTerceros }) {
           debe: monto,
           haber: 0,
         };
-        const response = await ctaCorrienteAPI.create(newDeuda);
+        const response = await mvtosAPI.create(newDeuda);
         if (!response.success)
           throw new Error(
             response.message ||
               "Error desconocido al crear movimiento de cta corriente"
           );
-        await getCtasCtes();
-        await getCtasCtesByClientes();
         return true;
       } catch (error) {
         throw new Error(
@@ -82,9 +82,12 @@ export default function ChequeForm({ data }: { data?: ChequesWithTerceros }) {
         );
       }
     };
-  const onSubmit = async (formData: ChequesWithTerceros) => {
+  const onSubmit = async (formData: ChequesEnrichWithCtaCte) => {
     showLoading("Guardando cambios...", "Por favor, espere.");
-    const { cliente, proveedor, nombre_banco, ...rest } = formData;
+    let loadMvto = false;
+    let loadCheques = false;
+    let loadFiles = false;
+    const { ctaCte, proveedor, nombre_banco, ...rest } = formData;
     const hasDirtyFields = dirtyFields && Object.keys(dirtyFields).length > 0;
     if (!hasDirtyFields) {
       showInfo("No hay cambios para guardar.");
@@ -97,16 +100,22 @@ export default function ChequeForm({ data }: { data?: ChequesWithTerceros }) {
     try {
       const response = await chequesAPI.update(rest.id, updatePayload);
       if (!response.success) throw new Error(response.message);
+      loadCheques = true;
       if(accion === "rechazar"){
         await createMtoCtaCorriente({
-          clienteId: formData.cliente.id,
+          clienteId: formData.ctaCte.id,
           monto: formData.importe,
         });
       }
       // Forzar recarga completa de cheques invalidando el caché primero
-      const isRefreshed = await refreshChequesWithTerceros();
+      const refresh = await refreshCtasCtes({
+        refMvto: true,
+        refCheque: loadCheques,
+        refDocu: loadFiles,
+      });
+      if (!refresh) throw new Error("Error refreshing cuentas corrientes data");
       // mostrar modal de exito
-      if (isRefreshed) {
+      if (refresh) {
         showSuccess("Cheque actualizado con éxito.", () => {
           setTimeout(() => {
             navigate("/administracion/cheques");
@@ -117,7 +126,6 @@ export default function ChequeForm({ data }: { data?: ChequesWithTerceros }) {
           "Cheque actualizado, pero no se pudieron refrescar los datos. Actualice la página manualmente.",
         );
       }
-      reset(formData);
     } catch (error) {
       showError(
         "Error al actualizar el cheque. Por favor, intente nuevamente más tarde.",
@@ -180,10 +188,10 @@ export default function ChequeForm({ data }: { data?: ChequesWithTerceros }) {
                   Razón social
                 </p>
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
-                  {data?.cliente.razon_social}
+                  {data?.ctaCte.razon_social}
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                  CUIT: {formatCuit(data?.cliente.cuit_cuil || "")}
+                  CUIT: {formatCuit(data?.ctaCte.cuit_cuil || "")}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                   Estado actual:{" "}
@@ -282,11 +290,28 @@ export default function ChequeForm({ data }: { data?: ChequesWithTerceros }) {
                   error={errors.fecha_cobro?.message as string}
                   requiredField={true}
                 />
-                <BancosComponent
-                  register={register}
-                  errors={errors}
-                  watch={watch}
-                />
+                {bancos && (
+                    <Select
+                      label="Banco"
+                      {...register(`banco`, {
+                        required: {
+                          value: watch(`tipo`) === "fisico",
+                          message: "El banco es obligatorio",
+                        },
+                      })}
+                      error={errors.banco?.message as string}
+                      requiredField={
+                        watch(`tipo`) === "fisico"
+                      }
+                    >
+                      <option value="">Seleccione un banco</option>
+                      {bancos?.map((banco) => (
+                        <option key={banco.value} value={banco.value}>
+                          {banco.label}
+                        </option>
+                      ))}
+                    </Select>
+                  )}
                 <Input
                   label="N° Cheque"
                   placeholder="Ej: 123456"

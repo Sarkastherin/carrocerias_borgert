@@ -1,6 +1,7 @@
 import { View } from "@react-pdf/renderer";
 import type { OrdenesBD, PedidosUI } from "~/types/pedidos";
 import { Subtitle, Box, Row, Cell, TitleBox } from "./pdfComponents";
+import { formatDateUStoES } from "~/utils/formatDate";
 
 export const DatosPedido = ({
   pedidoData,
@@ -26,15 +27,15 @@ export const DatosPedido = ({
         />
         <Cell
           title="Fecha de Pedido"
-          value={new Date().toLocaleDateString("es-ES", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })}
+          value={formatDateUStoES(pedidoData?.fecha_pedido)}
         />
       </Row>
       <Row isLast>
-        <Cell title="Cliente" value={pedidoData?.razon_social} isFirst />
+        <Cell
+          title="Cliente"
+          value={pedidoData?.cliente.razon_social}
+          isFirst
+        />
         <Cell title={title_responsable} value={responsable} />
       </Row>
     </Box>
@@ -100,11 +101,7 @@ export const DatosCarroceria = ({
             title="Color de Zócalo"
             value={pedidoData?.carroceria?.color_zocalo_nombre}
           />
-          <Cell
-            title="Armador"
-            value={pedidoData?.armador_nombre}
-          />
-         
+          <Cell title="Armador" value={pedidoData?.armador_nombre} />
         </Row>
       </Box>
     </View>
@@ -128,24 +125,25 @@ export const DatosCamion = ({
         />
         <Cell title="Modelo" value={pedidoData?.camion?.modelo} />
         <Cell
-          title="Tipo de larguero"
-          value={pedidoData?.camion?.tipo_larguero?.toLocaleUpperCase()}
-        />
-      </Row>
-      <Row isLast>
-        <Cell
-          title="Medida Larguero"
-          value={pedidoData?.camion?.med_larguero}
-          unit="mm"
-          convertToCM={convertToCM}
-          isFirst
-        />
-        <Cell
           title="Centro Eje"
           value={pedidoData?.camion?.centro_eje}
           convertToCM={convertToCM}
           unit="mm"
         />
+      </Row>
+      <Row isLast>
+        <Cell
+          title="Tipo de larguero"
+          value={pedidoData?.camion?.tipo_larguero?.toLocaleUpperCase()}
+          isFirst
+        />
+        <Cell
+          title="Medida Larguero"
+          value={pedidoData?.camion?.med_larguero}
+          unit="mm"
+          convertToCM={convertToCM}
+        />
+
         <Cell
           title="Voladizo Trasero"
           value={pedidoData?.camion?.voladizo_trasero}

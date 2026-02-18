@@ -63,16 +63,16 @@ function findFiles(dir: string, extensions: string[]): string[] {
 }
 
 // Función para escanear archivos
-export function scanFiles(): Promise<{ file: string; matches: string[] }[]> {
+export function scanFiles(): Promise<{ files: string; matches: string[] }[]> {
   return new Promise((resolve) => {
     try {
       // Buscar archivos desde el directorio app
       const files = findFiles('app', ['tsx', 'ts', 'jsx', 'js']);
-      const results: { file: string; matches: string[] }[] = [];
+      const results: { files: string; matches: string[] }[] = [];
       
-      for (const file of files) {
+      for (const files of files) {
         try {
-          const content = readFileSync(file, 'utf8');
+          const content = readFileSync(files, 'utf8');
           const matches: string[] = [];
           
           // Buscar patrones que necesitan migración
@@ -94,10 +94,10 @@ export function scanFiles(): Promise<{ file: string; matches: string[] }[]> {
           }
           
           if (matches.length > 0) {
-            results.push({ file, matches });
+            results.push({ files, matches });
           }
         } catch (error) {
-          console.warn(`Error leyendo archivo ${file}:`, error);
+          console.warn(`Error leyendo archivo ${files}:`, error);
         }
       }
       
@@ -143,8 +143,8 @@ export async function generateMigrationReport(): Promise<void> {
     
     console.log(`📋 Se encontraron ${results.length} archivos que necesitan migración:\n`);
     
-    for (const { file, matches } of results) {
-      console.log(`📄 ${file}`);
+    for (const { files, matches } of results) {
+      console.log(`📄 ${files}`);
       for (const match of matches) {
         console.log(`   • ${match}`);
       }

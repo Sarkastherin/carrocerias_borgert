@@ -1,20 +1,37 @@
 import { useUIModals } from "~/context/ModalsContext";
-import type { TipoMovimiento } from "./modals/customs/MovimientoModal";
 import MovimientoModal from "./modals/customs/MovimientoModal";
 import { Banknote, HandCoins, Truck } from "lucide-react";
 import { IconButton } from "./Buttons";
-export default function ButtonsActionsCtaCte({clienteId, redirect}: {clienteId: string, redirect?: boolean}) {
+import { optionsMedioPago, optionsTypeMov, type CtaCte } from "~/types/ctas_corrientes";
+export default function ButtonsActionsCtaCte({
+  clienteId,
+  redirect,
+  ctaCte,
+}: {
+  clienteId: string;
+  redirect?: boolean;
+  ctaCte: CtaCte;
+}) {
   const { openModal } = useUIModals();
-  const handleMovimientoModal = (type: TipoMovimiento) => {
-      openModal("CUSTOM", {
-        component: MovimientoModal,
-        props: {
-          type: type,
-          clienteId: clienteId,
-          redirect: redirect,
-        },
-      });
-    };
+  const handleMovimientoModal = ({
+    tipoMovimiento,
+    medioPago,
+  }: {
+    tipoMovimiento: (typeof optionsTypeMov)[number]["value"];
+    medioPago: (typeof optionsMedioPago)[number]["value"];
+  }) => {
+    openModal("CUSTOM", {
+      component: MovimientoModal,
+      props: {
+        clienteId: clienteId,
+        redirect: redirect,
+        tipoMovimiento: tipoMovimiento,
+        medioPago: medioPago,
+        mode: "create",
+        ctaCte: ctaCte,
+      },
+    });
+  };
   return (
     <div className="flex justify-between gap-4 mb-4">
       <fieldset className="flex w-full gap-4 border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800">
@@ -23,14 +40,24 @@ export default function ButtonsActionsCtaCte({clienteId, redirect}: {clienteId: 
         </legend>
         <IconButton
           variant="light"
-          onClick={() => handleMovimientoModal("deuda")}
+          onClick={() =>
+            handleMovimientoModal({
+              tipoMovimiento: "deuda",
+              medioPago: "no aplica",
+            })
+          }
         >
           <Banknote className="w-5 h-5 mr-2" />
           Deuda
         </IconButton>
         <IconButton
           variant="dark"
-          onClick={() => handleMovimientoModal("nota_credito")}
+          onClick={() =>
+            handleMovimientoModal({
+              tipoMovimiento: "nota_credito",
+              medioPago: "no aplica",
+            })
+          }
         >
           <Banknote className="w-5 h-5 mr-2" />
           Nota de crédito
@@ -38,21 +65,36 @@ export default function ButtonsActionsCtaCte({clienteId, redirect}: {clienteId: 
 
         <IconButton
           variant="green"
-          onClick={() => handleMovimientoModal("cheque")}
+          onClick={() =>
+            handleMovimientoModal({
+              tipoMovimiento: "pago",
+              medioPago: "cheque",
+            })
+          }
         >
           <Banknote className="w-5 h-5 mr-2" />
           Cheque
         </IconButton>
         <IconButton
           variant="blue"
-          onClick={() => handleMovimientoModal("efectivo")}
+          onClick={() =>
+            handleMovimientoModal({
+              tipoMovimiento: "pago",
+              medioPago: "efectivo",
+            })
+          }
         >
           <HandCoins className="w-5 h-5 mr-2" />
           Efectivo/Tranferencia
         </IconButton>
         <IconButton
           variant="yellow"
-          onClick={() => handleMovimientoModal("carroceria_usada")}
+          onClick={() =>
+            handleMovimientoModal({
+              tipoMovimiento: "carroceria_usada",
+              medioPago: "carroceria_usada",
+            })
+          }
         >
           <Truck className="w-5 h-5 mr-2" />
           Carrocería

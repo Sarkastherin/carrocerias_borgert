@@ -35,8 +35,12 @@ export const useOrdenGenerator = () => {
     itemsControl,
   }: PDFGenerationOptions): Promise<Blob> => {
     if (!personal) return new Blob();
-    const dataResponsable = personal.find((p) => p.id === formData.responsable_id)
-    const responsable = dataResponsable ? `${dataResponsable.nombre} ${dataResponsable.apellido}` : "No asignado";
+    const dataResponsable = personal.find(
+      (p) => p.id === formData.responsable_id,
+    );
+    const responsable = dataResponsable
+      ? `${dataResponsable.nombre} ${dataResponsable.apellido}`
+      : "No asignado";
     setIsGenerating(true);
     setError(null);
 
@@ -83,7 +87,7 @@ export const useOrdenGenerator = () => {
 
       if (blob.size === 0) {
         throw new Error(
-          "El PDF generado está vacío. Puede ser un problema con los datos o el template."
+          "El PDF generado está vacío. Puede ser un problema con los datos o el template.",
         );
       }
 
@@ -102,7 +106,7 @@ export const useOrdenGenerator = () => {
     pdfBlob: Blob,
     fileName: string,
     tipoOrden: string,
-    existingOrder?: OrdenesBD
+    existingOrder?: OrdenesBD,
   ): Promise<string> => {
     setIsSaving(true);
     setError(null);
@@ -117,13 +121,13 @@ export const useOrdenGenerator = () => {
         pdfBlob,
         fileName,
         tipoOrden,
-        existingOrder
+        existingOrder,
       );
 
       // Devolver el enlace para ver el archivo
       return (
         uploadedFile.webViewLink ||
-        `https://drive.google.com/file/d/${uploadedFile.id}/view`
+        `https://drive.google.com/files/d/${uploadedFile.id}/view`
       );
     } catch (err) {
       const errorMessage =
@@ -139,7 +143,6 @@ export const useOrdenGenerator = () => {
     pedidoId: string,
     tipoOrden: (typeof tipoOrdenOptions)[number]["value"],
     responsable_id?: string,
-    order?: OrdenesBD
   ) => {
     try {
       // Preparar datos para el registro de orden según la estructura OrdenesBD
@@ -150,14 +153,13 @@ export const useOrdenGenerator = () => {
         fecha_ejecucion: "", // dejar vacío para que se llene luego
         url_archivo: urlFile,
         fecha_creacion: new Date().toISOString().split("T")[0], // formato YYYY-MM-DD
+        status: "generada",
       };
 
       // Guardar registro en sheet de ordenes
-      if (order) {
-        await ordenesAPI.update(order.id, ordenData);
-      } else {
-        await ordenesAPI.create(ordenData);
-      }
+
+      console.log("Creando nueva orden");
+      await ordenesAPI.create(ordenData);
 
       // Actualizar pedido con link de orden y fecha
       if (ordenData.tipo_orden === "fabricacion") {
@@ -174,13 +176,13 @@ export const useOrdenGenerator = () => {
       }
       if (ordenData.tipo_orden === "montaje") {
         await pedidosAPI.update(pedidoId, {
-          status: "pintada",
+          status: "finalizada",
         });
       }
     } catch (error) {
       console.error("❌ Error en createRegisterAndUpdatePedido:", error);
       throw new Error(
-        `Error registrando orden: ${error instanceof Error ? error.message : "Error desconocido"}`
+        `Error registrando orden: ${error instanceof Error ? error.message : "Error desconocido"}`,
       );
     }
   };
@@ -188,7 +190,7 @@ export const useOrdenGenerator = () => {
     orderId: string,
     formData: Partial<OrdenesBD>,
     tipoOrden: (typeof tipoOrdenOptions)[number]["value"],
-    pedidoId: string
+    pedidoId: string,
   ) => {
     try {
       const result = await ordenesAPI.update(orderId, formData);
@@ -196,24 +198,38 @@ export const useOrdenGenerator = () => {
         throw new Error("Fallo al cerrar la orden en la base de datos");
       }
       // Actualizar pedido con link de orden y fecha
-      if (tipoOrden === "montaje" && formData.status === "completada") {
-        const pedidoUpdated = await pedidosAPI.update(pedidoId, {
-          status: "finalizado",
+      if (tipoOrden === "pintura" && formData.status === "completada") {
+        await pedidosAPI.update(pedidoId, {
+          status: "pintada",
         });
       }
-      return result;
+      return {success: true};
       // Lógica para cerrar la orden
     } catch (error) {
       console.error("❌ Error cerrando la orden:", error);
-      throw new Error(
-        `Error cerrando la orden: ${error instanceof Error ? error.message : "Error desconocido"}`
-      );
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Error desconocido",
+      };
     }
   };
-
+  const deleteOrden = async (orderId: string) => {
+    try {
+      const result = await ordenesAPI.delete(orderId);
+      if (!result.success) {
+        throw new Error("Fallo al eliminar la orden en la base de datos");
+      }
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Error desconocido",
+      };
+    }
+  };
   const generateFileName = (
     tipoOrden: (typeof tipoOrdenOptions)[number]["value"],
-    pedidoData?: PedidosUI
+    pedidoData?: PedidosUI,
   ): string => {
     const now = new Date();
     const year = now.getFullYear();
@@ -270,6 +286,7 @@ export const useOrdenGenerator = () => {
     generateAndSaveOrderPDF,
     createRegisterAndUpdatePedido,
     closeOrder,
+    deleteOrden,
     isGenerating,
     isSaving,
     error,

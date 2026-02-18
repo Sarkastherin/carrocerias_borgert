@@ -4,7 +4,7 @@ import { SelectFieldCustom } from "./Inputs";
 import type { ClientesBD } from "~/types/clientes";
 import { useUIModals } from "~/context/ModalsContext";
 import ClienteNuevoModal from "./modals/customs/ClienteNuevoModal";
-import type { UseFormSetValue } from "react-hook-form";
+import { set, type UseFormSetValue } from "react-hook-form";
 import { UserRoundPlus } from "lucide-react";
 export default function ClienteField({
   value,
@@ -41,13 +41,15 @@ export default function ClienteField({
         title: "Cargando datos del cliente...",
         message: "",
       });
+      setValue("cliente", selectItem, { shouldDirty: true });
+      //setValue("cliente.id", clienteId, { shouldDirty: true });
       setValue("cliente_id", clienteId, { shouldDirty: true });
-      setValue("razon_social", selectItem.razon_social, {
+      /* setValue("cliente.razon_social", selectItem.razon_social, {
         shouldDirty: true,
-      });
-      setValue("vendedor_id", selectItem.vendedor_id || "", {
+      }); */
+      /* setValue("cliente.vendedor_id", selectItem.vendedor_id || "", {
         shouldDirty: true,
-      });
+      }); */
       closeModal();
     }
   };
@@ -64,14 +66,14 @@ export default function ClienteField({
           initialValue={value}
           onChange={(selectItem) => handleSelectedCliente(selectItem)}
         />
-        {errors.cliente_id && (
+        {errors.cliente?.id && (
           <span className="block mt-0.5 text-red-500 text-xs">
-            {errors.cliente_id.message}
+            {errors.cliente.id.message}
           </span>
         )}
         <input
           type="hidden"
-          {...register("cliente_id", {
+          {...register("cliente.id", {
             required: "Debe seleccionar un cliente",
           })}
         />{/*  */}

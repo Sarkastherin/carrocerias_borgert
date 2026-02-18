@@ -4,39 +4,40 @@ import type {
   UseFormRegister,
   FieldErrors,
   UseFormWatch,
+  Path,
 } from "react-hook-form";
 import type { AddChequeFormProps } from "./forms/AddChequeForm";
 import type { ChequesDB, ChequesWithTerceros } from "~/types/ctas_corrientes";
 import { useData } from "~/context/DataContext";
-export  function BancosComponentArray({
+export  function BancosComponentArray<T extends { cheques: ChequesDB[] }>({
   register,
   errors,
   watch,
   index,
 }: {
-  register: UseFormRegister<AddChequeFormProps>;
-  errors: FieldErrors<AddChequeFormProps>;
-  watch: UseFormWatch<AddChequeFormProps>;
+  register: UseFormRegister<T>;
+  errors: FieldErrors<T>;
+  watch: UseFormWatch<T>;
   index: number;
 }) {
   const { bancos, getBancos } = useData();
 
   useEffect(() => {
     if (!bancos) getBancos();
-  }, []);
+  }, [bancos, getBancos]);
   return (
     <>
       {bancos && (
         <Select
           label="Banco"
-          {...register(`cheques.${index}.banco`, {
+          {...register(`cheques.${index}.banco` as Path<T>, {
             required: {
-              value: watch(`cheques.${index}.tipo`) === "fisico",
+              value: watch(`cheques.${index}.tipo` as Path<T>) === "fisico",
               message: "El banco es obligatorio",
             },
           })}
-          error={errors.cheques?.[index]?.banco?.message}
-          requiredField={watch(`cheques.${index}.tipo`) === "fisico"}
+          error={Array.isArray(errors.cheques) ? errors.cheques[index]?.banco?.message : undefined}
+          requiredField={watch(`cheques.${index}.tipo` as Path<T>) === "fisico"}
         >
           <option value="">Seleccione un banco</option>
           {bancos?.map((banco) => (

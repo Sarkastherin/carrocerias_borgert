@@ -92,3 +92,25 @@ export function BadgeStatusCheque({
   };
   return <Badge variant={variant()}>{children}</Badge>;
 }
+export function BadgeStatusOrden({
+  status,
+  children,
+}: {
+  status: (typeof optionsStatusCheque)[number]["value"];
+  children: React.ReactNode;
+}) {
+  //Crear una función switch para asignar el variant según el status
+  const variant = () => {
+    switch (status) {
+      case "generada":
+        return "yellow";
+      case "completada":
+        return "green";
+      case "cancelada":
+        return "red";
+      default:
+        return "dark";
+    }
+  };
+  return <Badge variant={variant()}>{children}</Badge>;
+}

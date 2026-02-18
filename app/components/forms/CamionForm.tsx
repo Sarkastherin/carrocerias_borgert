@@ -1,15 +1,19 @@
-import { Input, Textarea, Select, InputWithIcon, FileInput } from "../Inputs";
-import { Button, ButtonLink } from "../Buttons";
+import { Input, Textarea, Select, InputWithIcon } from "../Inputs";
+import { Button } from "../Buttons";
 import { useCamionForm } from "~/hooks/useCamionForm";
 import { CardToggle } from "../CardToggle";
 import { RulerDimensionLine } from "lucide-react";
 import { FooterForm } from "./Footer";
-import { FileText } from "lucide-react";
 import { useState, type ChangeEvent } from "react";
-import FileUploderComponent from "../FileUpladerComponent";
+import FilesUploderComponent from "../FileUpladerComponent";
+import type { DocumentosBD } from "~/types/pedidos";
+import type { FileTypeActions } from "../FileUpladerComponent";
 
 export default function CamionForm() {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<FileTypeActions<DocumentosBD>>({
+    add: null,
+    remove: null,
+  });
   const {
     register,
     handleSubmit,
@@ -18,7 +22,7 @@ export default function CamionForm() {
     onSubmit,
     isLoading,
     submitButtonText,
-  } = useCamionForm(file);
+  } = useCamionForm(files, setFiles);
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <CardToggle title="Datos del camión">
@@ -104,9 +108,11 @@ export default function CamionForm() {
           acompañante por interferencia con el tanque.
         </div>
       )}
-      <FileUploderComponent
-        value={watch("documento_camion") || ""}
-        setFile={setFile}
+      <FilesUploderComponent
+        tipoDocumento="camion"
+        documentos={watch("documentos")}
+        setFiles={setFiles}
+        files={files}
       />
 
       <Textarea label="Observaciones" {...register("observaciones")} />

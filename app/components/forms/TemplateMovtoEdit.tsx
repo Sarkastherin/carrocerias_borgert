@@ -4,75 +4,157 @@ import { useEffect, useState } from "react";
 import { GlassCard } from "../GlassCard";
 import { useForm } from "react-hook-form";
 import type {
-  CtasCtesWithCheque,
-  CtaCteConCliente,
-  CtasCtesDB,
+  MvtosWithCheques,
+  CtaCte,
+  MvtosDB,
 } from "~/types/ctas_corrientes";
 import { BadgeStatusCheque } from "../Badge";
 import { capitalize } from "~/config/settingsConfig";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
-import { ctaCorrienteAPI } from "~/backend/sheetServices";
+import { mvtosAPI } from "~/backend/sheetServices";
 import { useData } from "~/context/DataContext";
 import { optionsMedioPago } from "~/types/ctas_corrientes";
 import { useUIModals } from "~/context/ModalsContext";
 import { CheckCircle, AlertCircle, Info } from "lucide-react";
 import LoadingComponent from "../LoadingComponent";
 import { useNavigate } from "react-router";
-import FileUploderComponent, {updateFilePDFCtaCte} from "../FileUpladerComponent";
+import FilesUploderComponent, {
+  type FileTypeActions,
+} from "../FileUpladerComponent";
 import { formatDateUStoES } from "~/utils/formatDate";
+import type { DocumentosBD, DocumentosCtasCtesBD } from "~/types/pedidos";
+
 type FormState = "form" | "loading" | "success" | "error" | "info";
-export default function MovimientosForm({
+
+export default function TemplateMovtoEdit({
   data,
-  client,
+  ctaCte,
 }: {
-  data: CtasCtesWithCheque;
-  client: CtaCteConCliente | null;
+  data: MvtosWithCheques;
+  ctaCte: CtaCte | null;
 }) {
   const navigate = useNavigate();
   const [formState, setFormState] = useState<FormState>("form");
-  const { getCtaCteWithCheques, getCtasCtesByClientes, bancos, getBancos } = useData();
+  const {
+    bancos,
+    getBancos,
+    refreshCtasCtes,
+    uploadFilesToCtasCtes,
+    deleteDocumentoCtasCtes,
+  } = useData();
   const { closeModal } = useUIModals();
-  const [file, setFile] = useState<File | null>(null);
-  const { cheques, ...rest } = data;
+  const [files, setFiles] = useState<FileTypeActions<DocumentosCtasCtesBD>>({
+    add: null,
+    remove: null,
+  });
+
   const {
     register,
     handleSubmit,
     watch,
     setValue,
     formState: { isSubmitting, dirtyFields },
-  } = useForm<CtasCtesDB>({
-    defaultValues: rest,
+  } = useForm<MvtosWithCheques>({
+    defaultValues: data,
   });
   useEffect(() => {
-    if(!bancos) getBancos();
-  },[])
-  const onSubmit = async (formData: CtasCtesDB) => {
+    if (!bancos) getBancos();
+  }, []);
+  const addFiles = async ({
+    id,
+    files,
+    formData,
+  }: {
+    id: string;
+    files: FileList;
+    formData: MvtosWithCheques;
+  }) => {
+    const response = await uploadFilesToCtasCtes(id, files, "movimiento");
+    if (!response.success) {
+      throw new Error(
+        response.message || "Error desconocido al subir los archivos",
+      );
+    }
+    if (response.data && response.data.length > 0) {
+      const newDocs = [...(formData.documentos || []), ...response.data];
+      formData.documentos = newDocs;
+      setValue("documentos", newDocs, { shouldDirty: true });
+    }
+    setFiles((prev) => ({ ...prev, add: null })); // Limpiar archivos a subir después de subirlos
+  };
+  const deleteFiles = async ({
+    files,
+    formData,
+  }: {
+    files: DocumentosCtasCtesBD[];
+    formData: MvtosWithCheques;
+  }) => {
+    const response = await deleteDocumentoCtasCtes(files);
+    if (!response.success) {
+      throw new Error(
+        response.message || "Error desconocido al eliminar el documento",
+      );
+    }
+    if (response.data && response.data.length > 0) {
+      const filteredDocs =
+        formData.documentos?.filter(
+          (doc) =>
+            !response.data?.some((deletedDoc) => deletedDoc.id === doc.id),
+        ) ||
+        null ||
+        undefined;
+      formData.documentos = filteredDocs;
+      setValue("documentos", filteredDocs, { shouldDirty: true });
+    }
+    setFiles((prev) => ({ ...prev, remove: null })); // Limpiar archivos a eliminar después de eliminarlos
+  };
+  const onSubmit = async (formData: MvtosWithCheques) => {
+    const { documentos, ...rest } = formData;
     setFormState("loading");
-    if(file) {
-      const fileLink = await updateFilePDFCtaCte(file);
-      formData.documento_cta_cte = fileLink;
-      setValue("documento_cta_cte", fileLink, { shouldDirty: true });
-    }
-    const hasDirtyFields = dirtyFields && Object.keys(dirtyFields).length > 0;
-    if (!hasDirtyFields) {
-      setFormState("info");
-      return;
-    }
-    
-    const updatePayload = prepareUpdatePayload<CtasCtesDB>({
-      dirtyFields: dirtyFields,
-      formData: formData,
-    });
+    let loadCheques = false;
+    let loadFiles = false;
     try {
-      const response = await ctaCorrienteAPI.update(rest.id, updatePayload);
-      if (!response.success) throw new Error(response.message);
-      await getCtaCteWithCheques(true);
-      await getCtasCtesByClientes();
-      // 3. Actualizar el estado del formulario a éxito
+      const hasDirtyFields = dirtyFields && Object.keys(dirtyFields).length > 0;
+      if (!hasDirtyFields && (!files || (!files.add && !files.remove))) {
+        setFormState("info");
+        return;
+      }
+      if (hasDirtyFields) {
+        const updatePayload = prepareUpdatePayload<MvtosDB>({
+          dirtyFields: dirtyFields,
+          formData: rest,
+        });
+        const response = await mvtosAPI.update(formData.id, updatePayload);
+        if (!response.success) throw new Error(response.message);
+      }
+      if (files) {
+        if (files.add) {
+          await addFiles({ id: formData.id, files: files.add, formData });
+        }
+        if (files.remove) {
+          await deleteFiles({ files: files.remove, formData });
+        }
+        loadFiles = true;
+      }
+      const refresh = await refreshCtasCtes({
+        refMvto: true,
+        refCheque: loadCheques,
+        refDocu: loadFiles,
+      });
+      if (!refresh) throw new Error("Error refreshing cuentas corrientes data");
       setFormState("success");
     } catch (error) {
       console.error("Error submitting form:", error);
       setFormState("error");
+    }
+  };
+  const optionsMedioPagoFiltered = () => {
+    if (data.medio_pago !== "efectivo") {
+      return optionsMedioPago.filter((op) => op.value === data.medio_pago);
+    } else {
+      return optionsMedioPago.filter(
+        (op) => op.value === "efectivo" || op.value === "transferencia",
+      );
     }
   };
   return (
@@ -125,13 +207,11 @@ export default function MovimientosForm({
                   {data.medio_pago === "transferencia" ||
                     (data.medio_pago === "efectivo" ? (
                       <Select {...register("medio_pago", { required: true })}>
-                        {optionsMedioPago
-                          .filter((option) => option.origen === "manual")
-                          .map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
+                        {optionsMedioPagoFiltered().map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
                       </Select>
                     ) : (
                       <p className="text-sm text-text-primary font-semibold">
@@ -186,14 +266,16 @@ export default function MovimientosForm({
                 </div>
               )}
               <div className="mt-4 space-y-1">
-                <FileUploderComponent
-                  value={watch("documento_cta_cte") || ""}
-                  setFile={setFile}
+                <FilesUploderComponent
+                  tipoDocumento="movimiento"
+                  documentos={watch("documentos")}
+                  setFiles={setFiles}
+                  files={files}
                 />
               </div>
             </div>
 
-            {client && (
+            {ctaCte && (
               <div>
                 <h3 className="text-lg font-semibold text-text-primary mb-4 border-b border-gray-300 dark:border-gray-600 pb-2">
                   Información del Cliente
@@ -204,7 +286,7 @@ export default function MovimientosForm({
                       Razón Social
                     </span>
                     <p className="text-sm text-text-primary font-semibold">
-                      {client.razon_social}
+                      {ctaCte.razon_social}
                     </p>
                   </div>
 
@@ -213,7 +295,7 @@ export default function MovimientosForm({
                       CUIT/CUIL
                     </span>
                     <p className="text-sm text-text-primary font-semibold">
-                      {formatCuit(client.cuit_cuil)}
+                      {formatCuit(ctaCte.cuit_cuil)}
                     </p>
                   </div>
 
@@ -222,7 +304,7 @@ export default function MovimientosForm({
                       Condición IVA
                     </span>
                     <p className="text-sm text-text-primary font-semibold">
-                      {client.condicion_iva}
+                      {ctaCte.condicion_iva}
                     </p>
                   </div>
                 </div>
@@ -261,8 +343,8 @@ export default function MovimientosForm({
                             Banco
                           </span>
                           <p className="text-sm text-text-primary font-semibold">
-                            {bancos?.find((b) => b.value === cheque.banco)?.label ||
-                              "-"}
+                            {bancos?.find((b) => b.value === cheque.banco)
+                              ?.label || "-"}
                           </p>
                         </div>
 
@@ -363,6 +445,11 @@ export default function MovimientosForm({
                 <p className="text-sm text-green-700 dark:text-green-400 mt-1">
                   El movimiento ha sido guardado en el sistema.
                 </p>
+                <div className="mt-6 w-fit ms-auto">
+                  <Button variant="green" onClick={closeModal}>
+                    Cerrar
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

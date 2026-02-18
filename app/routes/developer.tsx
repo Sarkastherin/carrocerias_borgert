@@ -19,28 +19,28 @@ export default function UploadFile() {
   return (
     <FileInput
       id="documento"
-      label="Upload file"
+      label="Upload files"
       accept=".pdf,.doc,.docx"
       onChange={async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+        const files = e.target.files?.[0];
+        if (!files) return;
 
         // Validaciones básicas
-        if (file.type !== "application/pdf") {
+        if (files.type !== "application/pdf") {
           alert("Solo se permiten PDFs");
           return;
         }
 
-        if (file.size === 0) {
+        if (files.size === 0) {
           alert("El archivo está vacío");
           return;
         }
         try {
-          const response = await uploadPDFToDrive(file, file.name, folderId);
+          const response = await uploadPDFToDrive(files, files.name, folderId);
           console.log("File uploaded successfully:", response);
           //webViewLink
         } catch (error) {
-          console.error("Error uploading file:", error);
+          console.error("Error uploading files:", error);
         }
       }}
       requiredField

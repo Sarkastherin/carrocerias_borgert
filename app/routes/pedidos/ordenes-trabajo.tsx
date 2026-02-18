@@ -7,8 +7,10 @@ import { getIcon } from "~/components/IconComponent";
 import { useOrdenTrabajoModal } from "~/hooks/useOrdenTrabajoModal";
 import { useData } from "~/context/DataContext";
 import { useEffect } from "react";
-import { Badge } from "~/components/Badge";
+import { Badge, BadgeStatusOrden } from "~/components/Badge";
 import { tipoOrdenOptions } from "~/types/pedidos";
+import { LinkDocument } from "~/components/FileUpladerComponent";
+import { capitalize } from "~/config/settingsConfig";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Órdenes de Trabajo" },
@@ -36,11 +38,12 @@ export default function OrdenesPedidos() {
         ? ordenesByPedido.some((orden) => orden.tipo_orden === "fabricacion")
         : false,
       urlFile: ordenesByPedido?.find(
-        (order) => order.tipo_orden === "fabricacion"
+        (order) => order.tipo_orden === "fabricacion",
       )?.url_archivo,
       order: ordenesByPedido?.find(
-        (order) => order.tipo_orden === "fabricacion"
+        (order) => order.tipo_orden === "fabricacion",
       ),
+      disabled: false,
     },
     {
       name: "Pintura y Acabados",
@@ -54,6 +57,7 @@ export default function OrdenesPedidos() {
       urlFile: ordenesByPedido?.find((order) => order.tipo_orden === "pintura")
         ?.url_archivo,
       order: ordenesByPedido?.find((order) => order.tipo_orden === "pintura"),
+      disabled: false
     },
     {
       name: "Colocación y trabajos en chasis",
@@ -67,6 +71,7 @@ export default function OrdenesPedidos() {
       urlFile: ordenesByPedido?.find((order) => order.tipo_orden === "montaje")
         ?.url_archivo,
       order: ordenesByPedido?.find((order) => order.tipo_orden === "montaje"),
+      disabled: ordenesByPedido?.find((order) => order.tipo_orden === "pintura")?.status !== "completada" // Deshabilitar si la orden de pintura no está completada
     },
   ];
   return (
@@ -93,10 +98,11 @@ export default function OrdenesPedidos() {
                 blur="lg"
                 opacity="low"
                 padding="md"
-                className="!border-gray-300/80 dark:!border-white/20 hover:bg-gray-100/50 dark:hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl overflow-hidden"
+                className={`!border-gray-300/80 dark:!border-white/20 hover:bg-gray-100/50 dark:hover:bg-white/20 transition-all duration-300  hover:shadow-2xl overflow-hidden ${orden.disabled ? "opacity-50 cursor-not-allowed" : "hover:scale-105 cursor-pointer"}`}
               >
-                <div
-                  className="flex flex-col items-start h-full cursor-pointer"
+                <button
+                  className="flex flex-col items-start h-full text-start"
+                  disabled={orden.disabled}
                   onClick={() => {
                     if (pedido) openOrdenModal(orden.tipo, pedido, orden.order);
                   }}
@@ -110,29 +116,35 @@ export default function OrdenesPedidos() {
                   <p className="text-sm text-text-secondary group-hover:text-gray-100 transition-colors leading-relaxed flex-1">
                     {orden.description}
                   </p>
-                  {orden.order && (
-                    <>
-                      {orden.order.status && orden.order.status ? (
-                        <Badge
-                          variant={
-                            orden.order.status === "completada"
-                              ? "green"
-                              : "red"
-                          }
-                        >
-                          {orden.order.status}
-                        </Badge>
-                      ) : (
-                        <Badge variant={"blue"}>Orden generada</Badge>
-                      )}
-                    </>
+                  {orden.order && orden.order.status && (
+                    <BadgeStatusOrden status={orden.order.status}>
+                      {capitalize(orden.order.status.replace("_", " "))}
+                    </BadgeStatusOrden>
                   )}
-                </div>
+                </button>
               </GlassCard>
             );
           })}
+          {pedido?.documentos && pedido.documentos.length > 0 && (
+            <GlassCard
+              size="full"
+              blur="lg"
+              opacity="low"
+              padding="md"
+              className="!border-gray-300/80 dark:!border-white/20 col-span-3"
+            >
+              <div className="flex flex-col items-start h-full">
+                <h2 className="text-lg sm:text-xl font-semibold text-text-primary mb-2">
+                  Documentos asociados
+                </h2>
+                {pedido.documentos.map((doc) => (
+                  <LinkDocument key={doc.id} url={doc.url} label={doc.nombre} />
+                ))}
+              </div>
+            </GlassCard>
+          )}
         </div>
-      ): (
+      ) : (
         <p className="text-center text-text-secondary mt-8">
           No hay carrocería asociada a este pedido.
         </p>

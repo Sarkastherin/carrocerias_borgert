@@ -3,12 +3,11 @@ import type { PedidosBD, PedidosUI } from "~/types/pedidos";
 import { useUIModals } from "~/context/ModalsContext";
 import { useData } from "~/context/DataContext";
 import { useState } from "react";
-import { pedidosAPI, ctaCorrienteAPI } from "~/backend/sheetServices";
+import { pedidosAPI, mvtosAPI } from "~/backend/sheetServices";
 import { useNavigate } from "react-router";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
 import { useFormNavigationBlock } from "./useFormNavigationBlock";
-import type { CtasCtesDB } from "~/types/ctas_corrientes";
-import { useAuth } from "~/context/Auth";
+import type { MvtosDB } from "~/types/ctas_corrientes";
 export function usePedidosForm() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -17,8 +16,9 @@ export function usePedidosForm() {
   const {
     pedido,
     getPedidos,
+    getMvtos,
     getCtasCtes,
-    getCtasCtesByClientes,
+    refreshCtasCtes
   } = useData();
   const isEditMode = Boolean(pedido);
   const existingPedido: PedidosUI | null = pedido;
@@ -61,7 +61,7 @@ export function usePedidosForm() {
     tasacion?: number;
   }) => {
     try {
-      const newDeuda: Omit<CtasCtesDB, "id" | "fecha_creacion"> = {
+      const newDeuda: Omit<MvtosDB, "id" | "fecha_creacion"> = {
         cliente_id: clienteId,
         fecha_movimiento: new Date().toISOString().split("T")[0],
         tipo_movimiento: "deuda",
@@ -72,14 +72,14 @@ export function usePedidosForm() {
         debe: monto,
         haber: 0,
       };
-      const response = await ctaCorrienteAPI.create(newDeuda);
+      const response = await mvtosAPI.create(newDeuda);
       if (!response.success)
         throw new Error(
           response.message ||
             "Error desconocido al crear movimiento de cta corriente"
         );
       if (tasacion && tasacion > 0) {
-        const newPago: Omit<CtasCtesDB, "id" | "fecha_creacion"> = {
+        const newPago: Omit<MvtosDB, "id" | "fecha_creacion"> = {
           cliente_id: clienteId,
           fecha_movimiento: new Date().toISOString().split("T")[0],
           tipo_movimiento: "pago",
@@ -90,15 +90,14 @@ export function usePedidosForm() {
           debe: 0,
           haber: tasacion,
         };
-        const responsePago = await ctaCorrienteAPI.create(newPago);
+        const responsePago = await mvtosAPI.create(newPago);
         if (!responsePago.success)
           throw new Error(
             responsePago.message ||
               "Error desconocido al crear movimiento de cta corriente por tasación"
           );
       }
-      await getCtasCtes();
-      await getCtasCtesByClientes();
+      await refreshCtasCtes({ refMvto: true });
       return true;
     } catch (error) {
       throw new Error(

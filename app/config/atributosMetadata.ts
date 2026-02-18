@@ -63,6 +63,7 @@ export const tiposArcosOptions = [
   { value: "Estándar", label: "Estándar" },
   { value: "Reforzado", label: "Reforzado" },
   { value: "Reforzados + Estándar", label: "Reforzados + Estándar" },
+  { value: "Mixtos", label: "Mixtos" },
   { value: "N/A", label: "No aplica" },
 ];
 export const tiposBoquillasOptions = [

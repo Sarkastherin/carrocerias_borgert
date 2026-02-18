@@ -28,7 +28,7 @@ const pedidoColumns: TableColumn<PedidosTable>[] = [
   },
   {
     name: "Cliente",
-    selector: (row) => row.razon_social|| "",
+    selector: (row) => row.cliente.razon_social|| "",
     sortable: true,
   },
   {

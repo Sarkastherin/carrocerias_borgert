@@ -1,76 +1,54 @@
 import ModalBase from "../ModalBase";
 import { useState } from "react";
 import { CheckCircle, AlertCircle } from "lucide-react";
-import { AddChequeForm } from "~/components/forms/AddChequeForm";
-import { AddPagoForm } from "~/components/forms/AddPagoForm";
-import { AddDeudaForm } from "~/components/forms/AddDeudaForm";
-export type TipoMovimiento =
-  | "cheque"
-  | "efectivo"
-  | "carroceria_usada"
-  | "deuda"
-  | "nota_credito";
-
+import { TemplateMovimientosForm } from "~/components/forms/TemplateMovimientosForm";
+import {
+  optionsMedioPago,
+  optionsTypeMov,
+  type CtaCte,
+  type MvtosWithCheques,
+} from "~/types/ctas_corrientes";
+import TemplateMovtoEdit from "~/components/forms/TemplateMovtoEdit";
+import { capitalize } from "~/config/settingsConfig";
 export default function MovimientoModal({
   onClose,
-  type,
+  data,
   clienteId,
-  redirect
+  redirect,
+  tipoMovimiento,
+  medioPago,
+  mode,
+  ctaCte,
 }: {
   onClose: () => void;
-  type: TipoMovimiento;
+  data?: MvtosWithCheques;
   clienteId: string;
   redirect?: boolean;
+  tipoMovimiento: (typeof optionsTypeMov)[number]["value"];
+  medioPago: (typeof optionsMedioPago)[number]["value"];
+  mode: "create" | "edit";
+  ctaCte: CtaCte;
 }) {
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const titulo = () => {
-    switch (type) {
-      case "cheque":
-        return "Registrar Cheque";
-      case "efectivo":
-        return "Registrar Efectivo";
-      case "carroceria_usada":
-        return "Registrar Carrocería Usada";
-      case "nota_credito":
-        return "Registrar Nota de Crédito";
-      case "deuda":
-        return "Registrar Deuda";
-      default:
-        return "";
-    }
-  };
-
   return (
     <ModalBase
       open={true}
-      title={titulo()}
+      title={`${mode === "create" ? "Registrar nuevo movimiento: " + capitalize(tipoMovimiento) : "Editar movimiento"}`}
       onClose={onClose}
-      zIndex={50}
       width="max-w-4xl"
     >
       <div className="py-4">
-        {/* Mensaje de éxito */}
-        {successMessage && (
-          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center gap-2">
-            <CheckCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">{successMessage}</span>
-          </div>
+        {mode === "edit" && data && (
+          <TemplateMovtoEdit data={data} ctaCte={ctaCte} />
         )}
-
-        {/* Mensaje de error */}
-        {errorMessage && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center gap-2">
-            <AlertCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">{errorMessage}</span>
-          </div>
+        {mode === "create" && (
+          <TemplateMovimientosForm
+            redirect={redirect || false}
+            clienteId={clienteId}
+            tipoMovimiento={tipoMovimiento}
+            medioPago={medioPago}
+            ctaCte={ctaCte}
+          />
         )}
-        {type === "cheque" && <AddChequeForm clienteId={clienteId} redirect={redirect || false} />}
-        {(type !== "cheque" && type !== "deuda") && (
-          <AddPagoForm clienteId={clienteId} type={type} redirect={redirect} />
-        )}
-        {type === "deuda" && <AddDeudaForm clienteId={clienteId} redirect={redirect} />}
       </div>
     </ModalBase>
   );

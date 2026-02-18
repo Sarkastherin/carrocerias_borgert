@@ -15,9 +15,11 @@ import {
   controlCarrozadoAPI,
   ordenesAPI,
   controlesAPI,
-  ctaCorrienteAPI,
+  mvtosAPI,
   chequesAPI,
   proveedoresAPI,
+  documentosPedidosAPI,
+  documentosCtasCtesAPI,
 } from "~/backend/sheetServices";
 import type { ClientesBD } from "~/types/clientes";
 import { useUIModals } from "./ModalsContext";
@@ -33,6 +35,9 @@ import type {
   CarroceriaUI,
   TrabajoChasisUI,
   CamionBD,
+  TipoDocumento,
+  DocumentosBD,
+  DocumentosCtasCtesBD,
 } from "~/types/pedidos";
 import type {
   ColoresBD,
@@ -47,15 +52,25 @@ import type {
 } from "~/types/settings";
 import type { CRUDMethods } from "~/backend/crudFactory";
 import type {
-  CtasCtesDB,
+  MvtosDB,
   ChequesDB,
-  CtaCteConCliente,
+  CtaCte,
   ChequesWithTerceros,
   BancosProps,
   CtasCtesWithCheque,
+  MvtosWithCheques,
+  ChequesEnriched,
 } from "~/types/ctas_corrientes";
 import type { ProveedoresBD } from "~/types/proveedores";
-
+import {
+  updateFilePDFPedidos,
+  updateFilePDFCtaCte,
+} from "~/components/FileUpladerComponent";
+type RefreshOptionsCtaCte = {
+  refMvto?: boolean;
+  refCheque?: boolean;
+  refDocu?: boolean;
+};
 type DataContextType = {
   clientes: ClientesBD[] | null;
   proveedores: ProveedoresBD[] | null;
@@ -117,25 +132,58 @@ type DataContextType = {
     carrozadoId: string,
   ) => Promise<ControlCarrozadoDB[] | null>;
   ctrlCarrozadoByCarrozadoId: ControlCarrozadoDB[] | null;
-  getCtasCtesByClientes: () => Promise<CtaCteConCliente[]>;
-  ctasCtesByClientes: CtaCteConCliente[] | null;
-  ctasCtes: CtasCtesDB[] | null;
-  getCtasCtes: () => Promise<CtasCtesDB[]>;
+  getCtasCtes: (opt?: RefreshOptionsCtaCte) => Promise<boolean>;
+  refreshCtasCtes: ({
+    refMvto,
+    refCheque,
+    refDocu,
+  }: RefreshOptionsCtaCte) => Promise<boolean>;
+  ctasCtes: CtaCte[] | null;
+  mvtos: MvtosDB[] | null;
+  getMvtos: () => Promise<MvtosDB[]>;
   cheques: ChequesDB[] | null;
   getCheques: () => Promise<ChequesDB[]>;
-  getChequesWithTerceros: (forceRefresh?: boolean) => Promise<void>;
-  chequesWithClients: ChequesWithTerceros[] | null;
   getBancos: () => Promise<BancosProps[]>;
   bancos: BancosProps[] | null;
-  refreshChequesWithTerceros: () => Promise<boolean>;
-  ctaCteWithCheques: CtasCtesWithCheque[] | null;
-  getCtaCteWithCheques: (
-    forceRefresh?: boolean,
-  ) => Promise<CtasCtesWithCheque[]>;
   getDefaultsWithPuertas: () => Promise<void>;
   defaultsWithPuertas: DefaultWithPuertas[] | null;
+  uploadFilesToPedidos: (
+    pedidoId: string,
+    numeroPedido: string,
+    files: FileList,
+    tipoDocumento: TipoDocumento,
+  ) => Promise<{ success: boolean; message?: string; data?: DocumentosBD[] }>;
+  uploadFilesToCtasCtes: (
+    ctaCteId: string,
+    files: FileList,
+    tipoDocumento: TipoDocumento,
+  ) => Promise<{
+    success: boolean;
+    message?: string;
+    data?: DocumentosCtasCtesBD[];
+  }>;
+
+  deleteDocumentoPedido: (
+    documentos: DocumentosBD[],
+  ) => Promise<{ success: boolean; message?: string; data?: DocumentosBD[] }>;
+  deleteDocumentoCtasCtes: (documentos: DocumentosCtasCtesBD[]) => Promise<{
+    success: boolean;
+    message?: string;
+    data?: DocumentosCtasCtesBD[];
+  }>;
+  ctaCte: CtaCte | null;
+  setCtaCte: React.Dispatch<React.SetStateAction<CtaCte | null>>;
+  getChequesEnriched: () => Promise<ChequesEnriched[]>;
+  chequesEnriched: ChequesEnriched[] | null;
 };
-type Tables = "carroceria" | "trabajo_chasis" | "camion";
+type Tables =
+  | "carroceria"
+  | "trabajo_chasis"
+  | "camion"
+  | "ordenes"
+  | "controles"
+  | "pedidos"
+  | "documentos";
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider = ({ children }: { children: React.ReactNode }) => {
@@ -181,20 +229,27 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const [ctrlCarrozadoByCarrozadoId, setctrlCarrozadoByCarrozadoId] = useState<
     ControlCarrozadoDB[] | null
   >(null);
-  const [ctasCtes, setCtasCtes] = useState<CtasCtesDB[] | null>(null);
-  const [ctasCtesByClientes, setCtasCtesByClientes] = useState<
-    CtaCteConCliente[] | null
+  const [mvtos, setMvtos] = useState<MvtosDB[] | null>(null);
+  const [mvtosWithCheques, setMvtosWithCheques] = useState<
+    MvtosWithCheques[] | null
   >(null);
+  const [ctasCtes, setCtasCtes] = useState<CtaCte[] | null>(null);
+  const [ctaCteByIDCliente, setCtaCteByIDCliente] = useState(null);
+  const [ctaCte, setCtaCte] = useState<CtaCte | null>(null);
   const [cheques, setCheques] = useState<ChequesDB[] | null>(null);
-  const [chequesWithClients, setChequesWithClients] = useState<
-    ChequesWithTerceros[] | null
+  const [chequesEnriched, setChequesEnriched] = useState<
+    ChequesEnriched[] | null
   >(null);
   const [bancos, setBancos] = useState<BancosProps[] | null>(null);
-  const [ctaCteWithCheques, setCtaCteWithCheques] = useState<
-    CtasCtesWithCheque[] | null
-  >(null);
+
   const [defaultsWithPuertas, setDefaultsWithPuertas] = useState<
     DefaultWithPuertas[] | null
+  >(null);
+  const [documentosPedidos, setDocumentosPedidos] = useState<
+    DocumentosBD[] | null
+  >(null);
+  const [documentosCtasCtes, setDocumentosCtasCtes] = useState<
+    DocumentosCtasCtesBD[] | null
   >(null);
   const getClientes = async () => {
     return await getCompleteData({
@@ -221,9 +276,12 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     const pedidosConCliente = (resPedidos.data as PedidosBD[]).map((pedido) => {
       const cliente = resClientes.find((c) => c.id === pedido.cliente_id);
       const armador = resPersonal.find((a) => a.id === pedido.armador_id);
+      if (!cliente) {
+        throw new Error("Cliente no encontrado.");
+      }
       return {
         ...pedido,
-        razon_social: cliente ? cliente.razon_social : "Cliente no encontrado",
+        cliente: cliente,
         armador_nombre: armador ? `${armador.nombre} ${armador.apellido}` : "-",
       };
     });
@@ -303,6 +361,15 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       dataTrabajosChasis,
       idPedido,
     );
+    // Documentos del pedido
+    let dataDocumentosPedidos: DocumentosBD[] | null = documentosPedidos;
+    if (!documentosPedidos) {
+      dataDocumentosPedidos = await getDocumentosPedidos();
+    }
+    const documentosPedido = await getDocumentosByPedidoId(
+      dataDocumentosPedidos,
+      idPedido,
+    );
     // Camion
     let dataCamiones: CamionBD[] | null = camiones;
     if (!camiones) {
@@ -314,6 +381,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       ...dataPedido,
       carroceria: carroceriaPedido || null,
       trabajo_chasis: trabajosChasisPedido || null,
+      documentos: documentosPedido || null,
       camion: camionPedido || null,
     };
     setPedido(pedidoConCarroceria as PedidosUI);
@@ -402,10 +470,27 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
     }
     return trabajosConNombres;
   };
+  const getDocumentosByPedidoId = async (
+    dataDocumentos: DocumentosBD[] | null,
+    idPedido: string,
+  ) => {
+    if (!dataDocumentos)
+      throw new Error("No se pudieron cargar los documentos del pedido.");
+    return dataDocumentos.filter((doc) => doc.pedido_id === idPedido) || [];
+  };
   const refreshPedidoByIdAndTable = async (table: Tables) => {
     if (!pedido) return;
     const idPedido = pedido.id;
     switch (table) {
+      case "pedidos":
+        const dataPedidos = await getPedidos();
+        const dataPedido = dataPedidos.find((p) => p.id === idPedido);
+        if (!dataPedido) throw new Error("Pedido no encontrado.");
+        setPedido({
+          ...pedido,
+          ...dataPedido,
+        });
+        break; 
       case "carroceria":
         const dataCarrocerias = await getCarrocerias();
         const carroceriaPedido = await getCarroceriaPedido(
@@ -440,6 +525,17 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         setPedido({
           ...pedido,
           trabajo_chasis: trabajosChasisPedido || null,
+        });
+        break;
+      case "documentos":
+        const dataDocumentos = await getDocumentosPedidos();
+        const documentosPedido = await getDocumentosByPedidoId(
+          dataDocumentos,
+          idPedido,
+        );
+        setPedido({
+          ...pedido,
+          documentos: documentosPedido || null,
         });
         break;
     }
@@ -901,47 +997,102 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       return existeingControles;
     }
   };
-  const getCtasCtes = async () => {
+  /* Cuentas Corrientes */
+  const getMvtos = async () => {
     return await getCompleteData({
-      api: ctaCorrienteAPI,
-      setData: setCtasCtes,
+      api: mvtosAPI,
+      setData: setMvtos,
     });
   };
-  const getCtaCteWithCheques = async (forceRefresh?: boolean) => {
-    let dataCtasCorrientes: CtasCtesDB[] | null = ctasCtes;
+  const getChequesEnriched = async (opts?: { refresh?: boolean }) => {
+    const refresh = opts?.refresh || false;
     let dataCheques: ChequesDB[] | null = cheques;
-    if (!dataCtasCorrientes || forceRefresh) {
-      dataCtasCorrientes = await getCtasCtes();
-    }
-    if (!dataCheques || forceRefresh) {
+    let bancosData: BancosProps[] | null = bancos;
+    let proveedoresData: ProveedoresBD[] | null = proveedores;
+
+    if (!dataCheques || refresh) {
       dataCheques = await getCheques();
     }
-    // Mapear cuentas corrientes con datos de cheques
-    const ctasCorrientesWithCheques: CtasCtesWithCheque[] = (
-      dataCtasCorrientes || []
-    ).map((cta) => {
-      const cheque = (dataCheques || []).filter(
-        (ch) => ch.cta_cte_id === cta.id,
+    if (!bancosData) {
+      bancosData = await getBancos();
+    }
+    if (!proveedoresData) {
+      proveedoresData = await getProveedores();
+    }
+    const dataChequesEnriched: ChequesEnriched[] = (dataCheques || []).map(
+      (cheque) => {
+        const nombre_banco =
+          bancosData?.find((banco) => banco.value === cheque.banco)?.label ||
+          "";
+        const proveedor =
+          proveedoresData?.find((p) => p.id === cheque.proveedor_id) || null;
+        return {
+          ...cheque,
+          nombre_banco,
+          proveedor: proveedor || undefined,
+        };
+      },
+    );
+    setChequesEnriched(dataChequesEnriched);
+    return dataChequesEnriched;
+  };
+  const getMvtosWithCheques = async ({
+    refMvto,
+    refCheque,
+    refDocu,
+  }: RefreshOptionsCtaCte): Promise<MvtosWithCheques[]> => {
+    let dataMvtosWithCheques: MvtosDB[] | null = mvtos;
+    let dataChequesEnriched: ChequesEnriched[] | null = chequesEnriched;
+    let dataDocumentos: DocumentosCtasCtesBD[] | null = documentosCtasCtes;
+    if (!dataMvtosWithCheques || refMvto) {
+      dataMvtosWithCheques = await getMvtos();
+    }
+    if (!dataChequesEnriched || refCheque) {
+      dataChequesEnriched = await getChequesEnriched({ refresh: refCheque });
+    }
+    if (!dataDocumentos || refDocu) {
+      dataDocumentos = await getDocumentosCtasCtes();
+    }
+    const mvtosConCheques = (dataMvtosWithCheques || []).map((mvto) => {
+      const chequesMvto = (dataChequesEnriched || []).filter(
+        (cheque) => cheque.cta_cte_id === mvto.id,
+      );
+      const documentosMvto = (dataDocumentos || []).filter(
+        (doc) => doc.cta_cte_id === mvto.id,
       );
       return {
-        ...cta,
-        cheques: cheque || undefined,
+        ...mvto,
+        cheques: chequesMvto,
+        documentos: documentosMvto,
       };
     });
-    setCtaCteWithCheques(ctasCorrientesWithCheques);
-    return ctasCorrientesWithCheques;
+    setMvtosWithCheques(mvtosConCheques);
+    return mvtosConCheques;
   };
-  const getCtasCtesByClientes = async () => {
-    let dataCtasCorrientes: CtasCtesDB[] | null = ctasCtes;
+  const getCheques = async () => {
+    return await getCompleteData({
+      api: chequesAPI,
+      setData: setCheques,
+    });
+  };
+
+  const getCtasCtes = async (opt?: RefreshOptionsCtaCte) => {
+    const { refMvto = false, refCheque = false, refDocu = false } = opt || {};
+    let dataMvtosWithCheques: MvtosWithCheques[] | null = mvtosWithCheques;
     let datClientes: ClientesBD[] | null = clientes;
-    if (!dataCtasCorrientes) {
-      dataCtasCorrientes = await getCtasCtes();
+
+    if (!dataMvtosWithCheques || refMvto) {
+      dataMvtosWithCheques = await getMvtosWithCheques({
+        refMvto,
+        refCheque,
+        refDocu,
+      });
     }
     if (!datClientes) {
       datClientes = await getClientes();
     }
     // Agrupar por cliente_id sumando debe y haber, y calculando saldo = debe - haber
-    const grouped = (dataCtasCorrientes || []).reduce(
+    const grouped = (dataMvtosWithCheques || []).reduce(
       (acc, cta) => {
         const key = cta.cliente_id;
         if (!acc[key]) {
@@ -954,113 +1105,43 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       {} as Record<string, { debe: number; haber: number }>,
     );
 
-    const ctaCtesGroupedByClientes: CtaCteConCliente[] = Object.entries(
-      grouped,
-    ).map(([clienteId, sums]) => {
-      const cliente = (datClientes || []).find((c) => c.id === clienteId);
-      const debe = sums.debe;
-      const haber = sums.haber;
-      const saldo = debe - haber;
-
-      // Construir objeto resumido. Rellenamos campos requeridos con valores por defecto cuando no aplican.
-      const resumen: any = {
-        id: clienteId,
-        fecha_creacion: "",
-        cliente_id: clienteId,
-        fecha_movimiento: "",
-        tipo: "ajuste",
-        origen: "manual",
-        medio_pago: "efectivo",
-        referencia: undefined,
-        concepto: undefined,
-        debe,
-        haber,
-        saldo,
-        usuario_id: "",
-        razon_social: cliente ? cliente.razon_social : "Cliente no encontrado",
-        cuit_cuil: cliente ? cliente.cuit_cuil : "",
-        condicion_iva: cliente ? cliente.condicion_iva : "",
-      };
-
-      return resumen as CtaCteConCliente;
-    });
-
-    // Guardar en el estado correspondiente
-    setCtasCtesByClientes(ctaCtesGroupedByClientes);
-    return ctaCtesGroupedByClientes;
-  };
-  const getCheques = async () => {
-    return await getCompleteData({
-      api: chequesAPI,
-      setData: setCheques,
-    });
-  };
-  const getChequesWithTerceros = async (forceRefresh?: boolean) => {
-    let dataCheques: ChequesDB[] | null = cheques;
-    let datClientes: ClientesBD[] | null = clientes;
-    let dataCtasCtes: CtasCtesDB[] | null = ctasCtes;
-    let bancosData: BancosProps[] | null = bancos;
-    let proveedoresData: ProveedoresBD[] | null = proveedores;
-    if (!bancosData) {
-      bancosData = await getBancos();
-    }
-    if (!dataCheques || forceRefresh) {
-      dataCheques = await getCheques();
-    }
-    if (!datClientes) {
-      datClientes = await getClientes();
-    }
-    if (!dataCtasCtes) {
-      dataCtasCtes = await getCtasCtes();
-    }
-    if (!proveedoresData) {
-      proveedoresData = await getProveedores();
-    }
-    // Mapear cheques con datos de clientes
-    const chequesConClientes: ChequesWithTerceros[] = (dataCheques || []).map(
-      (cheque) => {
-        const ctaCte = (ctasCtes || []).find(
-          (cc) => cc.id === cheque.cta_cte_id,
-        );
-        if (!ctaCte)
-          throw new Error("Cuenta corriente no encontrada para el cheque.");
-        if (!ctaCte.cliente_id)
-          throw new Error("Cuenta corriente sin cliente asociado.");
-        const cliente = (datClientes || []).find(
-          (c) => c.id === ctaCte.cliente_id,
-        );
+    const ctaCtesGroupedByClientes: CtaCte[] = Object.entries(grouped).map(
+      ([clienteId, sums]) => {
+        const cliente = (datClientes || []).find((c) => c.id === clienteId);
         if (!cliente)
-          throw new Error("Cliente no encontrado para la cuenta corriente.");
-        let dataEndosante: ProveedoresBD | null = null;
+          throw new Error(
+            "Cliente no encontrado para la cuenta corriente con cliente_id: ",
+          );
+        const mvtosCliente = (dataMvtosWithCheques || []).filter(
+          (m) => m.cliente_id === clienteId,
+        );
+        const debe = sums.debe;
+        const haber = sums.haber;
+        const saldo = debe - haber;
 
-        if (cheque.proveedor_id) {
-          dataEndosante =
-            (proveedoresData || []).find((p) => p.id === cheque.proveedor_id) ||
-            null;
-          if (!dataEndosante)
-            throw new Error("Proveedor no encontrado para el cheque.");
-        }
-        return {
-          ...cheque,
-          ctaCte: ctaCte,
-          cliente: cliente,
-          nombre_banco:
-            bancosData?.find((banco) => banco.value === cheque.banco)?.label ||
-            "",
-          proveedor: dataEndosante || undefined,
+        // Construir objeto resumido. Rellenamos campos requeridos con valores por defecto cuando no aplican.
+        const resumen: CtaCte = {
+          debe,
+          haber,
+          saldo,
+          movimientos: mvtosCliente,
+          ...cliente,
         };
+        return resumen as CtaCte;
       },
     );
-    setChequesWithClients(chequesConClientes);
+
+    setCtasCtes(ctaCtesGroupedByClientes);
+    return true;
   };
-  const refreshChequesWithTerceros = async () => {
-    try {
-      // Forzar recarga completa de cheques desde la base de datos
-      await getChequesWithTerceros(true);
-      return true;
-    } catch (error) {
-      throw new Error("Error refreshing cheques with terceros:" + error);
-    }
+  const refreshCtasCtes = async ({
+    refMvto,
+    refCheque,
+    refDocu,
+  }: RefreshOptionsCtaCte) => {
+    // Siempre requiere argumentos explícitos
+    const resfresh = await getCtasCtes({ refMvto, refCheque, refDocu });
+    return resfresh;
   };
   const fetchBancos = async () => {
     try {
@@ -1078,6 +1159,169 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
       return data;
     }
     return bancos;
+  };
+  const uploadFilesToPedidos = async (
+    pedidoId: string,
+    numeroPedido: string,
+    files: FileList,
+    tipoDocumento: TipoDocumento,
+  ) => {
+    try {
+      let dataloaded: DocumentosBD[] | null = [];
+      if (!files || files.length === 0) {
+        return {
+          success: false,
+          message: "No se seleccionaron archivos para subir.",
+        };
+      }
+      await Promise.all(
+        Array.from(files).map(async (file) => {
+          const uploaderFile = await updateFilePDFPedidos(file, numeroPedido);
+          if (!uploaderFile) {
+            throw new Error("Error al subir el archivo PDF");
+          }
+          const { url, nombre } = uploaderFile;
+          if (!url) {
+            throw new Error("Error al subir el archivo PDF");
+          }
+          const documentoData = {
+            pedido_id: pedidoId,
+            tipo_documento: tipoDocumento,
+            url: url,
+            nombre: nombre,
+          };
+          const response = await documentosPedidosAPI.create(documentoData);
+          if (!response.success) {
+            throw new Error(
+              response.message || "Error desconocido al crear el documento",
+            );
+          }
+          dataloaded.push(response.data as DocumentosBD);
+        }),
+      );
+      return { success: true, data: dataloaded };
+    } catch (error) {
+      logDetailedError(error);
+      const formattedError = getFormattedError(error);
+      showError(formattedError);
+      return { success: false, message: formattedError };
+    }
+  };
+  const uploadFilesToCtasCtes = async (
+    ctaCteId: string,
+    files: FileList,
+    tipoDocumento: TipoDocumento,
+  ) => {
+    try {
+      let dataloaded: DocumentosCtasCtesBD[] | null = [];
+      if (!files || files.length === 0) {
+        return {
+          success: false,
+          message: "No se seleccionaron archivos para subir.",
+        };
+      }
+      await Promise.all(
+        Array.from(files).map(async (file) => {
+          const uploaderFile = await updateFilePDFCtaCte(file);
+          if (!uploaderFile) {
+            throw new Error("Error al subir el archivo PDF");
+          }
+          const { url, nombre } = uploaderFile;
+          if (!url) {
+            throw new Error("Error al subir el archivo PDF");
+          }
+          const documentoData = {
+            cta_cte_id: ctaCteId,
+            tipo_documento: tipoDocumento,
+            url: url,
+            nombre: nombre,
+          };
+          const response = await documentosCtasCtesAPI.create(documentoData);
+          if (!response.success) {
+            throw new Error(
+              response.message || "Error desconocido al crear el documento",
+            );
+          }
+          dataloaded.push(response.data as DocumentosCtasCtesBD);
+        }),
+      );
+      return { success: true, data: dataloaded };
+    } catch (error) {
+      logDetailedError(error);
+      const formattedError = getFormattedError(error);
+      showError(formattedError);
+      return { success: false, message: formattedError };
+    }
+  };
+  const deleteDocumentoPedido = async (documentos: DocumentosBD[]) => {
+    try {
+      let dataDeletes: DocumentosBD[] | null = [];
+      if (!documentos || documentos.length === 0) {
+        return {
+          success: false,
+          message: "No se seleccionaron documentos para eliminar.",
+        };
+      }
+      await Promise.all(
+        documentos.map(async (documento) => {
+          const response = await documentosPedidosAPI.delete(documento.id);
+          if (!response.success) {
+            throw new Error(
+              response.message || "Error desconocido al eliminar el documento",
+            );
+          }
+          dataDeletes.push(documento);
+        }),
+      );
+      return { success: true, data: dataDeletes };
+    } catch (error) {
+      logDetailedError(error);
+      const formattedError = getFormattedError(error);
+      showError(formattedError);
+      return { success: false, message: formattedError };
+    }
+  };
+  const deleteDocumentoCtasCtes = async (
+    documentos: DocumentosCtasCtesBD[],
+  ) => {
+    try {
+      let dataDeletes: DocumentosCtasCtesBD[] | null = [];
+      if (!documentos || documentos.length === 0) {
+        return {
+          success: false,
+          message: "No se seleccionaron documentos para eliminar.",
+        };
+      }
+      await Promise.all(
+        documentos.map(async (documento) => {
+          const response = await documentosCtasCtesAPI.delete(documento.id);
+          if (!response.success) {
+            throw new Error(
+              response.message || "Error desconocido al eliminar el documento",
+            );
+          }
+          dataDeletes.push(documento);
+        }),
+      );
+      return { success: true, data: dataDeletes };
+    } catch (error) {
+      logDetailedError(error);
+      const formattedError = getFormattedError(error);
+      showError(formattedError);
+      return { success: false, message: formattedError };
+    }
+  };
+  const getDocumentosPedidos = async () => {
+    return await getCompleteData({
+      api: documentosPedidosAPI,
+      setData: setDocumentosPedidos,
+    });
+  };
+  const getDocumentosCtasCtes = async () => {
+    return await getCompleteData({
+      api: documentosCtasCtesAPI,
+      setData: setDocumentosCtasCtes,
+    });
   };
   const getCompleteData = async <T extends Record<string, any>>({
     api,
@@ -1156,13 +1400,13 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         refreshPedidoByIdAndTable,
         getCtrlCarrozadoByCarrozadoId,
         ctrlCarrozadoByCarrozadoId,
-        getCtasCtesByClientes,
-        ctasCtesByClientes,
+        getCtasCtes,
+        refreshCtasCtes,
         ctasCtes,
+        mvtos,
         cheques,
         getCheques,
-        getChequesWithTerceros,
-        chequesWithClients,
+
         getBancos,
         bancos,
         getProveedores,
@@ -1170,12 +1414,17 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         setProveedor,
         deleteProveedorById,
         proveedor,
-        refreshChequesWithTerceros,
-        ctaCteWithCheques,
-        getCtaCteWithCheques,
-        getCtasCtes,
+        getMvtos,
         getDefaultsWithPuertas,
         defaultsWithPuertas,
+        uploadFilesToPedidos,
+        uploadFilesToCtasCtes,
+        deleteDocumentoPedido,
+        deleteDocumentoCtasCtes,
+        ctaCte,
+        setCtaCte,
+        getChequesEnriched,
+        chequesEnriched,
       }}
     >
       {children}

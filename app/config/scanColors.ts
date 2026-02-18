@@ -118,19 +118,19 @@ function main() {
   const files = findFiles('app', ['tsx', 'ts', 'jsx', 'js']);
   
   // Filtrar archivos de configuración y herramientas
-  const filteredFiles = files.filter(file => {
-    const fileName = file.split(/[\\\/]/).pop() || '';
+  const filteredFiles = files.filter(files => {
+    const fileName = files.split(/[\\\/]/).pop() || '';
     return !['colorMigration.ts', 'scanColors.ts', 'colorSystem.ts'].includes(fileName);
   });
   
   let totalMatches = 0;
-  const fileResults: { file: string; matches: string[]; suggestions: string[] }[] = [];
+  const fileResults: { files: string; matches: string[]; suggestions: string[] }[] = [];
   
-  for (const file of filteredFiles) {
-    const { matches, suggestions } = scanFile(file);
+  for (const files of filteredFiles) {
+    const { matches, suggestions } = scanFile(files);
     
     if (matches.length > 0) {
-      fileResults.push({ file, matches, suggestions });
+      fileResults.push({ files, matches, suggestions });
       totalMatches += matches.length;
     }
   }
@@ -142,8 +142,8 @@ function main() {
   
   console.log(`📋 Se encontraron ${totalMatches} clases en ${fileResults.length} archivos:\n`);
   
-  for (const { file, matches, suggestions } of fileResults) {
-    console.log(`📄 ${file}`);
+  for (const { files, matches, suggestions } of fileResults) {
+    console.log(`📄 ${files}`);
     for (let i = 0; i < matches.length; i++) {
       console.log(`   ❌ ${matches[i]}`);
       console.log(`   ✅ ${suggestions[i]}`);

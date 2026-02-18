@@ -48,7 +48,7 @@ export const ControlCarrozadoTemplate: React.FC<ComtrolCarrozadojeProps> = ({
             <Row isLast>
               <Cell
                 title="Cliente"
-                value={pedidoData?.razon_social}
+                value={pedidoData?.cliente.razon_social}
                 isFirst
               />
               <Cell title="Responsable" value={responsable} />

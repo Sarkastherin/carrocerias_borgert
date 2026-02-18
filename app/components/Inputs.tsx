@@ -65,7 +65,9 @@ export function Label({
   requiredField?: boolean;
 }) {
   return (
-    <span className={`block mb-2 text-sm font-semibold ${label ? "" : "sr-only"}`}>
+    <span
+      className={`block mb-2 text-sm font-semibold ${label ? "" : "sr-only"}`}
+    >
       {label}
       <span className="text-red-500">{requiredField ? " *" : ""}</span>
     </span>
@@ -623,7 +625,7 @@ export function FileInputCard({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setSelectedFiles(files.map((file) => file.name));
+    setSelectedFiles(files.map((files) => files.name));
     onChange?.(e);
   };
 
@@ -657,7 +659,7 @@ export function FileInputCard({
 
         <input
           id={id}
-          type="file"
+          type="files"
           accept={accept}
           multiple={multiple}
           onChange={handleFileChange}
@@ -680,20 +682,30 @@ export function FileInput({
   onChange,
   ...props
 }: InputProps & { accept?: string }) {
-  const [selectedFileName, setSelectedFileName] = useState<string>("Ningún archivo seleccionado");
+  const [selectedFileName, setSelectedFileName] = useState<string>(
+    "Ningún archivo seleccionado",
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    setSelectedFileName(file ? file.name : "Ningún archivo seleccionado");
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const fileNames = Array.from(files)
+        .map((f) => f.name)
+        .join(", ");
+      setSelectedFileName(fileNames);
+    } else {
+      setSelectedFileName("Ningún archivo seleccionado");
+    }
     onChange?.(e);
   };
-
   return (
     <div className={hidden ? "sr-only" : ""}>
       <Label label={label ?? ""} requiredField={requiredField} />
-      <div className={`flex items-center gap-0 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden ${
-        error ? "border-red-500 ring-2 ring-red-500" : ""
-      }`}>
+      <div
+        className={`flex items-center gap-0 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden ${
+          error ? "border-red-500 ring-2 ring-red-500" : ""
+        }`}
+      >
         <label
           htmlFor={id}
           className="px-4 py-2.5 bg-gray-600 dark:bg-gray-800 text-white text-sm font-medium cursor-pointer hover:bg-gray-700 dark:hover:bg-gray-900 transition-colors duration-200 whitespace-nowrap"
@@ -709,6 +721,7 @@ export function FileInput({
           accept={accept}
           onChange={handleFileChange}
           className="sr-only"
+          multiple={true}
           {...props}
         />
       </div>
@@ -741,19 +754,19 @@ export function SelectFieldCustom<T extends { id: string }>({
   const [filteredData, setFilteredData] = useState<T[] | null>(data || null);
 
   const handleFilterSearchInput: React.ChangeEventHandler<HTMLInputElement> = (
-    e
+    e,
   ) => {
-    console.log("Input value:", e.currentTarget.value);
-    const filterText = e.currentTarget.value.toLowerCase()
-    if (data) {
-      const filtered = data.filter((item) => {
-        const value = item[keyOfData];
-        return (
-          typeof value === "string" && value.toLowerCase().includes(filterText)
-        );
-      });
-      setFilteredData(filtered);
-    }
+    const filterText = e.currentTarget.value.toLowerCase();
+      if (data) {
+        const filtered = data.filter((item) => {
+          const value = item[keyOfData];
+          return (
+            typeof value === "string" && value.toLowerCase().includes(filterText)
+          );
+        });
+        setFilteredData(filtered);
+      }
+
   };
 
   const handleSelectedData = (e: MouseEvent<HTMLLIElement>) => {
@@ -769,8 +782,8 @@ export function SelectFieldCustom<T extends { id: string }>({
   };
   useEffect(() => {
     setFilteredData(data || null);
-  },[data]);
-  
+  }, [data]);
+
   return (
     <div className="relative">
       <Label label={label} requiredField={requiredField} />

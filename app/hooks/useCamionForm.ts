@@ -1,27 +1,37 @@
 import { useForm } from "react-hook-form";
-import type { CamionBD } from "~/types/pedidos";
+import type { CamionBD, DocumentosBD } from "~/types/pedidos";
 import { useUIModals } from "~/context/ModalsContext";
 import { useData } from "~/context/DataContext";
 import { useState } from "react";
 import { camionAPI } from "~/backend/sheetServices";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
 import { useFormNavigationBlock } from "./useFormNavigationBlock";
-import { uploadPDFToDrive, createFolderIfNotExists } from "~/backend/driveAPI";
-import { updateFilePDFPedidos } from "~/components/FileUpladerComponent";
+import type { FileTypeActions } from "../components/FileUpladerComponent";
 
-export function useCamionForm(file?: File | null) {
+type CamionFormData = CamionBD & {
+  documentos?: DocumentosBD[] | null;
+};
+export function useCamionForm(
+  files: FileTypeActions<DocumentosBD>,
+  setFiles: React.Dispatch<React.SetStateAction<FileTypeActions<DocumentosBD>>>,
+) {
   const [isLoading, setIsLoading] = useState(false);
 
   const { showLoading, showSuccess, showError, showInfo } = useUIModals();
-  const { pedido, refreshPedidoByIdAndTable } = useData();
+  const {
+    pedido,
+    refreshPedidoByIdAndTable,
+    uploadFilesToPedidos,
+    deleteDocumentoPedido,
+  } = useData();
   const isEditMode = Boolean(pedido);
-  const { camion } = pedido || {};
+  const { camion, id, numero_pedido, documentos } = pedido || {};
   const existingPedido = camion || null;
-  const form = useForm<CamionBD>({
+  const form = useForm<CamionFormData>({
     defaultValues: existingPedido
       ? {
           ...existingPedido,
-          // Mapear campos existentes a los nuevos campos estructurados
+          documentos: documentos || null,
         }
       : {
           pedido_id: pedido?.id,
@@ -33,6 +43,7 @@ export function useCamionForm(file?: File | null) {
           observaciones: "",
           centro_eje: 0,
           voladizo_trasero: 0,
+          documentos: null,
         },
   });
 
@@ -46,40 +57,100 @@ export function useCamionForm(file?: File | null) {
     confirmText: "Sí, salir",
     cancelText: "No, continuar editando",
   });
-  const handleSubmit = async (formData: CamionBD) => {
+  const addFiles = async ({
+    id,
+    numero_pedido,
+    files,
+    formData,
+  }: {
+    id: string;
+    numero_pedido: string;
+    files: FileList;
+    formData: CamionFormData;
+  }) => {
+    const response = await uploadFilesToPedidos(
+      id,
+      numero_pedido,
+      files,
+      "camion",
+    );
+    if (!response.success) {
+      throw new Error(
+        response.message || "Error desconocido al subir los archivos",
+      );
+    }
+    if (response.data && response.data.length > 0) {
+      const newDocs = [...(formData.documentos || []), ...response.data];
+      formData.documentos = newDocs;
+      form.setValue("documentos", newDocs, { shouldDirty: true });
+    }
+    setFiles((prev) => ({ ...prev, add: null })); // Limpiar archivos a subir después de subirlos
+  };
+  const deleteFiles = async ({files, formData}: {files: DocumentosBD[], formData: CamionFormData}) => {
+    const response = await deleteDocumentoPedido(files);
+    if (!response.success) {
+      throw new Error(
+        response.message || "Error desconocido al eliminar el documento",
+      );
+    }
+    if (response.data && response.data.length > 0) {
+      const filteredDocs =
+        formData.documentos?.filter(
+          (doc) =>
+            !response.data?.some((deletedDoc) => deletedDoc.id === doc.id),
+        ) || null;
+      formData.documentos = filteredDocs;
+      form.setValue("documentos", filteredDocs, { shouldDirty: true });
+    }
+    setFiles((prev) => ({ ...prev, remove: null })); // Limpiar archivos a eliminar después de eliminarlos
+  };
+  const handleSubmit = async (formData: CamionFormData) => {
     try {
       setIsLoading(true);
       showLoading();
-      if (file) {
-        const fileLink = await updateFilePDFPedidos(file, pedido?.numero_pedido);
-        formData.documento_camion = fileLink;
-        form.setValue("documento_camion", fileLink, { shouldDirty: true });
-      }
+      let updated = false;
+      let created = false;
+      let uploaded = false;
+      let isNew = false;
+
       if (existingPedido) {
-        // Verificar si hay cambios en el formulario
         const hasDirtyFields =
           form.formState.dirtyFields &&
           Object.keys(form.formState.dirtyFields).length > 0;
 
-        // Si no hay campos dirty, no actualizar
-        if (!hasDirtyFields) {
+        if (!hasDirtyFields && (!files || (!files.add && !files.remove))) {
           setIsLoading(false);
           showInfo("No se realizaron cambios en el formulario.");
           return;
         }
 
-        const updatePayload = prepareUpdatePayload<CamionBD>({
-          dirtyFields: form.formState.dirtyFields,
-          formData: formData,
-        });
-        const response = await camionAPI.update(
-          existingPedido?.id || "",
-          updatePayload,
-        );
-        if (!response.success) {
-          throw new Error(
-            response.message || "Error desconocido al actualizar el camión",
+        if (hasDirtyFields) {
+          const updatePayload = prepareUpdatePayload<CamionBD>({
+            dirtyFields: form.formState.dirtyFields,
+            formData: formData,
+          });
+          const response = await camionAPI.update(
+            existingPedido?.id || "",
+            updatePayload,
           );
+          if (!response.success) {
+            throw new Error(
+              response.message || "Error desconocido al actualizar el camión",
+            );
+          }
+          await refreshPedidoByIdAndTable("camion");
+          updated = true;
+        }
+        if (files && id && numero_pedido) {
+          if (files.add && files.add.length > 0) {
+            await addFiles({ id, numero_pedido, files: files.add, formData });
+          }
+          if (files.remove && files.remove.length > 0) {
+            await deleteFiles({ files: files.remove, formData });
+          }
+          // Actualizar los documentos en formData con la respuesta del upload
+          await refreshPedidoByIdAndTable("documentos");
+          uploaded = true;
         }
       } else {
         const response = await camionAPI.create(formData);
@@ -88,11 +159,31 @@ export function useCamionForm(file?: File | null) {
             response.message || "Error desconocido al crear el camión",
           );
         }
+        created = true;
+        isNew = true;
+        if (files && (files.add || files.remove) && id && numero_pedido) {
+          if (files.add && files.add.length > 0) {
+            await addFiles({ id, numero_pedido, files: files.add, formData });
+          }
+          if (files.remove && files.remove.length > 0) {
+            await deleteFiles({ files: files.remove, formData });
+          }
+          await refreshPedidoByIdAndTable("camion");
+          await refreshPedidoByIdAndTable("documentos");
+          uploaded = true;
+        }
       }
-      await refreshPedidoByIdAndTable("camion");
-      form.reset(formData); // Resetea el formulario con los datos actuales
-      setIsLoading(false);
-      showSuccess("Camión guardado exitosamente");
+
+      if (updated || created || uploaded) {
+        // Usar los valores actuales del formulario (incluyendo documentos actualizados)
+        form.reset(form.getValues());
+        setIsLoading(false);
+        if (isNew) {
+          showSuccess("Camión guardado exitosamente");
+        } else {
+          showSuccess("Camión actualizado exitosamente");
+        }
+      }
     } catch (error) {
       setIsLoading(false);
       showError(

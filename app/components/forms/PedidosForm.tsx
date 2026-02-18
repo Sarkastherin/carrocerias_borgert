@@ -60,7 +60,7 @@ export default function PedidosForm() {
                   />
                   <div className="flex-1">
                     <ClienteField
-                      value={watch("razon_social")}
+                      value={watch("cliente.razon_social")}
                       required={true}
                       setValue={setValue}
                       errors={errors}

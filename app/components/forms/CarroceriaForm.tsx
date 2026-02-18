@@ -19,10 +19,16 @@ import {
 } from "~/config/atributosMetadata";
 import { useEffect, useState } from "react";
 import { useUIModals } from "~/context/ModalsContext";
-import FileUploderComponent from "../FileUpladerComponent";
+import FilesUploderComponent, {
+  type FileTypeActions,
+} from "../FileUpladerComponent";
+import type { DocumentosBD } from "~/types/pedidos";
 
 export default function CarroceriaForm() {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<FileTypeActions<DocumentosBD>>({
+    add: null,
+    remove: null,
+  });
   const { openModal, closeModal } = useUIModals();
   const {
     colores,
@@ -52,7 +58,7 @@ export default function CarroceriaForm() {
     watch,
     setValue,
     resetForm,
-  } = useCarroceriaForm(file);
+  } = useCarroceriaForm(files, setFiles);
 
   // Reset selectedCarrozado al montar el componente
   useEffect(() => {
@@ -498,9 +504,11 @@ export default function CarroceriaForm() {
                 </div>
               </fieldset>
             </CardToggle>
-            <FileUploderComponent
-              value={watch("documento_carroceria") || ""}
-              setFile={setFile}
+            <FilesUploderComponent
+              tipoDocumento="carroceria"
+              documentos={watch("documentos")}
+              setFiles={setFiles}
+              files={files}
             />
             <Textarea
               label="Observaciones"

@@ -201,7 +201,7 @@ export default function ControlesModal({
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
                 <span className="font-medium">
-                  Cliente: {pedidoData.razon_social}
+                  Cliente: {pedidoData.cliente.razon_social}
                 </span>
               </div>
               {pedidoData.carroceria && (
@@ -458,7 +458,7 @@ export default function ControlesModal({
                   Responsable:
                 </span>
                 <span className="ml-2 text-gray-900 dark:text-white capitalize">
-                  {orderData?.responsable_id || "No asignado"}
+                  { personal?.find((p) => p.id === orderData?.responsable_id)?.nombre || "No asignado"}
                 </span>
               </div>
             </div>

@@ -1,24 +1,14 @@
 import type { Route } from "../+types/home";
 import { Subheader } from "~/components/Headers";
-import { BookUser, DollarSign } from "lucide-react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { BookUser } from "lucide-react";
+import { useForm } from "react-hook-form";
 import type {
-  CtasCtesDB,
+  MvtosDB,
   ChequesDB,
-  CtaCteConCliente,
 } from "~/types/ctas_corrientes";
-import type { AddChequeFormProps } from "~/components/forms/AddChequeForm";
 import ClienteField from "~/components/ClienteField";
 import { useUIModals } from "~/context/ModalsContext";
 import type { ClientesBD } from "~/types/clientes";
-import ClienteNuevoModal from "~/components/modals/customs/ClienteNuevoModal";
-import { UserRoundPlus } from "lucide-react";
-import { CurrencyInput, Input, Select } from "~/components/Inputs";
-import {
-  optionsTypeMov,
-  optionsOrigen,
-  optionsMedioPago,
-} from "~/types/ctas_corrientes";
 import ButtonsActionsCtaCte from "~/components/ButtonsActionsCtaCte";
 export function meta({}: Route.MetaArgs) {
   return [
@@ -29,48 +19,27 @@ export function meta({}: Route.MetaArgs) {
     },
   ];
 }
-type MovimientoFormProps = CtaCteConCliente & {
+type MovimientoFormProps = MvtosDB & {
   cheques: ChequesDB[];
+  cliente: ClientesBD;
 };
 export default function NuevoMovimiento() {
-  const { openModal, closeModal } = useUIModals();
   const {
     register,
-    handleSubmit,
     setValue,
     watch,
-    reset,
-    control,
     formState: { errors, isSubmitting },
   } = useForm<MovimientoFormProps>({
     defaultValues: {
-      cliente_id: "",
       fecha_movimiento: new Date().toISOString().split("T")[0],
       tipo_movimiento: "",
       origen: "",
       debe: 0,
       haber: 0,
       medio_pago: "",
-      cheques: [
-        {
-          numero: "",
-          importe: 0,
-          banco: "",
-          fecha_cobro: "",
-          fecha_ingreso: "",
-          observacion: "",
-        } as ChequesDB,
-      ],
-    },
+      cheques: [],
+    }
   });
-
-  const { append, remove, fields } = useFieldArray({
-    control,
-    name: "cheques",
-  });
-  const onSubmit = (data: MovimientoFormProps) => {
-    console.log(data);
-  };
   return (
     <div className="flex flex-col items-center w-full px-6">
       <Subheader
@@ -83,7 +52,7 @@ export default function NuevoMovimiento() {
       />
       <main className="w-full max-w-7xl p-6">
         <ClienteField
-          value={watch("razon_social")}
+          value={watch("cliente.razon_social")}
           required={true}
           setValue={setValue}
           errors={errors}

@@ -8,19 +8,17 @@ import type { TableColumn } from "react-data-table-component";
 import {
   optionsMedioPago,
   optionsTypeMov,
-  type CtasCtesDB,
-  type CtaCteConCliente,
-  type ChequesDB,
-  type CtasCtesWithCheque,
+  type CtaCte,
+  type MvtosWithCheques,
 } from "~/types/ctas_corrientes";
 import { capitalize } from "~/config/settingsConfig";
 import { formatDateUStoES } from "~/utils/formatDate";
 import { formatCuit } from "~/components/Inputs";
 import ButtonsActionsCtaCte from "~/components/ButtonsActionsCtaCte";
 import { useParams } from "react-router";
-import { Banknote } from "lucide-react";
+import { Banknote, FileArchive } from "lucide-react";
 import { useUIModals } from "~/context/ModalsContext";
-import EditMovimientoModal from "~/components/modals/customs/EditMovimientoModal";
+import MovimientoModal from "~/components/modals/customs/MovimientoModal";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Cuenta Corriente" },
@@ -30,7 +28,7 @@ export function meta({}: Route.MetaArgs) {
     },
   ];
 }
-const columns: TableColumn<CtasCtesWithCheque>[] = [
+const columns: TableColumn<MvtosWithCheques>[] = [
   {
     name: "Fecha",
     selector: (row) => formatDateUStoES(row.fecha_movimiento),
@@ -79,53 +77,54 @@ const columns: TableColumn<CtasCtesWithCheque>[] = [
       }
     },
   },
+  {
+    name: "Doc.",
+    width: "95px",
+    cell: (row) => {
+      if (row.documentos?.length || 0> 0) {
+        return (
+          <div className={"flex gap-2 text-blue-600 dark:text-blue-400"}>
+            {row.documentos?.length} <FileArchive className="w-5 h-5" />
+          </div>
+        );
+      } else {
+        return null;
+      }
+    },
+  },
 ];
 export default function CuentaCorriente() {
+  const { getCtasCtes, ctasCtes } = useData();
   const { ctaCteId } = useParams();
-  const {
-    ctasCtesByClientes,
-    getCtasCtesByClientes,
-    ctaCteWithCheques,
-    getCtaCteWithCheques,
-  } = useData();
+
   const { openModal } = useUIModals();
-  const [currentSaldo, setCurrentSaldo] = useState(0);
-  const [currentClient, setCurrentClient] =
-    useState<CtaCteConCliente | null>(null);
-
-  useEffect(() => {
-    if (!ctaCteWithCheques) getCtaCteWithCheques();
-  }, [getCtaCteWithCheques]);
-  useEffect(() => {
-    if (ctaCteWithCheques) {
-      getCtasCtesByClientes();
+  const [currentCtaCte, setCurrentCtaCte] = useState<CtaCte | null>(null);
+  const updateCurrentCtaCte = (ctaCteId: string) => {
+    if (!ctasCtes) return;
+    const resumenCliente = ctasCtes.find((c) => c.id === ctaCteId);
+    if (resumenCliente) {
+      setCurrentCtaCte(resumenCliente);
     }
-  }, [ctaCteWithCheques]);
+  };
   useEffect(() => {
-    if (ctasCtesByClientes && ctaCteId) {
-      const resumenCliente = ctasCtesByClientes.find(
-        (c) => c.cliente_id === ctaCteId,
-      );
-      if (resumenCliente) {
-        setCurrentClient(resumenCliente);
-        setCurrentSaldo(resumenCliente.debe - resumenCliente.haber);
-      }
+    if (!ctasCtes) getCtasCtes();
+  }, []);
+  useEffect(() => {
+    if (ctaCteId) {
+      updateCurrentCtaCte(ctaCteId);
     }
-  }, [ctasCtesByClientes, ctaCteId]);
-
-  const saldoColor =
-    currentSaldo > 0
-      ? "bg-green-600 dark:bg-green-500"
-      : currentSaldo < 0
-        ? "bg-orange-600 dark:bg-orange-500"
-        : "bg-gray-600";
-  const handleRowClick = (row: CtasCtesDB) => {
+  }, [ctasCtes, ctaCteId]);
+  const handleRowClick = (row: MvtosWithCheques) => {
     openModal("CUSTOM", {
-      component: EditMovimientoModal,
-      props: { data: row, client: currentClient },
+      component: MovimientoModal,
+      props: {
+        data: row,
+        client: currentCtaCte,
+        mode: "edit",
+      },
     });
   };
-  if (!currentClient && !ctaCteWithCheques) {
+  if (!currentCtaCte) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -136,7 +135,7 @@ export default function CuentaCorriente() {
   }
   return (
     <>
-      {ctaCteId && currentClient && (
+      {currentCtaCte && (
         <div className="px-6 py-8 w-full flex flex-col items-center max-w-7xl mx-auto">
           <GlassCard
             size="full"
@@ -152,13 +151,13 @@ export default function CuentaCorriente() {
                     Razón social
                   </p>
                   <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
-                    {currentClient?.razon_social}
+                    {currentCtaCte?.razon_social}
                   </h2>
                   <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                    CUIT: {formatCuit(currentClient.cuit_cuil)}
+                    CUIT: {formatCuit(currentCtaCte.cuit_cuil)}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Cond. IVA: {currentClient?.condicion_iva}
+                    Cond. IVA: {currentCtaCte?.condicion_iva}
                   </p>
                 </div>
               </div>
@@ -168,9 +167,9 @@ export default function CuentaCorriente() {
                   Saldo actual
                 </span>
                 <div
-                  className={`mt-2 inline-flex items-center px-4 py-3 rounded-2xl text-white text-2xl font-bold ${saldoColor}`}
+                  className={`mt-2 inline-flex items-center px-4 py-3 rounded-2xl text-white text-2xl font-bold ${currentCtaCte.saldo < 0 ? "bg-red-500" : currentCtaCte.saldo > 0 ? "bg-green-500" : "bg-gray-500"}`}
                 >
-                  {currentSaldo.toLocaleString("es-AR", {
+                  {currentCtaCte.saldo.toLocaleString("es-AR", {
                     style: "currency",
                     currency: "ARS",
                   })}
@@ -179,16 +178,13 @@ export default function CuentaCorriente() {
             </div>
           </GlassCard>
           <div className="w-full mt-6">
-            <ButtonsActionsCtaCte clienteId={ctaCteId} />
+            <ButtonsActionsCtaCte clienteId={currentCtaCte.id} ctaCte={currentCtaCte}/>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
               Movimientos
             </h2>
             <EntityTable
               columns={columns}
-              data={
-                ctaCteWithCheques?.filter((c) => c.cliente_id === ctaCteId) ||
-                []
-              }
+              data={currentCtaCte.movimientos}
               onRowClick={handleRowClick}
               filterFields={[
                 {
@@ -198,7 +194,7 @@ export default function CuentaCorriente() {
                   autoFilter: true,
                 },
                 {
-                  key: "tipo",
+                  key: "tipo_movimiento",
                   label: "Tipo de movimiento",
                   type: "select",
                   options: (

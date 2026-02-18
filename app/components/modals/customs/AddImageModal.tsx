@@ -16,8 +16,8 @@ export function AddImageModal({ onClose, carrozadoId }: AddImageModalProps) {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const handleSelectFile = (file: File | null) => {
-    setSelectedFile(file);
+  const handleSelectFile = (files: File | null) => {
+    setSelectedFile(files);
   };
   const handleUploadImage = async () => {
     if (!selectedFile) return;
@@ -42,7 +42,7 @@ export function AddImageModal({ onClose, carrozadoId }: AddImageModalProps) {
   };
   const uploadToCloudinary = async (selectedFile: File) => {
     const formData = new FormData();
-    formData.append("file", selectedFile);
+    formData.append("files", selectedFile);
     formData.append("upload_preset", "carrocerias borgert");
     try {
       const response = await fetch(

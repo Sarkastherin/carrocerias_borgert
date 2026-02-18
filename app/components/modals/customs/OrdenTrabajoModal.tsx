@@ -99,7 +99,10 @@ const ordenConfigs: Record<
   },
 };
 
-type ModalStep = "form" | "preview" | "saving" | "success" | "existing";
+type ModalStep = {
+  type: "form" | "preview" | "saving" | "success" | "existing" | "error";
+  message?: string;
+};
 
 export default function OrdenTrabajoModal({
   onClose,
@@ -107,7 +110,10 @@ export default function OrdenTrabajoModal({
   pedidoData,
   order,
 }: OrdenTrabajoModalProps) {
-  const [step, setStep] = useState<ModalStep>(order ? "existing" : "form");
+  const [step, setStep] = useState<ModalStep>({
+    type: order ? "existing" : "form",
+    message: "",
+  });
   const [formData, setFormData] = useState<Partial<OrdenesBD>>({});
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -115,8 +121,9 @@ export default function OrdenTrabajoModal({
   const [orderData, setOrderData] = useState<OrdenesBD | undefined>(
     order || undefined,
   );
+  const [regenerating, setRegenerating] = useState(false);
   // Hook para acceder al personal desde el contexto global
-  const { personal, getPersonal, getOrdenesByPedidoId, getPedidos, setPedido } =
+  const { personal, getPersonal, getOrdenesByPedidoId, getPedidos, setPedido, getPedidoById, refreshPedidoByIdAndTable } =
     useData();
 
   // Hook para generación de PDF
@@ -125,6 +132,7 @@ export default function OrdenTrabajoModal({
     savePDFToDrive,
     createRegisterAndUpdatePedido,
     closeOrder,
+    deleteOrden,
     generateFileName,
     isSaving,
     error: generatorError,
@@ -201,7 +209,7 @@ export default function OrdenTrabajoModal({
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
                 <span className="font-medium">
-                  Cliente: {pedidoData.razon_social}
+                  Cliente: {pedidoData.cliente.razon_social}
                 </span>
               </div>
               {pedidoData.carroceria && (
@@ -260,7 +268,7 @@ export default function OrdenTrabajoModal({
     if (!validateForm()) return;
 
     try {
-      setStep("preview");
+      setStep({ type: "preview", message: "" });
 
       // Generar PDF usando el hook
       const pdfBlob = await generateOrdenPDF({
@@ -272,7 +280,7 @@ export default function OrdenTrabajoModal({
       setPdfBlob(pdfBlob);
     } catch (error) {
       console.error("Error generando PDF:", error);
-      setStep("form");
+      setStep({ type: "form", message: "" });
     }
   };
 
@@ -280,28 +288,34 @@ export default function OrdenTrabajoModal({
     if (!pdfBlob) return;
 
     try {
-      setStep("saving");
+      setStep({ type: "saving", message: "" });
+      if(regenerating && orderData?.id){
+        console.log("eliminando orden")
+        await regenerateOrden(orderData.id);
+        setRegenerating(false);
+      }
       const fileName = generateFileName(tipoOrden, pedidoData);
       const urlFile = await savePDFToDrive(pdfBlob, fileName, tipoOrden);
       // Crear registro en Google Sheets y actualizar pedido
+      console.log("Guardando orden con URL:");
       await createRegisterAndUpdatePedido(
         urlFile,
         pedidoData?.id || "",
         tipoOrden,
         formData.responsable_id,
-        orderData,
       );
-      await getOrdenesByPedidoId(pedidoData?.id || "", true);
+      //await getOrdenesByPedidoId(pedidoData?.id || "", true);
       setOrderData((prev) =>
         prev ? ({ ...prev, ...formData } as OrdenesBD) : prev,
       );
-      await getPedidos();
+      await getOrdenesByPedidoId(pedidoData?.id || "", true);
+      await refreshPedidoByIdAndTable("pedidos")
       const statusUpdate =
         tipoOrden === "fabricacion"
           ? "en_produccion"
           : tipoOrden === "pintura"
             ? "en_pintura"
-            : "pintada";
+            : "finalizada";
       setPedido((prev) =>
         prev
           ? {
@@ -310,34 +324,44 @@ export default function OrdenTrabajoModal({
             }
           : prev,
       );
-      setStep("success");
+      setStep({ type: "success", message: "" });
     } catch (error) {
       console.error("Error guardando orden:", error);
-      setStep("preview");
+      setStep({ type: "preview", message: "" });
     }
   };
   const handlesCloseOrder = async () => {
     if (!orderData?.id) return;
     try {
-      setStep("saving");
+      setStep({ type: "saving", message: "" });
       await closeOrder(
         orderData?.id,
         formData,
         tipoOrden,
         pedidoData?.id || "",
       );
-      await getOrdenesByPedidoId(pedidoData?.id || "", true);
+      
       // actualizar orderData con los datos actualizados en formData
       setOrderData((prev) =>
         prev ? ({ ...prev, ...formData } as OrdenesBD) : prev,
       );
-      if (tipoOrden === "montaje" && formData.status === "completada") {
-        await getPedidos();
-      }
-      setStep("existing");
+      await getOrdenesByPedidoId(pedidoData?.id || "", true);
+      await refreshPedidoByIdAndTable("pedidos")
+      setStep({ type: "existing", message: "" });
     } catch (error) {}
   };
-
+  const regenerateOrden = async (orderId?: string) => {
+    if (!orderId) return;
+    const result = await deleteOrden(orderId);
+    if (!result.success) {
+      setStep({
+        type: "error",
+        message: result.message || "Error desconocido al eliminar la orden",
+      });
+      return;
+    }
+    console.log("Orden eliminada exitosamente, procediendo a generar nueva orden");
+  };
   const renderForm = () => (
     <div className="space-y-6">
       <HeaderOrder />
@@ -471,7 +495,14 @@ export default function OrdenTrabajoModal({
                   Responsable:
                 </span>
                 <span className="ml-2 text-gray-900 dark:text-white capitalize">
-                  {orderData?.responsable_id || "No asignado"}
+                  {(() => {
+                    const responsable = personal?.find(
+                      (p) => p.id === orderData?.responsable_id,
+                    );
+                    return responsable
+                      ? `${responsable.nombre} ${responsable.apellido}`
+                      : "No asignado";
+                  })()}
                 </span>
               </div>
             </div>
@@ -493,8 +524,8 @@ export default function OrdenTrabajoModal({
             <Button
               variant="warning"
               onClick={() => {
-                // Lógica para regenerar la orden
-                setStep("form");
+                setRegenerating(true);
+                setStep({ type: "form", message: "" });
               }}
               disabled={!!orderData?.fecha_ejecucion}
               className="flex-1 flex items-center justify-center gap-2"
@@ -602,7 +633,7 @@ export default function OrdenTrabajoModal({
       <div className="flex gap-3 pt-4">
         <Button
           variant="dark"
-          onClick={() => setStep("form")}
+          onClick={() => setStep({ type: "form", message: "" })}
           className="flex-1"
         >
           Volver a editar
@@ -660,25 +691,16 @@ export default function OrdenTrabajoModal({
       <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
         La orden de trabajo se ha guardado en Google Drive
       </p>
-      {pedidoData &&
-        (pedidoData.camion?.documento_camion ||
-          pedidoData.carroceria?.documento_carroceria) && (
-          <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex flex-col items-center w-md mx-auto">
-            <p className="font-semibold text-sm text-gray-600 dark:text-gray-300 mb-2">Este pedido tiene documentos adjuntos.</p>
-            {pedidoData.camion?.documento_camion && (
-              <LinkDocument
-                value={pedidoData.camion.documento_camion}
-                label="Documento del Camión"
-              />
-            )}
-            {pedidoData.carroceria?.documento_carroceria && (
-              <LinkDocument
-                value={pedidoData.carroceria.documento_carroceria}
-                label="Documento de la Carrocería"
-              />
-            )}
-          </div>
-        )}
+      {pedidoData && pedidoData.documentos?.length > 0 && (
+        <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex flex-col items-center w-md mx-auto">
+          <p className="font-semibold text-sm text-gray-600 dark:text-gray-300 mb-2">
+            Este pedido tiene documentos adjuntos.
+          </p>
+          {pedidoData.documentos?.map((doc) => (
+            <LinkDocument key={doc.id} url={doc.url} label={doc.nombre} />
+          ))}
+        </div>
+      )}
 
       <div className="flex gap-3 pt-4 justify-center">
         <div className="w-44">
@@ -689,7 +711,7 @@ export default function OrdenTrabajoModal({
         <div className="w-44">
           <Button
             variant="outlinePrimary"
-            onClick={() => setStep("preview")}
+            onClick={() => setStep({ type: "preview", message: "" })}
             className="w-full"
           >
             Ver Orden
@@ -698,9 +720,30 @@ export default function OrdenTrabajoModal({
       </div>
     </div>
   );
+  const renderError = () => (
+    <div className="text-center py-8">
+      <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <AlertTriangle className="w-8 h-8 text-red-600" />
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        Ocurrió un error
+      </h3>
+      <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+        {step.message || "Hubo un problema al procesar la orden de trabajo."}
+      </p>
+      <div className="w-44 mx-auto">
+        <Button
+          variant="red"
+          onClick={() => setStep({ type: "form", message: "" })}
+        >
+          Volver a intentar
+        </Button>
+      </div>
+    </div>
+  );
 
   const getStepContent = () => {
-    switch (step) {
+    switch (step.type) {
       case "form":
         return renderForm();
       case "existing":
@@ -717,7 +760,7 @@ export default function OrdenTrabajoModal({
   };
 
   const getFooter = () => {
-    if (step === "form") {
+    if (step.type === "form") {
       return {
         btnPrimary: {
           label: `Generar Orden`,
@@ -736,7 +779,7 @@ export default function OrdenTrabajoModal({
 
   return (
     <ModalBase
-      title={step === "success" ? "✅ Orden completada" : config.title}
+      title={step.type === "success" ? "✅ Orden completada" : config.title}
       open
       zIndex={100}
       onClose={onClose}

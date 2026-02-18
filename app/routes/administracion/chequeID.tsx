@@ -1,12 +1,12 @@
 import type { Route } from "../+types/home";
 import { Subheader } from "~/components/Headers";
 import { Banknote } from "lucide-react";
-import { useLocation } from "react-router";
 import { useParams } from "react-router";
 import ChequeForm from "~/components/forms/ChequeForm";
 import { useData } from "~/context/DataContext";
 import { useEffect, useState } from "react";
-import type { ChequesWithTerceros } from "~/types/ctas_corrientes";
+import type { ChequesEnrichWithCtaCte } from "~/types/ctas_corrientes";
+import LoadingComponent from "~/components/LoadingComponent";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Cheque" },
@@ -14,27 +14,37 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 export default function ChequeID() {
-  const location = useLocation();
-  const params = useParams();
-  const chequeData = location.state?.cheque;
-  const { chequesWithClients, getChequesWithTerceros } = useData();
-  const [dataCheque, setDataCheque] = useState<ChequesWithTerceros | null>(
-    chequeData || null,
-  );
+  const { chequeId } = useParams();
+  const { ctasCtes, getCtasCtes } = useData();
   useEffect(() => {
-    if (!chequeData) {
-      if (!chequesWithClients) getChequesWithTerceros();
-    }
-  }, [chequeData]);
+    if (!ctasCtes) getCtasCtes();
+  }, []);
   useEffect(() => {
-    const id = params.chequeId;
-    const foundCheque = chequesWithClients?.find((c) => c.id === id);
+    if (!ctasCtes) return;
+    const allCheques: ChequesEnrichWithCtaCte[] = ctasCtes.flatMap((cta) =>
+      cta.movimientos.flatMap((mvto) =>
+        mvto.cheques
+          ? mvto.cheques.map((cheque) => ({ ...cheque, ctaCte: cta }))
+          : [],
+      ),
+    );
+    const foundCheque = allCheques.find((c) => c.id === chequeId);
     if (foundCheque) {
       setDataCheque(foundCheque);
     }
-  }, [chequesWithClients]);
-  {
-  }
+  }, []);
+  const [dataCheque, setDataCheque] = useState<ChequesEnrichWithCtaCte | null>(
+    null,
+  );
+   if (!dataCheque) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <LoadingComponent content="Cargando clientes..." />
+          </div>
+        </div>
+      );
+    }
   return (
     <div className="flex flex-col items-center w-full px-6">
       <Subheader
@@ -47,7 +57,6 @@ export default function ChequeID() {
       />
       <main className="w-full max-w-5xl p-6">
         {dataCheque && <ChequeForm data={dataCheque} />}
-
       </main>
     </div>
   );
