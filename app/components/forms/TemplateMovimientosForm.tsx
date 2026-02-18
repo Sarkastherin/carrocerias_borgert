@@ -170,14 +170,15 @@ export const TemplateMovimientosForm = ({
           const allCheques = ctaCte.movimientos?.flatMap(
             (movimiento) => movimiento.cheques || [],
           );
-          if (!allCheques || allCheques.length === 0) return;
-          cheques?.forEach((cheque) => {
-            if (findDuplicateCheques(allCheques, String(cheque.numero))) {
-              throw new Error(
-                `El número de cheque ${cheque.numero} ya existe para este cliente. Por favor verifique los datos ingresados.`,
-              ); // Validar que el número de cheque no se repita
-            }
-          });
+          if (allCheques && allCheques.length > 0) {
+            cheques?.forEach((cheque) => {
+              if (findDuplicateCheques(allCheques, String(cheque.numero))) {
+                throw new Error(
+                  `El número de cheque ${cheque.numero} ya existe para este cliente. Por favor verifique los datos ingresados.`,
+                ); // Validar que el número de cheque no se repita
+              }
+            });
+          }
         }
       }
 
