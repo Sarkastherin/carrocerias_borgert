@@ -27,7 +27,7 @@ export default function MovimientoModal({
   tipoMovimiento: (typeof optionsTypeMov)[number]["value"];
   medioPago: (typeof optionsMedioPago)[number]["value"];
   mode: "create" | "edit";
-  ctaCte: CtaCte;
+  ctaCte: CtaCte | null;
 }) {
   return (
     <ModalBase

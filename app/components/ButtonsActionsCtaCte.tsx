@@ -10,7 +10,7 @@ export default function ButtonsActionsCtaCte({
 }: {
   clienteId: string;
   redirect?: boolean;
-  ctaCte: CtaCte;
+  ctaCte: CtaCte | null;
 }) {
   const { openModal } = useUIModals();
   const handleMovimientoModal = ({

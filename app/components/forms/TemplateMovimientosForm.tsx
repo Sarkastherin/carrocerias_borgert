@@ -36,7 +36,7 @@ export const TemplateMovimientosForm = ({
   data?: MvtosWithCheques;
   tipoMovimiento: (typeof optionsTypeMov)[number]["value"];
   medioPago: (typeof optionsMedioPago)[number]["value"];
-  ctaCte: CtaCte;
+  ctaCte: CtaCte | null;
 }) => {
   const [files, setFiles] = useState<FileTypeActions<DocumentosCtasCtesBD>>({
     add: null,
@@ -156,27 +156,31 @@ export const TemplateMovimientosForm = ({
     let loadFiles = false;
     try {
       // Validación adicional para cheques
-      if (medioPago === "cheque")
+      if (medioPago === "cheque") {
         if (!cheques || cheques.length === 0) {
           // Validar que se haya agregado al menos un cheque
           throw new Error(
             "Debe agregar al menos un cheque para este medio de pago",
           );
         }
-      // Validar que el numeo de cheque y el cuit del cliente no se repitan en los cheques ingresados
+        // Validar que el numeo de cheque y el cuit del cliente no se repitan en los cheques ingresados
 
-      // 1. Registrar movimiento
-      const allCheques = ctaCte.movimientos.flatMap(
-        (movimiento) => movimiento.cheques || [],
-      );
-      if (!allCheques || allCheques.length === 0) return;
-      cheques?.forEach((cheque) => {
-        if (findDuplicateCheques(allCheques, String(cheque.numero))) {
-          throw new Error(
-            `El número de cheque ${cheque.numero} ya existe para este cliente. Por favor verifique los datos ingresados.`,
-          ); // Validar que el número de cheque no se repita
+        // 1. Registrar movimiento
+        if (ctaCte && ctaCte.movimientos) {
+          const allCheques = ctaCte.movimientos?.flatMap(
+            (movimiento) => movimiento.cheques || [],
+          );
+          if (!allCheques || allCheques.length === 0) return;
+          cheques?.forEach((cheque) => {
+            if (findDuplicateCheques(allCheques, String(cheque.numero))) {
+              throw new Error(
+                `El número de cheque ${cheque.numero} ya existe para este cliente. Por favor verifique los datos ingresados.`,
+              ); // Validar que el número de cheque no se repita
+            }
+          });
         }
-      });
+      }
+
       const nuevoMovimiento = await mvtosAPI.create({ ...rest });
       if (!nuevoMovimiento.success)
         throw new Error("Error al registrar movimiento");
@@ -604,7 +608,7 @@ export const TemplateMovimientosForm = ({
       {/* ESTADO LOADING */}
       {formState === "loading" && (
         <div className="flex flex-col items-center justify-center py-12 space-y-4">
-          <LoadingComponent content={`Registrando ${medioPago}...`}/>
+          <LoadingComponent content={`Registrando ${medioPago}...`} />
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Por favor espere mientras procesamos su solicitud...
           </p>
