@@ -132,8 +132,8 @@ export default function PedidosHome() {
                 label: "Número de Pedido",
                 autoFilter: true,
               },
-              { key: "razon_social", label: "Cliente", autoFilter: true },
-              { key: "armador_id", label: "Armador", autoFilter: true },
+              { key: "cliente.razon_social", label: "Cliente", autoFilter: true },
+              { key: "armador_nombre", label: "Armador", autoFilter: true },
               {
                 key: "status",
                 label: "Estado",
