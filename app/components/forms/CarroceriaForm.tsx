@@ -213,7 +213,7 @@ export default function CarroceriaForm() {
                 />
 
                 <Select
-                  label="Ancho"
+                  label="Ancho externo"
                   {...register("ancho_ext", {
                     required: "Este campo es obligatorio",
                   })}

@@ -27,6 +27,7 @@ export const anchoOptions = [
   { value: 2200, label: "2200 mm" },
   { value: 2300, label: "2300 mm" },
   { value: 2400, label: "2400 mm" },
+  { value: 2500, label: "2500 mm" },
   { value: 2600, label: "2600 mm" },
 ];
 export const arcosOptions = [
