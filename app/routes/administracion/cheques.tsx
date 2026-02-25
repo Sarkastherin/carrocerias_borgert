@@ -171,8 +171,8 @@ export default function Cheques() {
                 autoFilter: true,
               },
               {
-                key: "ctaCte.cuit_cuil",
-                label: "CUIT/CUIL",
+                key: "numero",
+                label: "Número de Cheque",
                 autoFilter: true,
               },
               {

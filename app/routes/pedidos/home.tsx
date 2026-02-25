@@ -36,12 +36,22 @@ const pedidoColumns: TableColumn<PedidosTable>[] = [
     selector: (row) => formatDateUStoES(row.fecha_entrega_estimada),
     width: "150px",
     sortable: true,
+    sortFunction: (rowA, rowB) => {
+      const dateA = new Date(rowA.fecha_entrega_estimada);
+      const dateB = new Date(rowB.fecha_entrega_estimada);
+      return dateA.getTime() - dateB.getTime();
+    },
   },
   {
     name: "Fecha de pedido",
     selector: (row) => formatDateUStoES(row.fecha_pedido),
     width: "150px",
     sortable: true,
+    sortFunction: (rowA, rowB) => {
+      const dateA = new Date(rowA.fecha_pedido);
+      const dateB = new Date(rowB.fecha_pedido);
+      return dateA.getTime() - dateB.getTime();
+    },
   },
 
   {
