@@ -2,7 +2,7 @@ import { Input, Textarea, formatCuit, Select } from "../Inputs";
 import { Button } from "../Buttons";
 import { useState, useEffect } from "react";
 import { GlassCard } from "../GlassCard";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import type { ChequesEnrichWithCtaCte, ChequesDB } from "~/types/ctas_corrientes";
 import ProveedorField from "../ProveedorField";
 import { BadgeStatusCheque } from "../Badge";
@@ -17,8 +17,8 @@ import type { MvtosDB } from "~/types/ctas_corrientes";
 type AccionTypes = "depositar" | "endosar" | "anular" | "acreditar" | "rechazar";
 export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte }) {
   const navigate = useNavigate();
-  const { refreshCtasCtes, getMvtos, getCtasCtes, bancos, getBancos } = useData();
-  const { showInfo, showLoading, showError, showSuccess } = useUIModals();
+  const { refreshCtasCtes, bancos, getBancos } = useData();
+  const { showInfo, showLoading, showError, showSuccess, showConfirmation } = useUIModals();
   const [accion, setAccion] = useState<AccionTypes | "">("");
   const {
     register,
@@ -84,7 +84,6 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
     };
   const onSubmit = async (formData: ChequesEnrichWithCtaCte) => {
     showLoading("Guardando cambios...", "Por favor, espere.");
-    let loadMvto = false;
     let loadCheques = false;
     let loadFiles = false;
     const { ctaCte, proveedor, nombre_banco, ...rest } = formData;
@@ -169,6 +168,35 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
     config.clear.forEach((field) => setValue(field as any, undefined));
 
     setAccion(actionType);
+  };
+  const anularEndoso = async () => {
+    showLoading("Anulando endoso...", "Por favor, espere.");
+    try {
+      const response = await chequesAPI.update(data!.id, {
+        status: "recibido",
+        fecha_endoso: "",
+        proveedor_id: "",
+      });
+      if (!response.success) throw new Error(response.message);
+      const refresh = await refreshCtasCtes({ refCheque: true });
+      // resetear formulario a data actualizada
+      data!.status = "recibido";
+      data!.fecha_endoso = "";
+      data!.proveedor_id = "";
+      data!.proveedor = undefined;
+      reset(data);
+      if (!refresh) throw new Error("Error refreshing cuentas corrientes data");
+      showSuccess("Endoso anulado. El cheque ha vuelto a estado de recibido.");
+    } catch (error) {
+      showError("Error al anular el endoso. Por favor, intente nuevamente más tarde.");
+    } 
+  };
+  const handleBackToReceived = () => {
+    showConfirmation("El cheque volverá a estado de recibido, ¿Desea continuar?", anularEndoso, {
+      title: "¿Anular endoso?",
+      confirmText: "Sí, anular y volver a recibido",
+      cancelText: "No, mantener endosado",
+    });
   };
   const isEditable = data?.status === "recibido" || data?.status === "depositado";
   return (
@@ -496,6 +524,13 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
           </div>
         )}
       </form>
+      {data?.status === "endosado" && (
+        <div className="w-fit">
+          <Button variant="outlineRed" type="button" onClick={handleBackToReceived}>
+            Anular endoso
+          </Button>
+        </div>
+      )}
     </>
   );
 }
