@@ -86,7 +86,13 @@ export function useCamionForm(
     }
     setFiles((prev) => ({ ...prev, add: null })); // Limpiar archivos a subir después de subirlos
   };
-  const deleteFiles = async ({files, formData}: {files: DocumentosBD[], formData: CamionFormData}) => {
+  const deleteFiles = async ({
+    files,
+    formData,
+  }: {
+    files: DocumentosBD[];
+    formData: CamionFormData;
+  }) => {
     const response = await deleteDocumentoPedido(files);
     if (!response.success) {
       throw new Error(
@@ -168,13 +174,15 @@ export function useCamionForm(
           if (files.remove && files.remove.length > 0) {
             await deleteFiles({ files: files.remove, formData });
           }
-          await refreshPedidoByIdAndTable("camion");
-          await refreshPedidoByIdAndTable("documentos");
           uploaded = true;
         }
       }
 
       if (updated || created || uploaded) {
+        if (uploaded) await refreshPedidoByIdAndTable("documentos");
+        if (updated || created) {
+          await refreshPedidoByIdAndTable("carroceria");
+        }
         // Usar los valores actuales del formulario (incluyendo documentos actualizados)
         form.reset(form.getValues());
         setIsLoading(false);
