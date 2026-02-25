@@ -58,6 +58,10 @@ type EntityTableProps<T> = {
   alternativeStorageKey?: string; // Clave alternativa para almacenamiento local
   disableRowClick?: boolean; // Deshabilita el click en filas y el cursor pointer
 };
+type CurrentSort = {
+  columnId: string | number| undefined;
+  direction: "asc" | "desc";
+};
 const options = {
   rowsPerPageText: "Filas por página",
   rangeSeparatorText: "de",
@@ -133,12 +137,20 @@ export function EntityTable<T>({
   });
   const [filteredData, setFilteredData] = useState<T[]>(data);
   const [showFilterInfo, setShowFilterInfo] = useState(false);
-  
+
   // Estado para la página actual
   const [currentPage, setCurrentPage] = useState<number>(() => {
     // Recupera la página guardada
     const savedPage = localStorage.getItem(`${storageKey}_page`);
     return savedPage ? parseInt(savedPage, 10) : 1;
+  });
+  // Estado para el orden actual
+  const [currentSort, setCurrentSort] = useState<CurrentSort>(() => {
+    // Recupera el orden guardado
+    const savedSort = localStorage.getItem(`${storageKey}_sort`);
+    return savedSort
+      ? JSON.parse(savedSort)
+      : { columnId: null, direction: "asc" };
   });
 
   // Función para determinar si una fila está inactiva
@@ -194,11 +206,11 @@ export function EntityTable<T>({
         } else {
           const value = removeAccents(newFilters[key]?.toLowerCase() ?? "");
           const itemValue = removeAccents(
-            String(getNestedValue(item, key) ?? "").toLowerCase()
+            String(getNestedValue(item, key) ?? "").toLowerCase(),
           );
           return itemValue.includes(value);
         }
-      })
+      }),
     );
     setFilteredData(result);
     setShowFilterInfo(Object.values(newFilters).some((v) => v));
@@ -209,11 +221,11 @@ export function EntityTable<T>({
     const updated = { ...filters, [key]: value };
     setFilters(updated);
     localStorage.setItem(storageKey, JSON.stringify(updated)); // Guarda filtros
-    
+
     // Resetear a la primera página cuando se aplican filtros
     setCurrentPage(1);
     localStorage.setItem(`${storageKey}_page`, "1");
-    
+
     if (auto) onFilter(updated);
   };
 
@@ -221,6 +233,16 @@ export function EntityTable<T>({
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     localStorage.setItem(`${storageKey}_page`, page.toString());
+  };
+  const handleSortChange = (
+    column: TableColumn<T>,
+    direction: "asc" | "desc",
+  ) => {
+    setCurrentSort({ columnId: column.id, direction });
+    localStorage.setItem(
+      `${storageKey}_sort`,
+      JSON.stringify({ columnId: column.id, direction }),
+    );
   };
   useEffect(() => {
     setFilteredData(data);
@@ -241,25 +263,25 @@ export function EntityTable<T>({
   // ...existing code...
   useEffect(() => {
     const isFilter = Object.values(filters).some((v) => v);
-    if(isFilter) {
+    if (isFilter) {
       showConfirmation(
-        "Hay filtros aplicados desde tu última visita. ¿Deseas limpiar los filtros?", 
+        "Hay filtros aplicados desde tu última visita. ¿Deseas limpiar los filtros?",
         () => {
           setFilters({});
           setFilteredData(data);
           localStorage.removeItem(storageKey);
           localStorage.removeItem(`${storageKey}_page`);
           setShowFilterInfo(false);
-        }, {
-        title: "Filtros Aplicados",
-        confirmText: "Limpiar Filtros",
-        cancelText: "Mantener Filtros",
-        }
+        },
+        {
+          title: "Filtros Aplicados",
+          confirmText: "Limpiar Filtros",
+          cancelText: "Mantener Filtros",
+        },
       );
       // Opción de limpiar filtros
     }
-    
-  },[]);
+  }, []);
   return (
     <>
       {showFilterInfo && filterFields.length > 0 && (
@@ -281,7 +303,7 @@ export function EntityTable<T>({
                 {type === "dateRange" ? (
                   <div className="flex gap-2 items-center">
                     <Input
-                    label="Desde"
+                      label="Desde"
                       type="date"
                       value={filters[`${key}_from`] ?? ""}
                       onChange={(e) =>
@@ -300,7 +322,7 @@ export function EntityTable<T>({
                   </div>
                 ) : type === "select" ? (
                   <Select
-                  label={label}
+                    label={label}
                     value={filters[key] ?? ""}
                     onChange={(e) =>
                       handleChange(key, e.target.value, autoFilter)
@@ -320,7 +342,7 @@ export function EntityTable<T>({
                   />
                 )}
               </div>
-            )
+            ),
           )}
           {!filterFields.every((f) => f.autoFilter) && (
             <div className="w-fit">
@@ -344,6 +366,9 @@ export function EntityTable<T>({
         pointerOnHover={!disableRowClick}
         highlightOnHover
         paginationComponentOptions={options}
+        onSort={handleSortChange}
+        defaultSortFieldId={currentSort.columnId}
+        defaultSortAsc={currentSort.direction === "asc"}
         noDataComponent={
           noDataComponent || (
             <div className="py-6 text-text-secondary">
@@ -361,7 +386,6 @@ export function EntityTable<T>({
               ]
             : undefined
         }
-        //defaultSortAsc={true}
       />
     </>
   );

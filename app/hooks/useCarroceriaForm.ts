@@ -1,4 +1,4 @@
-import { set, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import type { CarroceriaBD, DocumentosBD } from "~/types/pedidos";
 import { useUIModals } from "~/context/ModalsContext";
 import { useData } from "~/context/DataContext";
@@ -14,8 +14,8 @@ type CarroceriaFormData = CarroceriaBD & {
   documentos?: DocumentosBD[] | null;
 };
 export function useCarroceriaForm(
-  files: FileTypeActions,
-  setFiles: React.Dispatch<React.SetStateAction<FileTypeActions>>,
+  files: FileTypeActions<DocumentosBD>,
+  setFiles: React.Dispatch<React.SetStateAction<FileTypeActions<DocumentosBD>>>,
 ) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -221,12 +221,14 @@ export function useCarroceriaForm(
           if (files.remove && files.remove.length > 0) {
             await deleteFiles({ files: files.remove, formData });
           }
-          await refreshPedidoByIdAndTable("carroceria");
-          await refreshPedidoByIdAndTable("documentos");
           uploaded = true;
         }
       }
       if (updated || created || uploaded) {
+        if (uploaded) await refreshPedidoByIdAndTable("documentos");
+        if (updated || created) {
+          await refreshPedidoByIdAndTable("carroceria");
+        }
         // Usar los valores actuales del formulario (incluyendo documentos actualizados)
         form.reset(form.getValues());
         setIsLoading(false);

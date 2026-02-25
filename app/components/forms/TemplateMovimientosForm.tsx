@@ -115,13 +115,14 @@ export const TemplateMovimientosForm = ({
   }, [totalCheques, setValue]);
 
   const handleAddCheque = () => {
+    if (!ultimaFechaIngreso) return;
     append({
       numero: "",
       tipo: "",
       importe: 0,
       banco: "",
       fecha_cobro: "",
-      fecha_ingreso: "",
+      fecha_ingreso: ultimaFechaIngreso,
       observacion: "",
       status: "recibido",
     } as ChequesDB);
@@ -397,17 +398,6 @@ export const TemplateMovimientosForm = ({
             <legend className="text-sm font-semibold text-blue-700 dark:text-blue-300">
               💳 Cheques a registrar
             </legend>
-            <div className="w-fit">
-              <Button
-                type="button"
-                onClick={handleAddCheque}
-                variant="green"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                Agregar otro cheque
-              </Button>
-            </div>
           </div>
 
           {/* Cards de cheques */}
@@ -535,6 +525,18 @@ export const TemplateMovimientosForm = ({
               </div>
             ))}
           </div>
+          <div className="w-fit">
+            <Button
+              type="button"
+              onClick={handleAddCheque}
+              variant="green"
+              size="sm"
+              className="flex items-center gap-2"
+              disabled={!ultimaFechaIngreso}
+            >
+              Agregar otro cheque
+            </Button>
+          </div>
         </div>
       </>
     );
@@ -551,6 +553,7 @@ export const TemplateMovimientosForm = ({
     }
     return false;
   };
+  const ultimaFechaIngreso = watch("cheques")?.at(-1)?.fecha_ingreso;
   return (
     <div className="w-full">
       {/* FORMULARIO PRINCIPAL */}

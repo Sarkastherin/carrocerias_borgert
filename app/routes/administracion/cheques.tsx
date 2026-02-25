@@ -31,6 +31,11 @@ const chequesColumns: TableColumn<ChequesEnrichWithCtaCte>[] = [
     selector: (row) => formatDateUStoES(row.fecha_cobro),
     sortable: true,
     width: "150px",
+    sortFunction: (rowA, rowB) => {
+      const dateA = new Date(rowA.fecha_cobro);
+      const dateB = new Date(rowB.fecha_cobro);
+      return dateA.getTime() - dateB.getTime();
+    },
   },
   {
     name: "Tipo de Cheque",
