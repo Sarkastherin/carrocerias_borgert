@@ -525,17 +525,31 @@ export const TemplateMovimientosForm = ({
               </div>
             ))}
           </div>
-          <div className="w-fit">
-            <Button
-              type="button"
-              onClick={handleAddCheque}
-              variant="green"
-              size="sm"
-              className="flex items-center gap-2"
-              disabled={!ultimaFechaIngreso}
-            >
-              Agregar otro cheque
-            </Button>
+          <div className="flex justify-between items-center">
+            <div className="w-fit">
+              <Button
+                type="button"
+                onClick={handleAddCheque}
+                variant="green"
+                size="sm"
+                className="flex items-center gap-2"
+                disabled={!ultimaFechaIngreso}
+              >
+                Agregar otro cheque
+              </Button>
+            </div>
+            {medioPago === "cheque" && totalCheques > 0 && (
+              <div className="bg-blue-600 text-white rounded-full shadow-lg px-4 py-2 flex items-center gap-2 text-sm md:text-base font-semibold opacity-90 hover:opacity-100 transition-all pointer-events-none select-none">
+                <span className="hidden md:inline">Total cheques:&nbsp;</span>
+                <span className="text-lg md:text-2xl font-bold">
+                  $
+                  {totalCheques.toLocaleString("es-AR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </>
@@ -556,6 +570,22 @@ export const TemplateMovimientosForm = ({
   const ultimaFechaIngreso = watch("cheques")?.at(-1)?.fecha_ingreso;
   return (
     <div className="w-full">
+      {/* Widget flotante para total de cheques */}
+      {medioPago === "cheque" && totalCheques > 0 && (
+        <div
+          style={{ zIndex: 50 }}
+          className="sr-only absolute bottom-4 right-4 bg-blue-600 text-white rounded-full shadow-lg px-4 py-2 flex items-center gap-2 text-sm md:text-base font-semibold opacity-90 hover:opacity-100 transition-all pointer-events-none select-none"
+        >
+          <span className="hidden md:inline">Total cheques:&nbsp;</span>
+          <span className="text-lg md:text-2xl font-bold">
+            $
+            {totalCheques.toLocaleString("es-AR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+        </div>
+      )}
       {/* FORMULARIO PRINCIPAL */}
       {formState === "form" && (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
