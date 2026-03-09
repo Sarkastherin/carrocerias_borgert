@@ -7,7 +7,6 @@ import { carroceriaAPI } from "~/backend/sheetServices";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
 import { useFormNavigationBlock } from "./useFormNavigationBlock";
 import {
-  updateFilePDFPedidos,
   type FileTypeActions,
 } from "~/components/FileUpladerComponent";
 type CarroceriaFormData = CarroceriaBD & {

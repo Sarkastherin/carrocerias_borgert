@@ -93,7 +93,6 @@ export default function CarroceriaForm() {
       setValue("tipo_carrozado_id", carrozadoId);
       return;
     }
-    console.log("Selected Carrozado:", selectedCarrozado);
     for (const item of selectedCarrozado) {
       const { atributo, valor, tipo } = item;
       setValue(atributo as any, valor);
@@ -104,6 +103,7 @@ export default function CarroceriaForm() {
     }
     setIsLoading(false);
   }, [selectedCarrozado, setValue, setIsLoading]);
+  
 
   const handleChangeMaterialField = (
     e: React.ChangeEvent<HTMLSelectElement>,
@@ -115,7 +115,6 @@ export default function CarroceriaForm() {
   };
 
   const handleChangeArcosField = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    console.log("Arcos changed:", e.target.value);
     const selectedArcos = e.target.value;
     setValue("tipos_arcos", selectedArcos === "0" ? "N/A" : "");
   };

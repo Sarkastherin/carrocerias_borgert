@@ -79,7 +79,7 @@ export function EntityTable<T>({
 }: EntityTableProps<T>) {
   const { theme } = useUI();
   const location = useLocation();
-  const { openModal, showConfirmation } = useUIModals();
+  const { showConfirmation } = useUIModals();
   const storageKey =
     alternativeStorageKey || `entityTableFilters_${location.pathname}`;
 
@@ -285,8 +285,13 @@ export function EntityTable<T>({
   return (
     <>
       {showFilterInfo && filterFields.length > 0 && (
-        <div className="mb-2 text-blue font-semibold text-sm">
-          ℹ️ Filtros aplicados.
+        <div className="flex justify-between text-sm font-semibold">
+          <div className="text-blue-600 dark:text-blue-400 ">
+            ℹ️ Filtros aplicados.
+          </div>
+          <div className="bg-zinc-300/50 dark:bg-zinc-700/50 text-zinc-700 dark:text-zinc-300 px-2 rounded">
+            Registros encontrados: {filteredData.length}
+          </div>
         </div>
       )}
       {filterFields.length > 0 && (

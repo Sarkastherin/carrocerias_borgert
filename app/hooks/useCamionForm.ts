@@ -181,7 +181,7 @@ export function useCamionForm(
       if (updated || created || uploaded) {
         if (uploaded) await refreshPedidoByIdAndTable("documentos");
         if (updated || created) {
-          await refreshPedidoByIdAndTable("carroceria");
+          await refreshPedidoByIdAndTable("camion");
         }
         // Usar los valores actuales del formulario (incluyendo documentos actualizados)
         form.reset(form.getValues());
