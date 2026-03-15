@@ -55,7 +55,6 @@ export const modules: CardLinkProps[] = [
 ];
 
 export default function HomePage() {
-  //
   return (
     <div
       className="flex flex-col justify-between relative"

@@ -1,4 +1,3 @@
-import { useData } from "~/context/DataContext";
 import { useDataLoader } from "~/hooks/useDataLoader";
 import { useMemo } from "react";
 import { getIcon } from "~/components/IconComponent";
@@ -9,10 +8,16 @@ import type { FilterField } from "~/components/EntityTable";
 import { FileCode, PencilRuler } from "lucide-react";
 import { capitalize } from "./settingsConfig";
 import { defaultAPI, controlCarrozadoAPI } from "~/backend/sheetServices";
-import { getAtributoMetadata, getAtributoMetadataWithOptions, atributosConMetadata, atributos } from "./atributosMetadata";
+import {
+  getAtributoMetadata,
+  getAtributoMetadataWithOptions,
+  atributosConMetadata,
+  atributos,
+} from "./atributosMetadata";
+import { usePedido } from "~/context/PedidoContext";
 export type SettingsDataContext = {
   defaults?: any[] | null;
-  controlCarrozado?: any[] | null;
+  controlesPorCarrozado?: any[] | null;
 };
 export type SettingsDataLoaders = {
   getDefaults: () => Promise<any>;
@@ -48,7 +53,7 @@ export const createSettingsConfig = (
   dynamicOptions?: {
     puertasTraseras?: { value: string | number; label: string }[];
     colores?: { value: string | number; label: string }[];
-  }
+  },
 ): ConfigItem[] => [
   {
     title: "valores por defecto",
@@ -62,17 +67,20 @@ export const createSettingsConfig = (
       },
       {
         name: "Valor por defecto",
-        selector: (row: any) =>{
-          if(row.puerta_trasera_nombre !== "-") {
+        selector: (row: any) => {
+          if (row.puerta_trasera_nombre !== "-") {
             return `${row.puerta_trasera_nombre}`;
           }
-          return typeof row.valor === "string" ? capitalize(row.valor) : row.valor;
+          return typeof row.valor === "string"
+            ? capitalize(row.valor)
+            : row.valor;
         },
         sortable: true,
       },
       {
         name: "Tipo",
-        selector: (row: any) => row.tipo === "fijo" ? "🔒 Fijo" : "🟢 Seleccionable",
+        selector: (row: any) =>
+          row.tipo === "fijo" ? "🔒 Fijo" : "🟢 Seleccionable",
         sortable: false,
         width: "160px",
       },
@@ -99,24 +107,42 @@ export const createSettingsConfig = (
         dependsOn: "atributo",
         getDynamicConfig: (atributoValue: string) => {
           let metadata = getAtributoMetadata(atributoValue as any);
-          
+
           if (!metadata) {
             return { type: "text" as const };
           }
 
           // Aplicar opciones dinámicas para ciertos atributos
-          if (atributoValue === "puerta_trasera_id" && dynamicOptions?.puertasTraseras) {
-            metadata = getAtributoMetadataWithOptions(atributoValue as any, dynamicOptions.puertasTraseras);
-          } else if ((atributoValue === "color_carrozado_id" || atributoValue === "color_zocalo_id") && dynamicOptions?.colores) {
-            metadata = getAtributoMetadataWithOptions(atributoValue as any, dynamicOptions.colores);
+          if (
+            atributoValue === "puerta_trasera_id" &&
+            dynamicOptions?.puertasTraseras
+          ) {
+            metadata = getAtributoMetadataWithOptions(
+              atributoValue as any,
+              dynamicOptions.puertasTraseras,
+            );
+          } else if (
+            (atributoValue === "color_carrozado_id" ||
+              atributoValue === "color_zocalo_id") &&
+            dynamicOptions?.colores
+          ) {
+            metadata = getAtributoMetadataWithOptions(
+              atributoValue as any,
+              dynamicOptions.colores,
+            );
           }
 
           if (!metadata) {
             return { type: "text" as const };
           }
-          
+
           return {
-            type: metadata.fieldType as "text" | "boolean" | "select" | "textarea" | "number",
+            type: metadata.fieldType as
+              | "text"
+              | "boolean"
+              | "select"
+              | "textarea"
+              | "number",
             options: metadata.options,
             placeholder: metadata.placeholder,
             min: metadata.min,
@@ -188,7 +214,7 @@ export const createSettingsConfig = (
         label: "Item Control",
         type: "select",
         required: true,
-        options: itemsControlOptions
+        options: itemsControlOptions,
       },
       {
         name: "activo",
@@ -199,7 +225,11 @@ export const createSettingsConfig = (
     ],
     api: controlCarrozadoAPI,
     filterFields: [
-      { key: "nombre_item_control", label: "Ítem de control", autoFilter: true },
+      {
+        key: "nombre_item_control",
+        label: "Ítem de control",
+        autoFilter: true,
+      },
     ],
   },
 ];
@@ -210,12 +240,16 @@ export const getSettingsWithData = (
   dynamicOptions?: {
     puertasTraseras?: { value: string | number; label: string }[];
     colores?: { value: string | number; label: string }[];
-  }
+  },
 ): ConfigItemWithData[] => {
-  const settingsConfig = createSettingsConfig(loaders, itemsControlOptions, dynamicOptions);
+  const settingsConfig = createSettingsConfig(
+    loaders,
+    itemsControlOptions,
+    dynamicOptions,
+  );
   const dataMapping = {
     "valores por defecto": dataContext.defaults || [],
-    "control de carrozado": dataContext.controlCarrozado || [],
+    "control de carrozado": dataContext.controlesPorCarrozado || [],
   };
 
   return settingsConfig.map((config) => ({
@@ -224,23 +258,35 @@ export const getSettingsWithData = (
   }));
 };
 export const useSettingsData = (carrozadoId?: string) => {
-  const { 
-    defaultsWithPuertas, 
-    getDefaultsWithPuertas, 
-    controlCarrozado, 
-    getControlCarrozado,
+  const {
+    defaultsWithPuertas,
+    getDefaultsWithPuertas,
+    controlesPorCarrozado,
     configItemsControl,
     getConfigItemsControl,
     puertasTraseras,
     getPuertasTraseras,
     colores,
-    getColores
-  } = useData();
+    getColores,
+    getControlCarrozado,
+  } = usePedido();
 
   // Usar el hook useDataLoader para cargar todos los datos
   const { isLoading } = useDataLoader({
-    loaders: [getDefaultsWithPuertas, getControlCarrozado, getConfigItemsControl, getPuertasTraseras, getColores],
-    dependencies: [defaultsWithPuertas, controlCarrozado, configItemsControl, puertasTraseras, colores],
+    loaders: [
+      getDefaultsWithPuertas,
+      getControlCarrozado,
+      getConfigItemsControl,
+      getPuertasTraseras,
+      getColores,
+    ],
+    dependencies: [
+      defaultsWithPuertas,
+      controlesPorCarrozado,
+      configItemsControl,
+      puertasTraseras,
+      colores,
+    ],
     errorMessage: "Error cargando configuraciones",
   });
 
@@ -248,14 +294,14 @@ export const useSettingsData = (carrozadoId?: string) => {
   const filteredDefaults = useMemo(() => {
     if (!defaultsWithPuertas || !carrozadoId) return defaultsWithPuertas;
     const defaultaData = defaultsWithPuertas.filter(
-      (item) => item.carrozado_id === carrozadoId
+      (item) => item.carrozado_id === carrozadoId,
     );
     const filteredDefaultsWithLabels = defaultaData.map((item) => {
       return {
         ...item,
         etiqueta:
-          atributosConMetadata.find((attr) => attr.value === item.atributo)?.label ||
-          item.atributo,
+          atributosConMetadata.find((attr) => attr.value === item.atributo)
+            ?.label || item.atributo,
       };
     });
 
@@ -263,25 +309,29 @@ export const useSettingsData = (carrozadoId?: string) => {
   }, [defaultsWithPuertas, carrozadoId]);
 
   const filteredControlCarrozado = useMemo(() => {
-    if (!controlCarrozado || !carrozadoId) return controlCarrozado;
-    const filtered = controlCarrozado.filter((item) => item.carrozado_id === carrozadoId);
-    
+    if (!controlesPorCarrozado || !carrozadoId) return controlesPorCarrozado;
+    const filtered = controlesPorCarrozado.filter(
+      (item) => item.carrozado_id === carrozadoId,
+    );
+
     // Mapear con configItemsControl para obtener el nombre del item de control
     return filtered.map((item) => {
-      const itemControl = configItemsControl?.find((config) => config.id === item.item_control_id);
+      const itemControl = configItemsControl?.find(
+        (config) => config.id === item.item_control_id,
+      );
       return {
         ...item,
-        nombre_item_control: itemControl?.nombre || 'Item no encontrado'
+        nombre_item_control: itemControl?.nombre || "Item no encontrado",
       };
     });
-  }, [controlCarrozado, carrozadoId, configItemsControl]);
+  }, [controlesPorCarrozado, carrozadoId, configItemsControl]);
 
   // Crear opciones para configItemsControl
   const itemsControlOptions = useMemo(() => {
     if (!configItemsControl) return [];
     return configItemsControl.map((item) => ({
       value: item.id,
-      label: item.nombre
+      label: item.nombre,
     }));
   }, [configItemsControl]);
 
@@ -290,7 +340,7 @@ export const useSettingsData = (carrozadoId?: string) => {
     if (!puertasTraseras) return [];
     return puertasTraseras.map((puerta) => ({
       value: puerta.id,
-      label: puerta.nombre
+      label: puerta.nombre,
     }));
   }, [puertasTraseras]);
 
@@ -298,7 +348,7 @@ export const useSettingsData = (carrozadoId?: string) => {
     if (!colores) return [];
     return colores.map((color) => ({
       value: color.id,
-      label: color.nombre
+      label: color.nombre,
     }));
   }, [colores]);
 
@@ -308,7 +358,7 @@ export const useSettingsData = (carrozadoId?: string) => {
     return getSettingsWithData(
       {
         defaults: filteredDefaults,
-        controlCarrozado: filteredControlCarrozado,
+        controlesPorCarrozado: filteredControlCarrozado,
       },
       {
         getDefaults: getDefaultsWithPuertas,
@@ -318,7 +368,7 @@ export const useSettingsData = (carrozadoId?: string) => {
       {
         puertasTraseras: puertasTraserasOptions,
         colores: coloresOptions,
-      }
+      },
     ).map((config) => ({
       ...config,
       icon: getIcon({ icon: config.icon, size: 4 }),
@@ -339,6 +389,6 @@ export const useSettingsData = (carrozadoId?: string) => {
     itemsConfiguraciones,
     // También exponemos los datos individuales filtrados por carrozadoId
     defaults: filteredDefaults,
-    controlCarrozado: filteredControlCarrozado,
+    controlesPorCarrozado: filteredControlCarrozado,
   };
 };

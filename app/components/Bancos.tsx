@@ -6,7 +6,6 @@ import type {
   UseFormWatch,
   Path,
 } from "react-hook-form";
-import type { AddChequeFormProps } from "./forms/AddChequeForm";
 import type { ChequesDB, ChequesWithTerceros } from "~/types/ctas_corrientes";
 import { useData } from "~/context/DataContext";
 export  function BancosComponentArray<T extends { cheques: ChequesDB[] }>({

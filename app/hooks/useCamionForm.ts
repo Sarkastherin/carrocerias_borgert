@@ -1,12 +1,12 @@
 import { useForm } from "react-hook-form";
 import type { CamionBD, DocumentosBD } from "~/types/pedidos";
 import { useUIModals } from "~/context/ModalsContext";
-import { useData } from "~/context/DataContext";
 import { useState } from "react";
 import { camionAPI } from "~/backend/sheetServices";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
 import { useFormNavigationBlock } from "./useFormNavigationBlock";
 import type { FileTypeActions } from "../components/FileUpladerComponent";
+import { usePedido } from "~/context/PedidoContext";
 
 type CamionFormData = CamionBD & {
   documentos?: DocumentosBD[] | null;
@@ -20,10 +20,11 @@ export function useCamionForm(
   const { showLoading, showSuccess, showError, showInfo } = useUIModals();
   const {
     pedido,
-    refreshPedidoByIdAndTable,
+    getCamiones,
+    getDocumentosPedidos,
     uploadFilesToPedidos,
     deleteDocumentoPedido,
-  } = useData();
+  } = usePedido();
   const isEditMode = Boolean(pedido);
   const { camion, id, numero_pedido, documentos } = pedido || {};
   const existingPedido = camion || null;
@@ -144,7 +145,7 @@ export function useCamionForm(
               response.message || "Error desconocido al actualizar el camión",
             );
           }
-          await refreshPedidoByIdAndTable("camion");
+          await getCamiones();
           updated = true;
         }
         if (files && id && numero_pedido) {
@@ -155,7 +156,7 @@ export function useCamionForm(
             await deleteFiles({ files: files.remove, formData });
           }
           // Actualizar los documentos en formData con la respuesta del upload
-          await refreshPedidoByIdAndTable("documentos");
+          await getDocumentosPedidos();
           uploaded = true;
         }
       } else {
@@ -179,9 +180,9 @@ export function useCamionForm(
       }
 
       if (updated || created || uploaded) {
-        if (uploaded) await refreshPedidoByIdAndTable("documentos");
+        if (uploaded) await getDocumentosPedidos();
         if (updated || created) {
-          await refreshPedidoByIdAndTable("camion");
+          await getCamiones();
         }
         // Usar los valores actuales del formulario (incluyendo documentos actualizados)
         form.reset(form.getValues());

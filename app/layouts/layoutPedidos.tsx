@@ -11,7 +11,6 @@ import {
   ShieldCheck
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useData } from "~/context/DataContext";
 import LoadingComponent from "~/components/LoadingComponent";
 import { BadgeStatusPedido } from "~/components/Badge";
 import { Button } from "~/components/Buttons";
@@ -19,18 +18,18 @@ import { useUIModals } from "~/context/ModalsContext";
 import type { IconType } from "~/components/IconComponent";
 import { getIcon } from "~/components/IconComponent";
 import { Z_INDEX, getZIndexClass } from "~/config/zIndexConfig";
+import { usePedido } from "~/context/PedidoContext";
 
 export default function PedidosLayout() {
   const navigate = useNavigate();
   const { showConfirmation } = useUIModals();
   const { pedidoId } = useParams();
-  const { getPedidoById, pedido, deletePedidoById } = useData();
+  const { getPedidoById, pedido, deletePedidoById } = usePedido();
   const [isDeleting, setIsDeleting] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleDeletePedido = async () => {
     if (!pedido || !pedidoId) return;
-
     showConfirmation(
       `¿Estás seguro de que deseas eliminar el pedido ${pedido.numero_pedido}? Esta acción no se puede deshacer y eliminará todos los datos asociados.`,
       async () => {
@@ -57,7 +56,7 @@ export default function PedidosLayout() {
   };
   useEffect(() => {
     if (pedidoId) getPedidoById(pedidoId);
-  }, []);
+  }, [pedidoId, getPedidoById]);
 
   const menuItems = (id: string | undefined) => {
     if (!id) return [];
@@ -100,10 +99,6 @@ export default function PedidosLayout() {
     ];
   };
   const menu = menuItems(pedidoId);
-
-  useEffect(() => {
-    getPedidoById(pedidoId || "");
-  }, []);
 
   return (
     <div className="flex" style={{ minHeight: "calc(100vh - 67px)" }}>

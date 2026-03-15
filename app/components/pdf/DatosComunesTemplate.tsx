@@ -1,5 +1,5 @@
 import { View } from "@react-pdf/renderer";
-import type { OrdenesBD, PedidosUI } from "~/types/pedidos";
+import type { OrdenesYControlesBD, PedidosUI } from "~/types/pedidos";
 import { Subtitle, Box, Row, Cell, TitleBox } from "./pdfComponents";
 import { formatDateUStoES } from "~/utils/formatDate";
 

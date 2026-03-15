@@ -4,7 +4,7 @@ import { useCamionForm } from "~/hooks/useCamionForm";
 import { CardToggle } from "../CardToggle";
 import { RulerDimensionLine } from "lucide-react";
 import { FooterForm } from "./Footer";
-import { useState, type ChangeEvent } from "react";
+import { useState } from "react";
 import FilesUploderComponent from "../FileUpladerComponent";
 import type { DocumentosBD } from "~/types/pedidos";
 import type { FileTypeActions } from "../FileUpladerComponent";

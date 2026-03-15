@@ -5,12 +5,11 @@ import { ContainerToForms } from "~/components/Containers";
 import { GlassCard } from "~/components/GlassCard";
 import { getIcon } from "~/components/IconComponent";
 import { useOrdenTrabajoModal } from "~/hooks/useOrdenTrabajoModal";
-import { useData } from "~/context/DataContext";
-import { useEffect } from "react";
-import { Badge, BadgeStatusOrden } from "~/components/Badge";
+import { BadgeStatusOrden } from "~/components/Badge";
 import { tipoOrdenOptions } from "~/types/pedidos";
 import { LinkDocument } from "~/components/FileUpladerComponent";
 import { capitalize } from "~/config/settingsConfig";
+import { usePedido } from "~/context/PedidoContext";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Órdenes de Trabajo" },
@@ -18,15 +17,9 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 export default function OrdenesPedidos() {
-  const { pedido, getOrdenesByPedidoId, ordenesByPedido } = useData();
+  const { pedido } = usePedido();
+  const { ordenes_controles } = pedido || {};
   const { openOrdenModal } = useOrdenTrabajoModal();
-
-  // Cargar las órdenes del pedido actual
-  useEffect(() => {
-    if (pedido?.id) {
-      getOrdenesByPedidoId(pedido.id);
-    }
-  }, [pedido?.id, getOrdenesByPedidoId]);
   const tipoOrdenes = [
     {
       name: "Fabricación de Carrocerías",
@@ -34,13 +27,13 @@ export default function OrdenesPedidos() {
         "Generar órden de trabajo para la fabricación de la carrocería según las especificaciones del pedido.",
       icon: Hammer,
       tipo: "fabricacion" as (typeof tipoOrdenOptions)[number]["value"],
-      isCreated: ordenesByPedido
-        ? ordenesByPedido.some((orden) => orden.tipo_orden === "fabricacion")
+      isCreated: ordenes_controles
+        ? ordenes_controles.some((orden) => orden.tipo_orden === "fabricacion")
         : false,
-      urlFile: ordenesByPedido?.find(
+      urlFile: ordenes_controles?.find(
         (order) => order.tipo_orden === "fabricacion",
       )?.url_archivo,
-      order: ordenesByPedido?.find(
+      order: ordenes_controles?.find(
         (order) => order.tipo_orden === "fabricacion",
       ),
       disabled: false,
@@ -51,13 +44,13 @@ export default function OrdenesPedidos() {
         "Generar órden de trabajo para la pintura y acabados de componentes de la carrocería",
       icon: BrushCleaning,
       tipo: "pintura" as (typeof tipoOrdenOptions)[number]["value"],
-      isCreated: ordenesByPedido
-        ? ordenesByPedido.some((orden) => orden.tipo_orden === "pintura")
+      isCreated: ordenes_controles
+        ? ordenes_controles.some((orden) => orden.tipo_orden === "pintura")
         : false,
-      urlFile: ordenesByPedido?.find((order) => order.tipo_orden === "pintura")
+      urlFile: ordenes_controles?.find((order) => order.tipo_orden === "pintura")
         ?.url_archivo,
-      order: ordenesByPedido?.find((order) => order.tipo_orden === "pintura"),
-      disabled: false
+      order: ordenes_controles?.find((order) => order.tipo_orden === "pintura"),
+      disabled: false,
     },
     {
       name: "Colocación y trabajos en chasis",
@@ -65,13 +58,15 @@ export default function OrdenesPedidos() {
         "Generar órden de trabajo para la colocación y ensamblaje de componentes de la carrocería",
       icon: ToolCase,
       tipo: "montaje" as (typeof tipoOrdenOptions)[number]["value"],
-      isCreated: ordenesByPedido
-        ? ordenesByPedido.some((orden) => orden.tipo_orden === "montaje")
+      isCreated: ordenes_controles
+        ? ordenes_controles.some((orden) => orden.tipo_orden === "montaje")
         : false,
-      urlFile: ordenesByPedido?.find((order) => order.tipo_orden === "montaje")
+      urlFile: ordenes_controles?.find((order) => order.tipo_orden === "montaje")
         ?.url_archivo,
-      order: ordenesByPedido?.find((order) => order.tipo_orden === "montaje"),
-      disabled: ordenesByPedido?.find((order) => order.tipo_orden === "pintura")?.status !== "completada" // Deshabilitar si la orden de pintura no está completada
+      order: ordenes_controles?.find((order) => order.tipo_orden === "montaje"),
+      disabled:
+        ordenes_controles?.find((order) => order.tipo_orden === "pintura")
+          ?.status !== "completada", // Deshabilitar si la orden de pintura no está completada
     },
   ];
   return (

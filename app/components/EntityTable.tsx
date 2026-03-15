@@ -259,7 +259,7 @@ export function EntityTable<T>({
       if (onFilteredChange) onFilteredChange(data);
     }
     setShowFilterInfo(Object.values(filters).some((v) => v));
-  }, [data]); // Ejecuta cuando cambia la data
+  }, [data, filters, onFilteredChange]); // Ejecuta cuando cambia la data o los filtros
   // ...existing code...
   useEffect(() => {
     const isFilter = Object.values(filters).some((v) => v);

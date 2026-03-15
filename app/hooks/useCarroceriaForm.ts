@@ -1,11 +1,11 @@
 import { useForm } from "react-hook-form";
 import type { CarroceriaBD, DocumentosBD } from "~/types/pedidos";
 import { useUIModals } from "~/context/ModalsContext";
-import { useData } from "~/context/DataContext";
 import { useState, useEffect } from "react";
 import { carroceriaAPI } from "~/backend/sheetServices";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
 import { useFormNavigationBlock } from "./useFormNavigationBlock";
+import { usePedido } from "~/context/PedidoContext";
 import {
   type FileTypeActions,
 } from "~/components/FileUpladerComponent";
@@ -21,10 +21,11 @@ export function useCarroceriaForm(
   const { showLoading, showSuccess, showError, showInfo } = useUIModals();
   const {
     pedido,
-    refreshPedidoByIdAndTable,
+    getCarrocerias,
+    getDocumentosPedidos,
     uploadFilesToPedidos,
     deleteDocumentoPedido,
-  } = useData();
+  } = usePedido();
   const isEditMode = Boolean(pedido);
   const { carroceria, id, numero_pedido, documentos } = pedido || {};
   const existingPedido = carroceria || null;
@@ -190,7 +191,7 @@ export function useCarroceriaForm(
                 "Error desconocido al actualizar la carrocería",
             );
           }
-          await refreshPedidoByIdAndTable("carroceria");
+          await getCarrocerias(); // Refrescar lista de carrocerías para tener datos actualizados
           updated = true;
         }
         if (files && id && numero_pedido) {
@@ -201,7 +202,7 @@ export function useCarroceriaForm(
             await deleteFiles({ files: files.remove, formData });
           }
           // Actualizar los documentos en formData con la respuesta del upload
-          await refreshPedidoByIdAndTable("documentos");
+          await getDocumentosPedidos(); // Refrescar documentos para tener datos actualizados
           uploaded = true;
         }
       } else {
@@ -224,9 +225,9 @@ export function useCarroceriaForm(
         }
       }
       if (updated || created || uploaded) {
-        if (uploaded) await refreshPedidoByIdAndTable("documentos");
+        if (uploaded) await getDocumentosPedidos(); // Refrescar documentos para tener datos actualizados
         if (updated || created) {
-          await refreshPedidoByIdAndTable("carroceria");
+          await getCarrocerias(); // Refrescar lista de carrocerías para tener datos actualizados
         }
         // Usar los valores actuales del formulario (incluyendo documentos actualizados)
         form.reset(form.getValues());

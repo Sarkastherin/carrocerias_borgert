@@ -8,18 +8,14 @@ import { useNavigate } from "react-router";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
 import { useFormNavigationBlock } from "./useFormNavigationBlock";
 import type { MvtosDB } from "~/types/ctas_corrientes";
+import { usePedido } from "~/context/PedidoContext";
 export function usePedidosForm() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const { showLoading, showSuccess, showError, showInfo } = useUIModals();
-  const {
-    pedido,
-    getPedidos,
-    getMvtos,
-    getCtasCtes,
-    refreshCtasCtes
-  } = useData();
+  const { pedido, getPedidos } = usePedido();
+  const { refreshCtasCtes } = useData();
   const isEditMode = Boolean(pedido);
   const existingPedido: PedidosUI | null = pedido;
 
@@ -76,7 +72,7 @@ export function usePedidosForm() {
       if (!response.success)
         throw new Error(
           response.message ||
-            "Error desconocido al crear movimiento de cta corriente"
+            "Error desconocido al crear movimiento de cta corriente",
         );
       if (tasacion && tasacion > 0) {
         const newPago: Omit<MvtosDB, "id" | "fecha_creacion"> = {
@@ -94,7 +90,7 @@ export function usePedidosForm() {
         if (!responsePago.success)
           throw new Error(
             responsePago.message ||
-              "Error desconocido al crear movimiento de cta corriente por tasación"
+              "Error desconocido al crear movimiento de cta corriente por tasación",
           );
       }
       await refreshCtasCtes({ refMvto: true });
@@ -103,7 +99,7 @@ export function usePedidosForm() {
       throw new Error(
         typeof error === "string"
           ? error
-          : "Error al crear movimiento de cuenta corriente"
+          : "Error al crear movimiento de cuenta corriente",
       );
     }
   };
@@ -112,7 +108,7 @@ export function usePedidosForm() {
     try {
       setIsLoading(true);
       showLoading(
-        isEditMode ? "Actualizando pedido..." : "Creando nuevo pedido..."
+        isEditMode ? "Actualizando pedido..." : "Creando nuevo pedido...",
       );
       if (isEditMode) {
         // Verificar si hay cambios en el formulario
@@ -133,11 +129,11 @@ export function usePedidosForm() {
         });
         const response = await pedidosAPI.update(
           existingPedido?.id || "",
-          updatePayload
+          updatePayload,
         );
         if (!response.success) {
           throw new Error(
-            response.message || "Error desconocido al actualizar el pedido"
+            response.message || "Error desconocido al actualizar el pedido",
           );
         }
         await getPedidos();
@@ -150,7 +146,7 @@ export function usePedidosForm() {
         const response = await pedidosAPI.create(formData);
         if (!response.success) {
           throw new Error(
-            response.message || "Error desconocido al crear el pedido"
+            response.message || "Error desconocido al crear el pedido",
           );
         }
         const createdId = response.data?.id;
@@ -178,13 +174,13 @@ export function usePedidosForm() {
         setIsLoading(false);
         navigate(`/pedidos/info/${createdId}`);
         showSuccess(
-          `Pedido creado exitosamente. ${iscreated ? "Se ha creado un movimiento en cuenta corriente." : ""}`
+          `Pedido creado exitosamente. ${iscreated ? "Se ha creado un movimiento en cuenta corriente." : ""}`,
         );
       }
     } catch (error) {
       setIsLoading(false);
       showError(
-        typeof error === "string" ? error : "Error al guardar el pedido"
+        typeof error === "string" ? error : "Error al guardar el pedido",
       );
     }
   };
@@ -203,7 +199,7 @@ export function usePedidosForm() {
       response.data.length > 0
     ) {
       const numerosPedidos = response.data.map(
-        (pedido: PedidosBD) => pedido.numero_pedido
+        (pedido: PedidosBD) => pedido.numero_pedido,
       );
       const ultimoNumero = numerosPedidos.reduce((max: string, num: string) => {
         return num > max ? num : max;

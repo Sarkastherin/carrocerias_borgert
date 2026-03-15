@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import type { Route } from "../+types/home";
-import { useData } from "~/context/DataContext";
 import { Subheader } from "~/components/Headers";
 import { FilePlus2 } from "lucide-react";
 import PedidosForm from "~/components/forms/PedidosForm";
+import { usePedido } from "~/context/PedidoContext";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Agregar Pedido" },
@@ -11,7 +11,7 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 export default function PedidosNuevo() {
-  const { setPedido } = useData();
+  const { setPedido } = usePedido();
   useEffect(() => {
     setPedido(null);
   }, []);

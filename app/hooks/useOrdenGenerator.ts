@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { pdf } from "@react-pdf/renderer";
-import type { OrdenesBD, PedidosUI } from "~/types/pedidos";
+import type { OrdenesYControlesBD, PedidosUI } from "~/types/pedidos";
 import { OrdenFabricacionTemplate } from "~/components/pdf/OrdenFabricacionTemplate";
 import { OrdenPinturaTemplate } from "~/components/pdf/OrdenPinturaTemplate";
 import { OrdenMontajeTemplate } from "~/components/pdf/OrdenMontajeTemplate";
 import { ControlCarrozadoTemplate } from "~/components/pdf/ControlCarrozadoTemplate";
 import { uploadOrderPDF } from "~/backend/driveAPI";
-import { ordenesAPI, pedidosAPI } from "~/backend/sheetServices";
+import { ordenesyControlesAPI, pedidosAPI } from "~/backend/sheetServices";
 import { tipoOrdenOptions } from "~/types/pedidos";
-import type { ControlCarrozadoDB } from "~/types/settings";
+import type { ControlPorCarrozadoDB } from "~/types/settings";
 import { useData } from "~/context/DataContext";
 
 interface PDFGenerationOptions {
   tipoOrden: (typeof tipoOrdenOptions)[number]["value"];
-  formData: Partial<OrdenesBD>;
+  formData: Partial<OrdenesYControlesBD>;
   pedidoData?: PedidosUI;
-  itemsControl?: ControlCarrozadoDB[];
+  itemsControl?: ControlPorCarrozadoDB[];
 }
 
 export const useOrdenGenerator = () => {
@@ -106,7 +106,7 @@ export const useOrdenGenerator = () => {
     pdfBlob: Blob,
     fileName: string,
     tipoOrden: string,
-    existingOrder?: OrdenesBD,
+    existingOrder?: OrdenesYControlesBD,
   ): Promise<string> => {
     setIsSaving(true);
     setError(null);
@@ -145,7 +145,7 @@ export const useOrdenGenerator = () => {
     responsable_id?: string,
   ) => {
     try {
-      // Preparar datos para el registro de orden según la estructura OrdenesBD
+      // Preparar datos para el registro de orden según la estructura OrdenesYControlesBD
       const ordenData = {
         pedido_id: pedidoId,
         tipo_orden: tipoOrden, // campo correcto según el tipo
@@ -159,7 +159,7 @@ export const useOrdenGenerator = () => {
       // Guardar registro en sheet de ordenes
 
       console.log("Creando nueva orden");
-      await ordenesAPI.create(ordenData);
+      await ordenesyControlesAPI.create(ordenData);
 
       // Actualizar pedido con link de orden y fecha
       if (ordenData.tipo_orden === "fabricacion") {
@@ -188,12 +188,12 @@ export const useOrdenGenerator = () => {
   };
   const closeOrder = async (
     orderId: string,
-    formData: Partial<OrdenesBD>,
+    formData: Partial<OrdenesYControlesBD>,
     tipoOrden: (typeof tipoOrdenOptions)[number]["value"],
     pedidoId: string,
   ) => {
     try {
-      const result = await ordenesAPI.update(orderId, formData);
+      const result = await ordenesyControlesAPI.update(orderId, formData);
       if (!result.success) {
         throw new Error("Fallo al cerrar la orden en la base de datos");
       }
@@ -215,7 +215,7 @@ export const useOrdenGenerator = () => {
   };
   const deleteOrden = async (orderId: string) => {
     try {
-      const result = await ordenesAPI.delete(orderId);
+      const result = await ordenesyControlesAPI.delete(orderId);
       if (!result.success) {
         throw new Error("Fallo al eliminar la orden en la base de datos");
       }

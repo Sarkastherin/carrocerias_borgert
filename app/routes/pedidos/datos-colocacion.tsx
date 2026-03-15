@@ -1,7 +1,6 @@
 import type { Route } from "../+types/home";
 import { Subheader } from "~/components/Headers";
 import { Truck } from "lucide-react";
-import CamionForm from "~/components/forms/CamionForm";
 import { ContainerToForms } from "~/components/Containers";
 import DatosColocacionForm from "~/components/forms/DatosColocacionForm";
 export function meta({}: Route.MetaArgs) {

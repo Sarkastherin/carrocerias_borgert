@@ -4,18 +4,18 @@ import {
 } from "../Inputs";
 import { Button, IconButton } from "../Buttons";
 import { useTrabajoChasisForm } from "~/hooks/useTrabajoChasisForm";
-import { useData } from "~/context/DataContext";
 import { Trash2, PlusIcon } from "lucide-react";
 import { FooterForm } from "./Footer";
 import LoadingComponent from "../LoadingComponent";
 import { useDataLoader } from "~/hooks/useDataLoader";
+import { usePedido } from "~/context/PedidoContext";
 
 export default function TrabajoChasisForm() {
-  const { configTrabajosChasis, getConfigTrabajosChasis } = useData();
+  const { configTrabajosChasis, getConfigTrabajosChasis } = usePedido();
   
   const { isLoading: isLoadingData } = useDataLoader({
     loaders: getConfigTrabajosChasis,
-    forceLoad: true,
+    dependencies: [configTrabajosChasis],
     errorMessage: "Error loading config trabajos chasis"
   });
   const {

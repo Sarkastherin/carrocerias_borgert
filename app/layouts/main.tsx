@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { Header } from "~/components/Headers";
 import { Outlet, useNavigate } from "react-router";
 import { ModalManager } from "~/components/modals/ModalManager";
-
+import { PedidoProvider } from "~/context/PedidoContext";
 
 export default function LayoutMain() {
   const { auth, getAuth } = useAuth();
@@ -11,11 +11,11 @@ export default function LayoutMain() {
   /* 
   1. obtener autenticación
   */
- useEffect(() => {
+  useEffect(() => {
     if (auth === null) {
       getAuth();
     }
- }, []);
+  }, []);
   useEffect(() => {
     if (!auth) {
       navigate("/login");
@@ -27,8 +27,12 @@ export default function LayoutMain() {
   return (
     <>
       <Header />
-      <Outlet />
-      <ModalManager />
+      {auth && (
+        <PedidoProvider>
+        <Outlet />
+        <ModalManager />
+      </PedidoProvider>
+      )}
     </>
   );
 }

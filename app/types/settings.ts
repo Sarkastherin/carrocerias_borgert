@@ -28,7 +28,7 @@ export type PersonalBD = {
 export type ConfigTrabajosChasisBD = {
   nombre: string;
 } & CommonSettingsBD;
-export type ConfigItemsControlBD = {
+export type ItemsControlBD = {
   nombre: string;
   control: "carrozado";
   carrozado_id: string;
@@ -43,9 +43,13 @@ export type DefaultDB = {
 export type DefaultWithPuertas = DefaultDB & {
   puertas_traseras_nombre?: string;
 };
-export type ControlCarrozadoDB = {
+export type ControlPorCarrozadoDB = {
   carrozado_id: string;
   item_control_id: string;
   item_control_nombre?: string;
   atributo_relacionado?: string;
 } & CommonSettingsBD;
+export type ControlPorCarrozadoConNombre = ControlPorCarrozadoDB & {
+  item_control_nombre: string;
+  atributo_relacionado?: string;
+}

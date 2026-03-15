@@ -20,9 +20,10 @@ import {
   puertasTraserasAPI,
   personalAPI,
   configTrabajoChasisAPI,
-  configItemsControlAPI,
+  itemsControlAPI,
 } from "~/backend/sheetServices";
 import { atributosConMetadata } from "./atributosMetadata";
+import { usePedido } from "~/context/PedidoContext";
 
 export type ConfigField = {
   name: string;
@@ -52,7 +53,7 @@ export type SettingsDataContext = {
   puertasTraseras?: any[] | null;
   personal?: any[] | null;
   configTrabajosChasis?: any[] | null;
-  configItemsControl?: any[] | null;
+  itemsControl?: any[] | null;
 };
 
 export type SettingsDataLoaders = {
@@ -61,11 +62,11 @@ export type SettingsDataLoaders = {
   getPuertasTraseras: () => Promise<any>;
   getPersonal: () => Promise<any>;
   getConfigTrabajosChasis: () => Promise<any>;
-  getConfigItemsControl: () => Promise<any>;
+  getItemsControl: () => Promise<any>;
 };
 
 export const createSettingsConfig = (
-  loaders: SettingsDataLoaders
+  loaders: SettingsDataLoaders,
 ): ConfigItem[] => [
   {
     title: "colores",
@@ -284,7 +285,7 @@ export const createSettingsConfig = (
   {
     title: "items de control",
     icon: PencilRuler,
-    reloadData: loaders.getConfigItemsControl,
+    reloadData: loaders.getItemsControl,
     columns: [
       {
         name: "Nombre",
@@ -295,9 +296,9 @@ export const createSettingsConfig = (
         name: "Campo relacionado",
         selector: (row: any) =>
           atributosConMetadata.find(
-            (atr) => atr.value === row.atributo_relacionado
+            (atr) => atr.value === row.atributo_relacionado,
           )?.label || "-",
-          width: "200px",
+        width: "200px",
         sortable: false,
       },
       {
@@ -340,7 +341,7 @@ export const createSettingsConfig = (
         required: false,
       },
     ],
-    api: configItemsControlAPI,
+    api: itemsControlAPI,
     filterFields: [
       { key: "nombre", label: "Nombre", autoFilter: true },
       {
@@ -356,7 +357,7 @@ export const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export const getSettingsWithData = (
   dataContext: SettingsDataContext,
-  loaders: SettingsDataLoaders
+  loaders: SettingsDataLoaders,
 ): ConfigItemWithData[] => {
   const settingsConfig = createSettingsConfig(loaders);
   const dataMapping = {
@@ -365,7 +366,7 @@ export const getSettingsWithData = (
     "puertas traseras": dataContext.puertasTraseras || [],
     personal: dataContext.personal || [],
     "tipos de trabajos": dataContext.configTrabajosChasis || [],
-    "items de control": dataContext.configItemsControl || [],
+    "items de control": dataContext.itemsControl || [],
   };
 
   return settingsConfig.map((config) => ({
@@ -383,13 +384,12 @@ export const useSettingsData = () => {
     getCarrozados,
     puertasTraseras,
     getPuertasTraseras,
-    personal,
-    getPersonal,
     configTrabajosChasis,
     getConfigTrabajosChasis,
-    configItemsControl,
-    getConfigItemsControl,
-  } = useData();
+    itemsControl,
+    getItemsControl,
+  } = usePedido();
+  const { personal, getPersonal } = useData();
 
   // Usar el hook useDataLoader para cargar todos los datos
   const { isLoading } = useDataLoader({
@@ -399,7 +399,7 @@ export const useSettingsData = () => {
       getPuertasTraseras,
       getPersonal,
       getConfigTrabajosChasis,
-      getConfigItemsControl,
+      getItemsControl,
     ],
     dependencies: [
       colores,
@@ -407,7 +407,7 @@ export const useSettingsData = () => {
       puertasTraseras,
       personal,
       configTrabajosChasis,
-      configItemsControl,
+      itemsControl,
     ],
     errorMessage: "Error cargando configuraciones",
   });
@@ -423,7 +423,7 @@ export const useSettingsData = () => {
         puertasTraseras,
         personal,
         configTrabajosChasis,
-        configItemsControl,
+        itemsControl,
       },
       {
         getColores,
@@ -431,8 +431,8 @@ export const useSettingsData = () => {
         getPuertasTraseras,
         getPersonal,
         getConfigTrabajosChasis,
-        getConfigItemsControl,
-      }
+        getItemsControl,
+      },
     ).map((config) => ({
       ...config,
       icon: getIcon({ icon: config.icon, size: 4 }),
@@ -444,13 +444,13 @@ export const useSettingsData = () => {
     puertasTraseras,
     personal,
     configTrabajosChasis,
-    configItemsControl,
+    itemsControl,
     getColores,
     getCarrozados,
     getPuertasTraseras,
     getPersonal,
     getConfigTrabajosChasis,
-    getConfigItemsControl,
+    getItemsControl,
   ]);
 
   return {
@@ -462,6 +462,6 @@ export const useSettingsData = () => {
     puertasTraseras,
     personal,
     configTrabajosChasis,
-    configItemsControl,
+    itemsControl,
   };
 };

@@ -6,7 +6,7 @@ import type {
   PedidosBD,
   CamionBD,
   TrabajoChasisBD,
-  OrdenesBD,
+  OrdenesYControlesBD,
   ControlesBD,
   DocumentosBD,
   DocumentosCtasCtesBD,
@@ -18,9 +18,9 @@ import type {
   PuertasTraserasBD,
   PersonalBD,
   ConfigTrabajosChasisBD,
-  ConfigItemsControlBD,
+  ItemsControlBD,
   DefaultDB,
-  ControlCarrozadoDB,
+  ControlPorCarrozadoDB,
 } from "~/types/settings";
 
 export const clientesAPI = createCrud<ClientesBD>({
@@ -73,7 +73,7 @@ export const configTrabajoChasisAPI = createCrud<ConfigTrabajosChasisBD>({
   nameSheet: "Tipos trabajos",
   nameFile: "Parámetros y Configuraciones",
 });
-export const configItemsControlAPI = createCrud<ConfigItemsControlBD>({
+export const itemsControlAPI = createCrud<ItemsControlBD>({
   sheetId: import.meta.env.VITE_SHEET_ID_CONFIGURACIONES,
   nameSheet: "Ítems de Control",
   nameFile: "Parámetros y Configuraciones",
@@ -83,20 +83,15 @@ export const defaultAPI = createCrud<DefaultDB>({
   nameSheet: "Valores Predeterminados",
   nameFile: "Parámetros Especiales: carrozados",
 });
-export const controlCarrozadoAPI = createCrud<ControlCarrozadoDB>({
+export const controlCarrozadoAPI = createCrud<ControlPorCarrozadoDB>({
   sheetId: import.meta.env.VITE_SHEET_ID_ESPECIALES,
   nameSheet: "Controles por carrozado",
   nameFile: "Parámetros Especiales: carrozados",
 });
-export const ordenesAPI =  createCrud<OrdenesBD>({
-  sheetId: import.meta.env.VITE_SHEET_ID_ORDENES,
-  nameSheet: "Ordenes",
-  nameFile: "Órdenes de Trabajo",
-});
-export const controlesAPI =  createCrud<ControlesBD>({
-  sheetId: import.meta.env.VITE_SHEET_ID_ORDENES,
-  nameSheet: "Controles",
-  nameFile: "Órdenes de Trabajo",
+export const ordenesyControlesAPI =  createCrud<OrdenesYControlesBD>({
+  sheetId: import.meta.env.VITE_SHEET_ID_PEDIDOS,
+  nameSheet: "Ordenes y Controles",
+  nameFile: "Pedidos",
 });
 export const mvtosAPI = createCrud<MvtosDB>({
   sheetId: import.meta.env.VITE_SHEET_ID_CTAS_CORRI,

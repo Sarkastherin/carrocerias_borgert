@@ -1,6 +1,6 @@
 import React from "react";
 import { Document, View } from "@react-pdf/renderer";
-import type { OrdenesBD, PedidosUI } from "~/types/pedidos";
+import type { OrdenesYControlesBD, PedidosUI } from "~/types/pedidos";
 import {
   Subtitle,
   Box,

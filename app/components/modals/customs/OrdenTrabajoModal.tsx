@@ -10,23 +10,24 @@ import {
 import { Button } from "~/components/Buttons";
 import { GlassCard } from "~/components/GlassCard";
 import ModalBase from "../ModalBase";
-import type { OrdenesBD, PedidosUI, tipoOrdenOptions } from "~/types/pedidos";
+import type { OrdenesYControlesBD, PedidosUI, tipoOrdenOptions } from "~/types/pedidos";
 import { useOrdenGenerator } from "~/hooks/useOrdenGenerator";
 import { Input, Textarea, Select } from "~/components/Inputs";
-import { useData } from "~/context/DataContext";
 import { Badge } from "~/components/Badge";
 import PDFIcon from "~/components/icons/PDFIcon";
 import { formatDateUStoES } from "~/utils/formatDate";
 import { LinkDocument } from "~/components/FileUpladerComponent";
+import { usePedido } from "~/context/PedidoContext";
+import { useData } from "~/context/DataContext";
 interface OrdenTrabajoModalProps {
   onClose: () => void;
   tipoOrden: (typeof tipoOrdenOptions)[number]["value"];
   pedidoData?: PedidosUI;
-  order?: OrdenesBD;
+  order?: OrdenesYControlesBD;
 }
 
 interface OrdenField {
-  name: keyof OrdenesBD;
+  name: keyof OrdenesYControlesBD;
   label: string;
   type: "text" | "textarea" | "select" | "date" | "number";
   options?: string[];
@@ -114,17 +115,17 @@ export default function OrdenTrabajoModal({
     type: order ? "existing" : "form",
     message: "",
   });
-  const [formData, setFormData] = useState<Partial<OrdenesBD>>({});
+  const [formData, setFormData] = useState<Partial<OrdenesYControlesBD>>({});
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [orderData, setOrderData] = useState<OrdenesBD | undefined>(
+  const [orderData, setOrderData] = useState<OrdenesYControlesBD | undefined>(
     order || undefined,
   );
   const [regenerating, setRegenerating] = useState(false);
   // Hook para acceder al personal desde el contexto global
-  const { personal, getPersonal, getOrdenesByPedidoId, getPedidos, setPedido, getPedidoById, refreshPedidoByIdAndTable } =
-    useData();
+  const { personal, getPersonal } = useData();
+  const { getPedidos, getOrdenesYControles } = usePedido();
 
   // Hook para generación de PDF
   const {
@@ -238,7 +239,7 @@ export default function OrdenTrabajoModal({
     }
   };
 
-  const handleInputChange = (name: keyof OrdenesBD, value: any) => {
+  const handleInputChange = (name: keyof OrdenesYControlesBD, value: any) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     // Limpiar error si existe
     if (errors[name]) {
@@ -290,14 +291,12 @@ export default function OrdenTrabajoModal({
     try {
       setStep({ type: "saving", message: "" });
       if(regenerating && orderData?.id){
-        console.log("eliminando orden")
         await regenerateOrden(orderData.id);
         setRegenerating(false);
       }
       const fileName = generateFileName(tipoOrden, pedidoData);
       const urlFile = await savePDFToDrive(pdfBlob, fileName, tipoOrden);
       // Crear registro en Google Sheets y actualizar pedido
-      console.log("Guardando orden con URL:");
       await createRegisterAndUpdatePedido(
         urlFile,
         pedidoData?.id || "",
@@ -306,24 +305,10 @@ export default function OrdenTrabajoModal({
       );
       //await getOrdenesByPedidoId(pedidoData?.id || "", true);
       setOrderData((prev) =>
-        prev ? ({ ...prev, ...formData } as OrdenesBD) : prev,
+        prev ? ({ ...prev, ...formData } as OrdenesYControlesBD) : prev,
       );
-      await getOrdenesByPedidoId(pedidoData?.id || "", true);
-      await refreshPedidoByIdAndTable("pedidos")
-      const statusUpdate =
-        tipoOrden === "fabricacion"
-          ? "en_produccion"
-          : tipoOrden === "pintura"
-            ? "en_pintura"
-            : "finalizada";
-      setPedido((prev) =>
-        prev
-          ? {
-              ...prev,
-              status: statusUpdate,
-            }
-          : prev,
-      );
+      await getOrdenesYControles();
+      await getPedidos();
       setStep({ type: "success", message: "" });
     } catch (error) {
       console.error("Error guardando orden:", error);
@@ -343,10 +328,10 @@ export default function OrdenTrabajoModal({
       
       // actualizar orderData con los datos actualizados en formData
       setOrderData((prev) =>
-        prev ? ({ ...prev, ...formData } as OrdenesBD) : prev,
+        prev ? ({ ...prev, ...formData } as OrdenesYControlesBD) : prev,
       );
-      await getOrdenesByPedidoId(pedidoData?.id || "", true);
-      await refreshPedidoByIdAndTable("pedidos")
+      await getOrdenesYControles();
+      await getPedidos();
       setStep({ type: "existing", message: "" });
     } catch (error) {}
   };

@@ -1,6 +1,6 @@
 import React from "react";
 import { View } from "@react-pdf/renderer";
-import type { OrdenesBD, PedidosUI } from "~/types/pedidos";
+import type { OrdenesYControlesBD, PedidosUI } from "~/types/pedidos";
 import {
   Subtitle,
   Box,
@@ -9,18 +9,17 @@ import {
   MultiPageTemplate,
   TitleBox,
 } from "./pdfComponents";
-import type { ControlCarrozadoDB } from "~/types/settings";
+import type { ControlPorCarrozadoDB } from "~/types/settings";
 import { atributosConMetadata } from "~/config/atributosMetadata";
 
 interface ComtrolCarrozadojeProps {
   pedidoData?: PedidosUI;
-  formData: Partial<OrdenesBD>;
+  formData: Partial<OrdenesYControlesBD>;
   responsable?: string;
-  itemsControl?: ControlCarrozadoDB[];
+  itemsControl?: ControlPorCarrozadoDB[];
 }
 export const ControlCarrozadoTemplate: React.FC<ComtrolCarrozadojeProps> = ({
   pedidoData,
-  formData,
   responsable,
   itemsControl,
 }) => {
@@ -149,7 +148,7 @@ export const ControlCarrozadoTemplate: React.FC<ComtrolCarrozadojeProps> = ({
                 const valueAtributo =
                   pedidoData?.carroceria?.[
                     item.atributo_relacionado as keyof typeof pedidoData.carroceria
-                  ] ||
+                  ] ??
                   pedidoData?.camion?.[
                     item.atributo_relacionado as keyof typeof pedidoData.camion
                   ];
@@ -163,7 +162,7 @@ export const ControlCarrozadoTemplate: React.FC<ComtrolCarrozadojeProps> = ({
                       <>
                         <Cell value={item.item_control_nombre} flex={5.2} />
                         <Cell
-                          value={String(valueAtributo).toUpperCase()}
+                          value={String(valueAtributo ?? "N/A").toUpperCase()}
                           flex={2}
                           unit={unit}
                           bold

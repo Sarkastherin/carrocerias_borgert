@@ -53,7 +53,7 @@ const ctasCorrientes: TableColumn<CtaCte>[] = [
   },
 ];
 export default function CuentasCorrientes() {
-  const { getCtasCtes, ctasCtes, setCtaCte, ctaCte} =
+  const { getCtasCtes, ctasCtes, setCtaCte} =
     useData();
   const navigate = useNavigate();
   useEffect(() => {

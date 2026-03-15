@@ -1,17 +1,17 @@
 import { useForm, useFieldArray } from "react-hook-form";
 import type { TrabajoChasisBD } from "~/types/pedidos";
 import { useUIModals } from "~/context/ModalsContext";
-import { useData } from "~/context/DataContext";
 import { useState } from "react";
 import { trabajoChasisAPI } from "~/backend/sheetServices";
 import { useFormNavigationBlock } from "./useFormNavigationBlock";
+import { usePedido } from "~/context/PedidoContext";
 export function useTrabajoChasisForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [deletedIds, setDeletedIds] = useState<string[]>([]);
 
-  const { showLoading, showSuccess, showError, showInfo, closeModal } =
+  const { showLoading, showSuccess, showError, showInfo } =
     useUIModals();
-  const { pedido, refreshPedidoByIdAndTable } = useData();
+  const { pedido, getTrabajosChasis } = usePedido();
   const isEditMode = Boolean(pedido);
   const { trabajo_chasis } = pedido || {};
   const existingPedido = trabajo_chasis || null;
@@ -118,7 +118,7 @@ export function useTrabajoChasisForm() {
           })
         );
       }
-      await refreshPedidoByIdAndTable("trabajo_chasis");
+      await getTrabajosChasis(); // Refrescar lista de trabajos de chasis para tener datos actualizados
       form.reset(formData); // Resetea el formulario con los datos actuales
       setIsLoading(false);
       showSuccess("Trabajos de chasis guardados exitosamente");

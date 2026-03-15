@@ -164,6 +164,9 @@ export type TrabajoChasisBD = {
 export type TrabajoChasisUI = TrabajoChasisBD & {
   tipo_trabajo_nombre?: string;
 };
+export type TrabajoChasisConDetalles = TrabajoChasisBD & {
+  tipo_trabajo_nombre?: string;
+};
 export type CarroceriaUI = CarroceriaBD & {
   carrozado_nombre?: string;
   puerta_trasera_nombre?: string;
@@ -176,8 +179,10 @@ export type PedidosUI = PedidosTable & {
 } & {
   trabajo_chasis: TrabajoChasisUI[];
   documentos: DocumentosBD[];
-} & { camion: CamionBD | null };
-export type OrdenesBD = {
+} & { camion: CamionBD | null } & {
+  ordenes_controles: OrdenesYControlesUI[] | null;
+};
+export type OrdenesYControlesBD = {
   id: string;
   fecha_creacion: string;
   pedido_id: string;
@@ -187,6 +192,9 @@ export type OrdenesBD = {
   url_archivo: string;
   status?: string;
   notas?: string;
+};
+export type OrdenesYControlesUI = OrdenesYControlesBD & {
+  responsable_nombre?: string;
 };
 export type ControlesBD = {
   id: string;

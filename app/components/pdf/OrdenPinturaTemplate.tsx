@@ -1,6 +1,6 @@
 import React from "react";
 import { Document, View } from "@react-pdf/renderer";
-import type { OrdenesBD, PedidosUI } from "~/types/pedidos";
+import type { OrdenesYControlesBD, PedidosUI } from "~/types/pedidos";
 import {
   Subtitle,
   Box,
@@ -15,7 +15,7 @@ import { DatosPedido, DatosCamion, DatosColor } from "./DatosComunesTemplate";
 
 interface OrdenPinturaProps {
   pedidoData?: PedidosUI;
-  formData: Partial<OrdenesBD>;
+  formData: Partial<OrdenesYControlesBD>;
   responsable: string;
 }
 export const OrdenPinturaTemplate: React.FC<OrdenPinturaProps> = ({

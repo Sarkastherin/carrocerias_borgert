@@ -1,4 +1,4 @@
-import type { OrdenesBD } from "~/types/pedidos";
+import type { OrdenesYControlesBD } from "~/types/pedidos";
 
 // Tipos para Google Drive API
 interface DriveFileMetadata {
@@ -387,7 +387,7 @@ export async function uploadOrderPDF(
   pdfBlob: Blob,
   fileName: string,
   tipoOrden: string,
-  existingOrder?: OrdenesBD
+  existingOrder?: OrdenesYControlesBD
 ): Promise<DriveFile & { webViewLink?: string; webContentLink?: string }> {
   try {
     const currentYear = new Date().getFullYear();

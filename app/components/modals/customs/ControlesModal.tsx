@@ -10,25 +10,30 @@ import {
 import { Button } from "~/components/Buttons";
 import { GlassCard } from "~/components/GlassCard";
 import ModalBase from "../ModalBase";
-import type { OrdenesBD, PedidosUI, tipoControlOptions, tipoOrdenOptions } from "~/types/pedidos";
+import type {
+  OrdenesYControlesBD,
+  PedidosUI,
+  tipoControlOptions,
+  tipoOrdenOptions,
+} from "~/types/pedidos";
 import { useOrdenGenerator } from "~/hooks/useOrdenGenerator";
 import { Input, Textarea, Select } from "~/components/Inputs";
 import { useData } from "~/context/DataContext";
 import { Badge } from "~/components/Badge";
 import PDFIcon from "~/components/icons/PDFIcon";
 import { formatDateUStoES } from "~/utils/formatDate";
-import type { ControlCarrozadoDB } from "~/types/settings";
-
+import type { ControlPorCarrozadoDB } from "~/types/settings";
+import { usePedido } from "~/context/PedidoContext";
 interface ControlesProps {
   onClose: () => void;
-  tipoOrden: typeof tipoControlOptions[number]["value"];
+  tipoOrden: (typeof tipoControlOptions)[number]["value"];
   pedidoData?: PedidosUI;
-  order?: OrdenesBD;
-  ctrlCarrozadoByCarrozadoId?: ControlCarrozadoDB[]
+  order?: OrdenesYControlesBD;
+  ctrlCarrozadoByCarrozadoId?: ControlPorCarrozadoDB[];
 }
 
 interface OrdenField {
-  name: keyof OrdenesBD;
+  name: keyof OrdenesYControlesBD;
   label: string;
   type: "text" | "textarea" | "select" | "date" | "number";
   options?: string[];
@@ -44,7 +49,10 @@ interface OrdenConfig {
   fields?: OrdenField[];
 }
 
-const ordenConfigs: Record<typeof tipoOrdenOptions[number]["value"], OrdenConfig> = {
+const ordenConfigs: Record<
+  (typeof tipoOrdenOptions)[number]["value"],
+  OrdenConfig
+> = {
   carrozado: {
     title: "Control de Carrozado",
     icon: Hammer,
@@ -98,7 +106,11 @@ const ordenConfigs: Record<typeof tipoOrdenOptions[number]["value"], OrdenConfig
   },
 };
 
-type ModalStep = "form" | "preview" | "saving" | "success" | "existing";
+type ModalStep = {
+  type: "form" | "preview" | "saving" | "success" | "existing" | "error";
+  message?: string;
+};
+
 
 export default function ControlesModal({
   onClose,
@@ -107,16 +119,21 @@ export default function ControlesModal({
   order,
   ctrlCarrozadoByCarrozadoId,
 }: ControlesProps) {
-  const [step, setStep] = useState<ModalStep>(order ? "existing" : "form");
-  const [formData, setFormData] = useState<Partial<OrdenesBD>>({});
+  const [step, setStep] = useState<ModalStep>({
+      type: order ? "existing" : "form",
+      message: "",
+    });
+  const [formData, setFormData] = useState<Partial<OrdenesYControlesBD>>({});
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [orderData, setOrderData] = useState<OrdenesBD | undefined>(
-    order || undefined
+  const [orderData, setOrderData] = useState<OrdenesYControlesBD | undefined>(
+    order || undefined,
   );
+  const [regenerating, setRegenerating] = useState(false);
   // Hook para acceder al personal desde el contexto global
-  const { personal, getPersonal, getOrdenesByPedidoId, getPedidos } = useData();
+  const { personal, getPersonal } = useData();
+  const { getPedidos, getOrdenesYControles } = usePedido();
 
   // Hook para generación de PDF
   const {
@@ -125,6 +142,7 @@ export default function ControlesModal({
     createRegisterAndUpdatePedido,
     closeOrder,
     generateFileName,
+    deleteOrden,
     isSaving,
     error: generatorError,
   } = useOrdenGenerator();
@@ -172,11 +190,10 @@ export default function ControlesModal({
   }, []);
   const getPersonalBySector = (sector?: string) => {
     if (!personal) return [];
-    if(!sector) return personal.filter((p) => p.activo);
-    return personal
-      .filter(
-        (p) => p.activo && p.sector.toLowerCase().includes(sector.toLowerCase())
-      );
+    if (!sector) return personal.filter((p) => p.activo);
+    return personal.filter(
+      (p) => p.activo && p.sector.toLowerCase().includes(sector.toLowerCase()),
+    );
   };
   const HeaderOrder = () => {
     return (
@@ -226,11 +243,11 @@ export default function ControlesModal({
       case "montaje":
         return getPersonalBySector("montaje");
       default:
-        return  getPersonalBySector();
+        return getPersonalBySector();
     }
   };
 
-  const handleInputChange = (name: keyof OrdenesBD, value: any) => {
+  const handleInputChange = (name: keyof OrdenesYControlesBD, value: any) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     // Limpiar error si existe
     if (errors[name]) {
@@ -260,28 +277,31 @@ export default function ControlesModal({
     if (!validateForm()) return;
 
     try {
-      setStep("preview");
-
+      setStep({ type: "preview", message: "" });
+      console.log(pedidoData)
       // Generar PDF usando el hook
       const pdfBlob = await generateOrdenPDF({
         tipoOrden,
         formData,
         pedidoData,
-        itemsControl: ctrlCarrozadoByCarrozadoId
+        itemsControl: ctrlCarrozadoByCarrozadoId,
       });
 
       setPdfBlob(pdfBlob);
     } catch (error) {
       console.error("Error generando PDF:", error);
-      setStep("form");
+      setStep({ type: "form", message: "" });
     }
   };
 
   const handleSaveOrden = async () => {
     if (!pdfBlob) return;
-
     try {
-      setStep("saving");
+       setStep({ type: "saving", message: "" });
+      if (regenerating && orderData?.id) {
+        await regenerateOrden(orderData.id);
+        setRegenerating(false);
+      }
       const fileName = generateFileName(tipoOrden, pedidoData);
       const urlFile = await savePDFToDrive(pdfBlob, fileName, tipoOrden);
       // Crear registro en Google Sheets y actualizar pedido
@@ -290,41 +310,52 @@ export default function ControlesModal({
         pedidoData?.id || "",
         tipoOrden,
         formData.responsable_id,
-        orderData
       );
-      await getOrdenesByPedidoId(
-        pedidoData?.id || "",
-        true
-      );
+      
       setOrderData((prev) =>
-        prev ? ({ ...prev, ...formData } as OrdenesBD) : prev
+        prev ? ({ ...prev, ...formData } as OrdenesYControlesBD) : prev,
       );
-      if(tipoOrden === "fabricacion"){
-        await getPedidos();
-      }
-      setStep("success");
+      await getOrdenesYControles();
+      await getPedidos();
+      setStep({ type: "success", message: "" });
     } catch (error) {
       console.error("Error guardando orden:", error);
-      setStep("preview");
+      setStep({ type: "preview", message: "" });
     }
   };
   const handlesCloseOrder = async () => {
     if (!orderData?.id) return;
     try {
-      setStep("saving");
-      await closeOrder(orderData?.id, formData, tipoOrden, pedidoData?.id || "");
-      await getOrdenesByPedidoId(pedidoData?.id || "", true);
+      setStep({ type: "saving", message: "" });
+      await closeOrder(
+        orderData?.id,
+        formData,
+        tipoOrden,
+        pedidoData?.id || "",
+      );
       // actualizar orderData con los datos actualizados en formData
       setOrderData((prev) =>
-        prev ? ({ ...prev, ...formData } as OrdenesBD) : prev
+        prev ? ({ ...prev, ...formData } as OrdenesYControlesBD) : prev,
       );
-      if(tipoOrden === "montaje" && formData.status === "completada"){
-        await getPedidos();
-      }
-      setStep("existing");
+      await getOrdenesYControles();
+      await getPedidos();
+      setStep({ type: "existing", message: "" });
     } catch (error) {}
   };
-
+  const regenerateOrden = async (orderId?: string) => {
+    if (!orderId) return;
+    const result = await deleteOrden(orderId);
+    if (!result.success) {
+      setStep({
+        type: "error",
+        message: result.message || "Error desconocido al eliminar la orden",
+      });
+      return;
+    }
+    console.log(
+      "Orden eliminada exitosamente, procediendo a generar nueva orden",
+    );
+  };
   const renderForm = () => (
     <div className="space-y-6">
       <HeaderOrder />
@@ -458,7 +489,8 @@ export default function ControlesModal({
                   Responsable:
                 </span>
                 <span className="ml-2 text-gray-900 dark:text-white capitalize">
-                  { personal?.find((p) => p.id === orderData?.responsable_id)?.nombre || "No asignado"}
+                  {personal?.find((p) => p.id === orderData?.responsable_id)
+                    ?.nombre || "No asignado"}
                 </span>
               </div>
             </div>
@@ -480,8 +512,8 @@ export default function ControlesModal({
             <Button
               variant="warning"
               onClick={() => {
-                // Lógica para regenerar la orden
-                setStep("form");
+                setRegenerating(true);
+                setStep({ type: "form", message: "" });
               }}
               disabled={!!orderData?.fecha_ejecucion}
               className="flex-1 flex items-center justify-center gap-2"
@@ -589,7 +621,7 @@ export default function ControlesModal({
       <div className="flex gap-3 pt-4">
         <Button
           variant="dark"
-          onClick={() => setStep("form")}
+          onClick={() => setStep({ type: "form", message: "" })}
           className="flex-1"
         >
           Volver a editar
@@ -654,7 +686,7 @@ export default function ControlesModal({
         </Button>
         <Button
           variant="outlinePrimary"
-          onClick={() => setStep("preview")}
+          onClick={() => setStep({ type: "preview", message: "" })}
           className="w-full"
         >
           Ver Orden
@@ -664,7 +696,7 @@ export default function ControlesModal({
   );
 
   const getStepContent = () => {
-    switch (step) {
+    switch (step.type) {
       case "form":
         return renderForm();
       case "existing":
@@ -681,7 +713,7 @@ export default function ControlesModal({
   };
 
   const getFooter = () => {
-    if (step === "form") {
+    if (step.type === "form") {
       return {
         btnPrimary: {
           label: `Generar Orden`,
@@ -700,7 +732,7 @@ export default function ControlesModal({
 
   return (
     <ModalBase
-      title={step === "success" ? "✅ Orden completada" : config.title}
+      title={step.type === "success" ? "✅ Orden completada" : config.title}
       open
       zIndex={100}
       onClose={onClose}

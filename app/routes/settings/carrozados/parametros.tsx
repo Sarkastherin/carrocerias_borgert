@@ -17,7 +17,7 @@ import { AddImageModal } from "~/components/modals/customs/AddImageModal";
 export default function SettingsLayoutCarrozado() {
   const { carrozadoId } = useParams();
   const [activeTab, setActiveTab] = useState("valores por defecto");
-  const { isLoading, itemsConfiguraciones, controlCarrozado, defaults } =
+  const { isLoading, itemsConfiguraciones, controlesPorCarrozado, defaults } =
     useSettingsData(carrozadoId);
   const [carrozadoNombre, setCarrozadoNombre] = useState<string>("");
   useEffect(() => {
@@ -58,7 +58,7 @@ export default function SettingsLayoutCarrozado() {
             break;
           case "control de carrozado":
             exists =
-              controlCarrozado?.some(
+              controlesPorCarrozado?.some(
                 (item) =>
                   item.item_control_id &&
                   item.item_control_id.trim().toLowerCase() ===
@@ -74,7 +74,7 @@ export default function SettingsLayoutCarrozado() {
         return false;
       }
     },
-    [defaults, controlCarrozado, carrozadoId]
+    [defaults, controlesPorCarrozado, carrozadoId]
   );
   const handleOpenForm = useCallback(
     ({

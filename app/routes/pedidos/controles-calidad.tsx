@@ -6,9 +6,12 @@ import { getIcon } from "~/components/IconComponent";
 import { GlassCard } from "~/components/GlassCard";
 import { tipoControlOptions } from "~/types/pedidos";
 import { useControlesModal } from "~/hooks/useControlesModal";
-import { useData } from "~/context/DataContext";
-import { useEffect} from "react";
+import { useEffect, useState } from "react";
 import { ButtonLink } from "~/components/Buttons";
+import { usePedido } from "~/context/PedidoContext";
+import { capitalize } from "~/config/settingsConfig";
+import { BadgeStatusOrden } from "~/components/Badge";
+import type { ControlPorCarrozadoConNombre } from "~/types/settings";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Controles de Calidad" },
@@ -16,26 +19,24 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 export default function ControlesCalidad() {
-  const {
-    pedido,
-    getControlesByPedidoId,
-    controlesByPedido,
-    getCtrlCarrozadoByCarrozadoId,
-    ctrlCarrozadoByCarrozadoId,
-  } = useData();
+  const { pedido,getControlesPorCarrozadoConNombre, controlPorCarrozadoConNombre } =
+    usePedido();
+  const { ordenes_controles } = pedido || {};
   const { openControlesModal } = useControlesModal();
-
-  // Cargar las órdenes del pedido actual
-  useEffect(() => {
-    if (pedido?.id) {
-      getControlesByPedidoId(pedido.id);
+  const [ctrlCarrozadoByCarrozadoId, setCtrlCarrozadoByCarrozadoId] = useState<ControlPorCarrozadoConNombre[] | null>(null);
+  useEffect(() =>{
+    if(!controlPorCarrozadoConNombre) {
+      getControlesPorCarrozadoConNombre();
     }
-  }, [pedido?.id, getControlesByPedidoId]);
+  },[])
   useEffect(() => {
-    if (pedido?.carroceria) {
-      getCtrlCarrozadoByCarrozadoId(pedido.carroceria.tipo_carrozado_id);
+    if (pedido?.carroceria && controlPorCarrozadoConNombre) {
+      const controlesFiltrados = controlPorCarrozadoConNombre.filter(
+        (control) => control.carrozado_id === pedido.carroceria?.tipo_carrozado_id
+      );
+      setCtrlCarrozadoByCarrozadoId(controlesFiltrados);
     }
-  }, [pedido?.carroceria]);
+  }, [pedido?.carroceria, controlPorCarrozadoConNombre]);
   const tipoControles = [
     {
       name: "Control de Carrozado",
@@ -43,31 +44,18 @@ export default function ControlesCalidad() {
         "Generar control de calidad para la carrocería ensamblada según las especificaciones del pedido.",
       icon: FileBox,
       tipo: "carrozado" as (typeof tipoControlOptions)[number]["value"],
+      isCreated: ordenes_controles
+        ? ordenes_controles.some(
+            (control) => control.tipo_orden === "carrozado",
+          )
+        : false,
+      urlFile: ordenes_controles?.find(
+        (control) => control.tipo_orden === "carrozado",
+      )?.url_archivo,
+      control: ordenes_controles?.find(
+        (control) => control.tipo_orden === "carrozado",
+      ),
       disabled: false,
-      control: controlesByPedido?.find(
-        (control) => control.tipo_control === "carrozado"
-      ),
-    },
-    {
-      name: "Control de Pintura",
-      description:
-        "Proximamente: Generar control de calidad para la pintura y acabados de componentes de la carrocería",
-      icon: FileBox,
-      tipo: "pintura" as (typeof tipoControlOptions)[number]["value"],
-      disabled: true,
-      control: controlesByPedido?.find(
-        (control) => control.tipo_control === "pintura"
-      ),
-    },
-    {
-      name: "Control final",
-      description: "Proximamente: Generar control de calidad final",
-      icon: FileBox,
-      tipo: "final" as (typeof tipoControlOptions)[number]["value"],
-      disabled: true,
-      control: controlesByPedido?.find(
-        (control) => control.tipo_control === "final"
-      ),
     },
   ];
   return (
@@ -99,7 +87,12 @@ export default function ControlesCalidad() {
                   className={`flex flex-col items-start h-full cursor-pointer ${control.disabled ? "pointer-events-none" : ""}`}
                   onClick={() => {
                     if (!pedido) return;
-                    openControlesModal(control.tipo, pedido, control.control, ctrlCarrozadoByCarrozadoId);
+                    openControlesModal(
+                      control.tipo,
+                      pedido,
+                      control.control,
+                      ctrlCarrozadoByCarrozadoId,
+                    );
                   }}
                 >
                   <div className="mb-3 sm:mb-4 p-2.5 sm:p-3 rounded-xl bg-gray-500/20 dark:bg-white/20 backdrop-blur-sm group-hover:bg-white/30  transition-colors">
@@ -111,6 +104,11 @@ export default function ControlesCalidad() {
                   <p className="text-sm text-text-secondary group-hover:text-gray-100 transition-colors leading-relaxed flex-1">
                     {control.description}
                   </p>
+                  {control.control && control.control.status && (
+                    <BadgeStatusOrden status={control.control.status}>
+                      {capitalize(control.control.status.replace("_", " "))}
+                    </BadgeStatusOrden>
+                  )}
                 </div>
               </GlassCard>
             );
@@ -131,9 +129,13 @@ export default function ControlesCalidad() {
               </p>
               <p>Configurelo en los Items de Control</p>
               <div className="w-fit mx-auto mt-4">
-              <ButtonLink to={`/settings/carrozados/parametros/${pedido.carroceria.tipo_carrozado_id}`} className="mx-auto mt-4">
-                Ir a configuración
-              </ButtonLink></div>
+                <ButtonLink
+                  to={`/settings/carrozados/parametros/${pedido.carroceria.tipo_carrozado_id}`}
+                  className="mx-auto mt-4"
+                >
+                  Ir a configuración
+                </ButtonLink>
+              </div>
             </div>
           )}
         </>

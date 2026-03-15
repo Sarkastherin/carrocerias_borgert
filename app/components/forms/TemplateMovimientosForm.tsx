@@ -54,8 +54,6 @@ export const TemplateMovimientosForm = ({
     bancos,
     getBancos,
     uploadFilesToCtasCtes,
-    cheques: chequesContext,
-    getCheques,
     ctasCtes,
     getCtasCtes,
   } = useData();
@@ -114,19 +112,7 @@ export const TemplateMovimientosForm = ({
     setValue("haber", totalCheques, { shouldDirty: true });
   }, [totalCheques, setValue]);
 
-  const handleAddCheque = () => {
-    if (!ultimaFechaIngreso) return;
-    append({
-      numero: "",
-      tipo: "",
-      importe: 0,
-      banco: "",
-      fecha_cobro: "",
-      fecha_ingreso: ultimaFechaIngreso,
-      observacion: "",
-      status: "recibido",
-    } as ChequesDB);
-  };
+  
   const addFiles = async ({
     id,
     files,
@@ -568,6 +554,19 @@ export const TemplateMovimientosForm = ({
     return false;
   };
   const ultimaFechaIngreso = watch("cheques")?.at(-1)?.fecha_ingreso;
+  const handleAddCheque = () => {
+    if (!ultimaFechaIngreso) return;
+    append({
+      numero: "",
+      tipo: "",
+      importe: 0,
+      banco: "",
+      fecha_cobro: "",
+      fecha_ingreso: ultimaFechaIngreso,
+      observacion: "",
+      status: "recibido",
+    } as ChequesDB);
+  };
   return (
     <div className="w-full">
       {/* Widget flotante para total de cheques */}

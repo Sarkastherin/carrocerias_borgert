@@ -4,7 +4,7 @@ import { NavGlassCard, ConfigGlassCard } from "~/components/GlassCard";
 import LoadingComponent from "~/components/LoadingComponent";
 import { Subheader } from "~/components/Headers";
 import { Truck, Wrench } from "lucide-react";
-import { useData } from "~/context/DataContext";
+import { usePedido } from "~/context/PedidoContext";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Parámetros Avanzados" },
@@ -14,7 +14,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function AdvanceLayout() {
   const [isLoading, setIsLoading] = useState(true);
-  const { carrozados, getCarrozados } = useData();
+  const { carrozados, getCarrozados } = usePedido();
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);

@@ -15,13 +15,13 @@ import { UIProvider } from "./context/UIContext";
 import { DataProvider } from "./context/DataContext";
 
 // Polyfill para Buffer en el navegador
-if (typeof global === 'undefined') {
+if (typeof global === "undefined") {
   (window as any).global = window;
 }
-if (typeof Buffer === 'undefined') {
+if (typeof Buffer === "undefined") {
   (window as any).Buffer = {
     from: (data: any) => new Uint8Array(data),
-    isBuffer: (obj: any) => obj instanceof Uint8Array
+    isBuffer: (obj: any) => obj instanceof Uint8Array,
   };
 }
 import { UIModalsProvider } from "./context/ModalsContext";
@@ -50,14 +50,14 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  
+
   useEffect(() => {
     const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
+      "(prefers-color-scheme: dark)",
     ).matches;
     setTheme(prefersDark ? "dark" : "light");
   }, []);
-  
+
   return (
     <html lang="es" data-theme={theme}>
       <head>
@@ -66,7 +66,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
         <script src="https://apis.google.com/js/api.js"></script>
-        <script src="https://accounts.google.com/gsi/client" async defer></script>
+        <script
+          src="https://accounts.google.com/gsi/client"
+          async
+          defer
+        ></script>
       </head>
       <body>
         {children}
@@ -83,9 +87,9 @@ export default function App() {
       <UIModalsProvider>
         <UIProvider>
           <DataProvider>
-            <main className="min-h-screen flex flex-col bg-background text-text-primary transition-colors duration-500">
-              <Outlet />
-            </main>
+              <main className="min-h-screen flex flex-col bg-background text-text-primary transition-colors duration-500">
+                <Outlet />
+              </main>
           </DataProvider>
         </UIProvider>
       </UIModalsProvider>

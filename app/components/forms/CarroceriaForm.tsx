@@ -2,7 +2,6 @@ import { Textarea, Select, ToggleCheckbox, InputWithIcon } from "../Inputs";
 import { Button } from "../Buttons";
 import { useCarroceriaForm } from "~/hooks/useCarroceriaForm";
 import { CardToggle } from "../CardToggle";
-import { useData } from "~/context/DataContext";
 import { RulerDimensionLine } from "lucide-react";
 import { useDataLoader } from "~/hooks/useDataLoader";
 import { FooterForm } from "./Footer";
@@ -23,6 +22,7 @@ import FilesUploderComponent, {
   type FileTypeActions,
 } from "../FileUpladerComponent";
 import type { DocumentosBD } from "~/types/pedidos";
+import { usePedido } from "~/context/PedidoContext";
 
 export default function CarroceriaForm() {
   const [files, setFiles] = useState<FileTypeActions<DocumentosBD>>({
@@ -40,11 +40,11 @@ export default function CarroceriaForm() {
     selectedCarrozado,
     setSelectedCarrozado,
     getCarrozadoByID,
-  } = useData(true);
+  } = usePedido(true);
   const [carrozadoId, setCarrozadoId] = useState<string>("");
   const { isLoading: isLoadingData } = useDataLoader({
     loaders: [getColores, getCarrozados, getPuertasTraseras],
-    forceLoad: true,
+    dependencies: [colores, carrozados, puertasTraseras],
     errorMessage: "Error loading carroceria data",
   });
   const {

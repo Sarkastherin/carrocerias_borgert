@@ -7,7 +7,6 @@ import {
 } from "../Inputs";
 import { Button, IconButton } from "../Buttons";
 import { CardToggle } from "../CardToggle";
-import { useData } from "~/context/DataContext";
 import { RulerDimensionLine, Trash2, PlusIcon } from "lucide-react";
 import { useDataLoader } from "~/hooks/useDataLoader";
 import { FooterForm } from "./Footer";
@@ -27,6 +26,7 @@ import {
 } from "~/backend/sheetServices";
 import { useUIModals } from "~/context/ModalsContext";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
+import { usePedido } from "~/context/PedidoContext";
 
 type DatosColocacionFormProps = {
   carroceriaData?: CarroceriaBD;
@@ -39,14 +39,15 @@ export default function DatosColocacionForm() {
   const [deletedIds, setDeletedIds] = useState<string[]>([]);
   const {
     pedido,
-    getPedidos,
-    refreshPedidoByIdAndTable,
+    getCamiones,
+    getCarrocerias,
+    getTrabajosChasis,
     configTrabajosChasis,
     getConfigTrabajosChasis,
-  } = useData();
+  } = usePedido();
   const { isLoading: isLoadingData } = useDataLoader({
     loaders: getConfigTrabajosChasis,
-    forceLoad: true,
+    dependencies: [configTrabajosChasis],
     errorMessage: "Error loading config trabajos chasis",
   });
   const { camion, carroceria, trabajo_chasis, ...rest } = pedido || {};
@@ -174,7 +175,7 @@ export default function DatosColocacionForm() {
                 "Error desconocido al actualizar la carrocería",
             );
           }
-          await refreshPedidoByIdAndTable("carroceria");
+          await getCarrocerias();
         }
       }
       if (hasDirtyFieldsCamion && camionData) {
@@ -192,7 +193,7 @@ export default function DatosColocacionForm() {
               response.message || "Error desconocido al actualizar el camión",
             );
           }
-          await refreshPedidoByIdAndTable("camion");
+          await getCamiones();
         }
       }
       if (hasDirtyFieldsTrabajoChasis && trabajoChasisData) {
@@ -244,11 +245,9 @@ export default function DatosColocacionForm() {
             );
           }
         }
-        await refreshPedidoByIdAndTable("trabajo_chasis");
+        await getTrabajosChasis();
       }
       showSuccess("Datos de colocación guardados exitosamente");
-
-      await getPedidos(); // Refresca la lista de pedidos
       setDeletedIds([]);
       // Guardar o actualizar carrocería
     } catch (error) {

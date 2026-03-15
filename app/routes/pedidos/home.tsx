@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import type { Route } from "../+types/home";
-import { useData } from "~/context/DataContext";
-import { Button, ButtonLink, ButtonLinkAdd } from "~/components/Buttons";
+import { ButtonLink, ButtonLinkAdd } from "~/components/Buttons";
 import { PlusIcon } from "lucide-react";
 import { EntityTable } from "~/components/EntityTable";
 import type { PedidosBD, PedidosTable } from "~/types/pedidos";
@@ -13,6 +12,7 @@ import LoadingComponent from "~/components/LoadingComponent";
 import { statusOptions } from "~/types/pedidos";
 import { Subheader } from "~/components/Headers";
 import { ReceiptText } from "lucide-react";
+import { usePedido } from "~/context/PedidoContext";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Pedidos" },
@@ -74,16 +74,16 @@ const pedidoColumns: TableColumn<PedidosTable>[] = [
   },
 ];
 export default function PedidosHome() {
-  const { getPedidos, pedidos, setPedido } = useData();
+  const { getPedidosConClientes, pedidosConClientes, setPedido } = usePedido();
   const navigate = useNavigate();
   useEffect(() => {
     setPedido(null);
-    if (!pedidos) getPedidos();
+    if (!pedidosConClientes) getPedidosConClientes();
   }, []);
   const handleRowClick = (row: PedidosBD) => {
     navigate(`/pedidos/info/${row.id}`);
   };
-  if (!pedidos) {
+  if (!pedidosConClientes) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -95,7 +95,7 @@ export default function PedidosHome() {
   
   return (
     <>
-      {pedidos.length === 0 ? (
+      {pedidosConClientes.length === 0 ? (
         <div className="min-h-screen flex items-center justify-center">
           <div className="flex flex-col text-center space-y-3 text-text-secondary">
             <img
@@ -128,7 +128,7 @@ export default function PedidosHome() {
             back_path="/"
           />
           <EntityTable
-            data={pedidos.sort((a,b) => {
+            data={pedidosConClientes.sort((a,b) => {
               //ordenear por numero de pedido desc
               const numA = parseInt(a.numero_pedido.slice(4));
               const numB = parseInt(b.numero_pedido.slice(4));

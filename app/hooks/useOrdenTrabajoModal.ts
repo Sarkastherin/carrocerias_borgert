@@ -1,6 +1,6 @@
 import { useUIModals } from "~/context/ModalsContext";
 import OrdenTrabajoModal from "~/components/modals/customs/OrdenTrabajoModal";
-import type { PedidosUI, OrdenesBD } from "~/types/pedidos";
+import type { PedidosUI, OrdenesYControlesBD } from "~/types/pedidos";
 import { tipoOrdenOptions } from "~/types/pedidos";
 
 export const useOrdenTrabajoModal = () => {
@@ -9,7 +9,7 @@ export const useOrdenTrabajoModal = () => {
   const openOrdenModal = (
     tipoOrden: typeof tipoOrdenOptions[number]["value"],
     pedidoData?: PedidosUI,
-    order?: OrdenesBD
+    order?: OrdenesYControlesBD
   ) => {
     showCustomModal(OrdenTrabajoModal, {
       tipoOrden,

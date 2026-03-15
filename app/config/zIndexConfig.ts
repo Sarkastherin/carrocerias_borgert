@@ -9,7 +9,7 @@ export const Z_INDEX = {
   CONTENT: 1,
   
   // Elementos de navegación
-  SIDEBAR: 10,
+  SIDEBAR: 5,
   SIDEBAR_TOGGLE: 20,
   MOBILE_OVERLAY: 5,
   
