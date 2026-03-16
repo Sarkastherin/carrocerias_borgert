@@ -56,7 +56,7 @@ export default function PedidosLayout() {
   };
   useEffect(() => {
     if (pedidoId) getPedidoById(pedidoId);
-  }, [pedidoId, getPedidoById]);
+  }, [pedidoId]);
 
   const menuItems = (id: string | undefined) => {
     if (!id) return [];

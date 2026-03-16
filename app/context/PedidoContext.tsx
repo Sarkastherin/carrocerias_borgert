@@ -191,7 +191,7 @@ export const PedidoProvider = ({ children }: { children: React.ReactNode }) => {
   }, [pedidos, clientes, personal]);
   useEffect(() => {
     getPedidosConClientes();
-  }, [pedidos, clientes, personal, getPedidosConClientes]);
+  }, [pedidos, clientes, personal]);
 
   const getPedidos = async () => {
     return await getCompleteData({
@@ -323,7 +323,6 @@ export const PedidoProvider = ({ children }: { children: React.ReactNode }) => {
     camiones,
     documentosPedidos,
     ordenesYControles,
-    getPedidoById,
   ]);
   /* CONTROLES POR CARROZADO */
   const getControlesPorCarrozadoConNombre = useCallback(async () => {
