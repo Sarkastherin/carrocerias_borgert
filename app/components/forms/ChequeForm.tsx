@@ -52,18 +52,25 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
   const createMtoCtaCorriente = async ({
       clienteId,
       monto,
+      accion,
     }: {
       clienteId: string;
       monto: number;
+      accion: "rechazar" | "anular";
     }) => {
       try {
+        const origen = accion === "rechazar" ? "rechazo de cheque" : "anulacion de cheque";
+        const concepto =
+          accion === "rechazar"
+            ? "Deuda generada por rechazo de cheque"
+            : "Deuda generada por anulacion de cheque";
         const newDeuda: Omit<MvtosDB, "id" | "fecha_creacion"> = {
           cliente_id: clienteId,
           fecha_movimiento: new Date().toISOString().split("T")[0],
           tipo_movimiento: "deuda",
-          origen: "rechazo de cheque",
+          origen,
           medio_pago: "no aplica",
-          concepto: `Deuda generada por rechazo de cheque`,
+          concepto,
           debe: monto,
           haber: 0,
         };
@@ -100,10 +107,11 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
       const response = await chequesAPI.update(rest.id, updatePayload);
       if (!response.success) throw new Error(response.message);
       loadCheques = true;
-      if(accion === "rechazar"){
+      if (accion === "rechazar" || accion === "anular") {
         await createMtoCtaCorriente({
           clienteId: formData.ctaCte.id,
           monto: formData.importe,
+          accion,
         });
       }
       // Forzar recarga completa de cheques invalidando el caché primero
