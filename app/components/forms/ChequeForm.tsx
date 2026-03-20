@@ -2,7 +2,7 @@ import { Input, Textarea, formatCuit, Select } from "../Inputs";
 import { Button } from "../Buttons";
 import { useState, useEffect } from "react";
 import { GlassCard } from "../GlassCard";
-import { set, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import type { ChequesEnrichWithCtaCte, ChequesDB } from "~/types/ctas_corrientes";
 import ProveedorField from "../ProveedorField";
 import { BadgeStatusCheque } from "../Badge";

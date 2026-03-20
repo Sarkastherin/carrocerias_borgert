@@ -112,7 +112,6 @@ export const TemplateMovimientosForm = ({
     setValue("haber", totalCheques, { shouldDirty: true });
   }, [totalCheques, setValue]);
 
-  
   const addFiles = async ({
     id,
     files,
@@ -545,7 +544,10 @@ export const TemplateMovimientosForm = ({
     allCheques: ChequesEnriched[],
     numeroCheque: string,
   ) => {
-    const duplicateCheque = allCheques.some(
+    const filterOnlyActiveCheques = allCheques.filter(
+      (c) => c.status !== "rechazado" && c.status !== "anulado",
+    );
+    const duplicateCheque = filterOnlyActiveCheques.some(
       (cheque) => String(cheque.numero) === numeroCheque,
     );
     if (duplicateCheque) {
