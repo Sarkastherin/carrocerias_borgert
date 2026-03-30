@@ -8,7 +8,8 @@ import {
   Image,
   Line,
 } from "@react-pdf/renderer";
-
+const logoPath =
+  import.meta.env.MODE === "development" ? "/logo-dev.png" : "/logo.jpeg";
 export const styles = StyleSheet.create({
   page: {
     flexDirection: "column",
@@ -54,7 +55,7 @@ export const Subtitle = ({ children }: { children: React.ReactNode }) => (
       fontFamily: "Helvetica",
       fontWeight: "bold",
       paddingBottom: 8,
-      paddingTop:0,
+      paddingTop: 0,
     }}
   >
     {children}
@@ -158,7 +159,7 @@ export const HeaderTemplate = ({ title }: { title: string }) => {
   return (
     <View style={styles.header}>
       <Text style={styles.title}>{title}</Text>
-      <Image src="/logo.jpeg" style={{ width: 130 }} />
+      <Image src={logoPath} style={{ width: 130 }} />
     </View>
   );
 };

@@ -1,6 +1,7 @@
 import { Input, Textarea, formatCuit, Select } from "../Inputs";
 import { Button } from "../Buttons";
 import { useState, useEffect } from "react";
+import { getChequeTransition, chequeStateMachine } from "~/config/chequeStateMachine";
 import { GlassCard } from "../GlassCard";
 import { useForm } from "react-hook-form";
 import type { ChequesEnrichWithCtaCte, ChequesDB } from "~/types/ctas_corrientes";
@@ -14,7 +15,7 @@ import { chequesAPI, mvtosAPI } from "~/backend/sheetServices";
 import { useData } from "~/context/DataContext";
 import { useNavigate } from "react-router";
 import type { MvtosDB } from "~/types/ctas_corrientes";
-type AccionTypes = "depositar" | "endosar" | "anular" | "acreditar" | "rechazar";
+type AccionTypes = "depositar" | "endosar" | "anular" | "acreditar" | "rechazar" | "anularEndoso";
 export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte }) {
   const navigate = useNavigate();
   const { refreshCtasCtes, bancos, getBancos } = useData();
@@ -89,6 +90,7 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
         );
       }
     };
+  // Centraliza efectos secundarios según la máquina de estados
   const onSubmit = async (formData: ChequesEnrichWithCtaCte) => {
     showLoading("Guardando cambios...", "Por favor, espere.");
     let loadCheques = false;
@@ -99,6 +101,9 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
       showInfo("No hay cambios para guardar.");
       return;
     }
+    // Determinar transición y efecto secundario
+    const currentStatus = data?.status as any;
+    const transition = getChequeTransition(currentStatus, accion as any);
     const updatePayload = prepareUpdatePayload<ChequesDB>({
       dirtyFields: dirtyFields,
       formData: rest,
@@ -107,11 +112,12 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
       const response = await chequesAPI.update(rest.id, updatePayload);
       if (!response.success) throw new Error(response.message);
       loadCheques = true;
-      if (accion === "rechazar" || accion === "anular") {
+      // Si la transición requiere generar deuda, hacerlo automáticamente
+      if (transition && transition.effect === "generarDeuda") {
         await createMtoCtaCorriente({
           clienteId: formData.ctaCte.id,
           monto: formData.importe,
-          accion,
+          accion: accion === "anular" ? "anular" : "rechazar",
         });
       }
       // Forzar recarga completa de cheques invalidando el caché primero
@@ -139,56 +145,75 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
       );
     }
   };
+  // Centraliza la transición de estado usando la máquina de estados
   const handleSetAction = (actionType: AccionTypes) => {
+    const currentStatus = data?.status as any;
+    const transition = getChequeTransition(currentStatus, actionType);
+    if (!transition) {
+      showError("Transición no permitida desde el estado actual.");
+      return;
+    }
     const today = new Date().toISOString().split("T")[0];
-
-    const actionConfig = {
-      depositar: {
-        set: { fecha_deposito: today, status: "depositado" as const },
-        clear: ["fecha_endoso", "proveedor_id", "fecha_anulacion"] as const,
-      },
-      endosar: {
-        set: { fecha_endoso: today, status: "endosado" as const },
-        clear: ["fecha_deposito", "fecha_anulacion"] as const,
-      },
-      anular: {
-        set: { fecha_anulacion: today, status: "anulado" as const },
-        clear: ["fecha_deposito", "fecha_endoso", "proveedor_id"] as const,
-      },
-      acreditar: {
-        set: { fecha_acreditacion: today, status: "acreditado" as const },
-        clear: ["fecha_rechazo", "motivo_rechazo"] as const,
-      },
-      rechazar:{
-        set: { fecha_rechazo: today,  status: "rechazado" as const },
-        clear: ["fecha_acreditacion"] as const,
-      }
-    };
-
-    const config = actionConfig[actionType];
-
-    // Establecer valores
-    Object.entries(config.set).forEach(([key, value]) => {
-      setValue(key as any, value, { shouldDirty: true });
-    });
-
-    // Limpiar campos
-    config.clear.forEach((field) => setValue(field as any, undefined));
-
+    // Setea el nuevo estado y campos asociados según la acción
+    switch (actionType) {
+      case "depositar":
+        setValue("fecha_deposito", today, { shouldDirty: true });
+        setValue("status", "depositado", { shouldDirty: true });
+        setValue("fecha_endoso", undefined);
+        setValue("proveedor_id", undefined);
+        setValue("fecha_anulacion", undefined);
+        break;
+      case "endosar":
+        setValue("fecha_endoso", today, { shouldDirty: true });
+        setValue("status", "endosado", { shouldDirty: true });
+        setValue("fecha_deposito", undefined);
+        setValue("fecha_anulacion", undefined);
+        break;
+      case "anular":
+        setValue("fecha_anulacion", today, { shouldDirty: true });
+        setValue("status", "anulado", { shouldDirty: true });
+        setValue("fecha_deposito", undefined);
+        setValue("fecha_endoso", undefined);
+        setValue("proveedor_id", undefined);
+        break;
+      case "acreditar":
+        setValue("fecha_acreditacion", today, { shouldDirty: true });
+        setValue("status", "acreditado", { shouldDirty: true });
+        setValue("fecha_rechazo", undefined);
+        setValue("motivo_rechazo", undefined);
+        break;
+      case "rechazar":
+        setValue("fecha_rechazo", today, { shouldDirty: true });
+        setValue("status", "rechazado", { shouldDirty: true });
+        setValue("fecha_acreditacion", undefined);
+        break;
+      case "anularEndoso":
+        // Esta acción se maneja aparte (ver anularEndoso)
+        break;
+      default:
+        break;
+    }
     setAccion(actionType);
   };
+  // Usa la máquina de estados para validar la transición de anularEndoso
   const anularEndoso = async () => {
+    const currentStatus = data?.status as any;
+    const transition = getChequeTransition(currentStatus, "anularEndoso");
+    if (!transition) {
+      showError("No se puede anular el endoso desde el estado actual.");
+      return;
+    }
     showLoading("Anulando endoso...", "Por favor, espere.");
     try {
       const response = await chequesAPI.update(data!.id, {
-        status: "recibido",
+        status: transition.to,
         fecha_endoso: "",
         proveedor_id: "",
       });
       if (!response.success) throw new Error(response.message);
       const refresh = await refreshCtasCtes({ refCheque: true });
       // resetear formulario a data actualizada
-      data!.status = "recibido";
+      data!.status = transition.to;
       data!.fecha_endoso = "";
       data!.proveedor_id = "";
       data!.proveedor = undefined;
@@ -197,7 +222,7 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
       showSuccess("Endoso anulado. El cheque ha vuelto a estado de recibido.");
     } catch (error) {
       showError("Error al anular el endoso. Por favor, intente nuevamente más tarde.");
-    } 
+    }
   };
   const handleBackToReceived = () => {
     showConfirmation("El cheque volverá a estado de recibido, ¿Desea continuar?", anularEndoso, {
@@ -206,7 +231,68 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
       cancelText: "No, mantener endosado",
     });
   };
-  const isEditable = data?.status === "recibido" || data?.status === "depositado";
+  // Nueva acción: Rechazar Endoso (transición y efecto)
+  const rechazarEndoso = async () => {
+    const currentStatus = data?.status as any;
+    // Agregamos transición de endosado -> rechazado (como "rechazar")
+    const transition = getChequeTransition(currentStatus, "rechazar");
+    if (!transition) {
+      showError("No se puede rechazar el endoso desde el estado actual.");
+      return;
+    }
+    showLoading("Rechazando endoso...", "Por favor, espere.");
+    try {
+      const response = await chequesAPI.update(data!.id, {
+        status: transition.to,
+        fecha_rechazo: new Date().toISOString().split("T")[0],
+      });
+      if (!response.success) throw new Error(response.message);
+      if (transition.effect === "generarDeuda") {
+        await createMtoCtaCorriente({
+          clienteId: data!.ctaCte.id,
+          monto: data!.importe,
+          accion: "rechazar",
+        });
+      }
+      const refresh = await refreshCtasCtes({ refCheque: true });
+      data!.status = transition.to;
+      data!.fecha_rechazo = new Date().toISOString().split("T")[0];
+      reset(data);
+      if (!refresh) throw new Error("Error refreshing cuentas corrientes data");
+      showSuccess("Endoso rechazado. Se generó deuda en la cuenta corriente.");
+    } catch (error) {
+      showError("Error al rechazar el endoso. Por favor, intente nuevamente más tarde.");
+    }
+  };
+
+  const handleRechazarEndoso = () => {
+    showConfirmation(
+      "El cheque será rechazado, generando una deuda en la cuenta corriente del cliente. ¿Desea continuar?",
+      rechazarEndoso,
+      {
+        title: "¿Rechazar endoso?",
+        confirmText: "Sí, rechazar endoso",
+        cancelText: "No, mantener endosado",
+      }
+    );
+  };
+  // Type guard para ChequeStatus
+  const chequeStatuses = [
+    'recibido',
+    'endosado',
+    'depositado',
+    'anulado',
+    'rechazado',
+    'acreditado',
+  ] as const;
+  type ChequeStatus = typeof chequeStatuses[number];
+  const statusIsValid = (status: any): status is ChequeStatus =>
+    chequeStatuses.includes(status);
+
+  const validActions = statusIsValid(data?.status)
+    ? Object.keys(chequeStateMachine[data.status])
+    : [];
+  const isEditable = validActions.length > 0;
   return (
     <>
       <GlassCard
@@ -310,79 +396,79 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
         </>
       </GlassCard>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {data?.status === "recibido" && (
-          <>
-            <fieldset className="border border-gray-300 dark:border-gray-600 rounded-lg p-5 bg-white dark:bg-gray-800">
-              <legend className="px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                ✍️​ Campos editables
-              </legend>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Input
-                  label="Fecha de pago"
-                  type="date"
-                  {...register(`fecha_cobro`, {
-                    required: "Requerido",
+        {/* Campos editables generales (siempre que sea editable) */}
+        {isEditable && (
+          <fieldset className="border border-gray-300 dark:border-gray-600 rounded-lg p-5 bg-white dark:bg-gray-800">
+            <legend className="px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+              ✍️​ Campos editables
+            </legend>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Input
+                label="Fecha de pago"
+                type="date"
+                {...register(`fecha_cobro`, {
+                  required: "Requerido",
+                })}
+                error={errors.fecha_cobro?.message as string}
+                requiredField={true}
+              />
+              {bancos && (
+                <Select
+                  label="Banco"
+                  {...register(`banco`, {
+                    required: {
+                      value: watch(`tipo`) === "fisico",
+                      message: "El banco es obligatorio",
+                    },
                   })}
-                  error={errors.fecha_cobro?.message as string}
-                  requiredField={true}
+                  error={errors.banco?.message as string}
+                  requiredField={watch(`tipo`) === "fisico"}
+                >
+                  <option value="">Seleccione un banco</option>
+                  {bancos?.map((banco) => (
+                    <option key={banco.value} value={banco.value}>
+                      {banco.label}
+                    </option>
+                  ))}
+                </Select>
+              )}
+              <Input
+                label="N° Cheque"
+                placeholder="Ej: 123456"
+                {...register(`numero`, {
+                  required: "Requerido",
+                })}
+                error={errors.numero?.message as string}
+                requiredField={true}
+              />
+              <Input
+                label="Fecha ingreso"
+                type="date"
+                {...register(`fecha_ingreso`, {
+                  required: "Requerido",
+                })}
+                error={errors.fecha_ingreso?.message as string}
+                requiredField={true}
+              />
+              <div className="md:col-span-2">
+                <Textarea
+                  label="Observación"
+                  placeholder="Notas adicionales sobre este cheque (opcional)"
+                  {...register(`observacion`)}
+                  error={errors.observacion?.message as string}
                 />
-                {bancos && (
-                    <Select
-                      label="Banco"
-                      {...register(`banco`, {
-                        required: {
-                          value: watch(`tipo`) === "fisico",
-                          message: "El banco es obligatorio",
-                        },
-                      })}
-                      error={errors.banco?.message as string}
-                      requiredField={
-                        watch(`tipo`) === "fisico"
-                      }
-                    >
-                      <option value="">Seleccione un banco</option>
-                      {bancos?.map((banco) => (
-                        <option key={banco.value} value={banco.value}>
-                          {banco.label}
-                        </option>
-                      ))}
-                    </Select>
-                  )}
-                <Input
-                  label="N° Cheque"
-                  placeholder="Ej: 123456"
-                  {...register(`numero`, {
-                    required: "Requerido",
-                  })}
-                  error={errors.numero?.message as string}
-                  requiredField={true}
-                />
-                <Input
-                  label="Fecha ingreso"
-                  type="date"
-                  {...register(`fecha_ingreso`, {
-                    required: "Requerido",
-                  })}
-                  error={errors.fecha_ingreso?.message as string}
-                  requiredField={true}
-                />
-
-                <div className="md:col-span-2">
-                  <Textarea
-                    label="Observación"
-                    placeholder="Notas adicionales sobre este cheque (opcional)"
-                    {...register(`observacion`)}
-                    error={errors.observacion?.message as string}
-                  />
-                </div>
               </div>
-            </fieldset>
-
-            <fieldset className="border border-gray-300 dark:border-gray-600 rounded-lg p-5 bg-white dark:bg-gray-800">
-              <legend className="px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                🔀​ Acciones disponibles
-              </legend>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            </div>
+          </fieldset>
+        )}
+        {/* Acciones disponibles según la máquina de estados */}
+        {isEditable && (
+          <fieldset className="border border-gray-300 dark:border-gray-600 rounded-lg p-5 bg-white dark:bg-gray-800">
+            <legend className="px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+              🔀​ Acciones disponibles
+            </legend>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              {validActions.includes("depositar") && (
                 <Button
                   variant="outlineGreen"
                   type="button"
@@ -390,6 +476,8 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
                 >
                   Depositar
                 </Button>
+              )}
+              {validActions.includes("endosar") && (
                 <Button
                   variant="outlineDark"
                   type="button"
@@ -397,6 +485,8 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
                 >
                   Endosar
                 </Button>
+              )}
+              {validActions.includes("anular") && (
                 <Button
                   variant="outlineRed"
                   type="button"
@@ -404,88 +494,95 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
                 >
                   Anular
                 </Button>
-              </div>
-              {accion === "depositar" && (
+              )}
+              {/* Oculta 'Rechazar' si el estado es 'recibido' */}
+              {validActions.includes("rechazar") && data?.status !== "recibido" && (
+                <Button
+                  variant="outlineRed"
+                  type="button"
+                  onClick={() => handleSetAction("rechazar")}
+                >
+                  Rechazar
+                </Button>
+              )}
+              {validActions.includes("acreditar") && (
+                <Button
+                  variant="outlineGreen"
+                  type="button"
+                  onClick={() => handleSetAction("acreditar")}
+                >
+                  Acreditar
+                </Button>
+              )}
+              {/* Anular endoso como acción visible cuando está endosado */}
+              {data?.status === "endosado" && validActions.includes("anularEndoso") && (
+                <Button
+                  variant="outlineDark"
+                  type="button"
+                  onClick={handleBackToReceived}
+                >
+                  Anular endoso
+                </Button>
+              )}
+            </div>
+            {/* Campos adicionales según acción seleccionada */}
+            {accion === "depositar" && (
+              <Input
+                label="Fecha de deposito"
+                type="date"
+                {...register(`fecha_deposito`, {
+                  required: "Requerido",
+                })}
+                error={errors.fecha_deposito?.message as string}
+                requiredField
+              />
+            )}
+            {accion === "endosar" && (
+              <div className="flex gap-4">
                 <Input
-                  label="Fecha de deposito"
+                  label="Fecha de endoso"
                   type="date"
-                  {...register(`fecha_deposito`, {
+                  {...register(`fecha_endoso`, {
                     required: "Requerido",
                   })}
-                  error={errors.fecha_deposito?.message as string}
+                  error={errors.fecha_endoso?.message as string}
                   requiredField
                 />
-              )}
-              {accion === "endosar" && (
-                <div className="flex gap-4">
-                  <Input
-                    label="Fecha de endoso"
-                    type="date"
-                    {...register(`fecha_endoso`, {
+                <div className="flex-1">
+                  <ProveedorField
+                    value={watch("proveedor.razon_social")}
+                    register={register}
+                    setValue={setValue}
+                    errors={errors}
+                    required
+                  />
+                </div>
+              </div>
+            )}
+            {accion === "anular" && (
+              <div className="flex gap-4">
+                <Input
+                  label="Fecha de anulación"
+                  type="date"
+                  {...register(`fecha_anulacion`, {
+                    required: "Requerido",
+                  })}
+                  error={errors.fecha_anulacion?.message as string}
+                  requiredField
+                />
+                <div className="flex-1">
+                  <Textarea
+                    label="Motivo de anulación"
+                    placeholder="Ingrese el motivo de la anulación del cheque"
+                    {...register(`motivo_anulacion`, {
                       required: "Requerido",
                     })}
-                    error={errors.fecha_endoso?.message as string}
+                    error={errors.motivo_anulacion?.message as string}
                     requiredField
                   />
-                  <div className="flex-1">
-                    <ProveedorField
-                      value={watch("proveedor.razon_social")}
-                      register={register}
-                      setValue={setValue}
-                      errors={errors}
-                      required
-                    />
-                  </div>
                 </div>
-              )}
-              {accion === "anular" && (
-                <div className="flex gap-4">
-                  <Input
-                    label="Fecha de anulación"
-                    type="date"
-                    {...register(`fecha_anulacion`, {
-                      required: "Requerido",
-                    })}
-                    error={errors.fecha_anulacion?.message as string}
-                    requiredField
-                  />
-                  <div className="flex-1">
-                    <Textarea
-                      label="Motivo de anulación"
-                      placeholder="Ingrese el motivo de la anulación del cheque"
-                      {...register(`motivo_anulacion`, {
-                        required: "Requerido",
-                      })}
-                      error={errors.motivo_anulacion?.message as string}
-                      requiredField
-                    />
-                  </div>
-                </div>
-              )}
-            </fieldset>
-          </>
-        )}
-        {data?.status === "depositado" && (
-          <fieldset className="border border-gray-300 dark:border-gray-600 rounded-lg p-5 bg-white dark:bg-gray-800">
-            <legend className="px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-              🔀​ Acciones disponibles
-            </legend>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <Button
-                variant="outlineGreen"
-                type="button"
-                onClick={() => handleSetAction("acreditar")}
-              >
-                Acreditar
-              </Button>
-              <Button
-                variant="outlineRed"
-                type="button"
-                onClick={() => handleSetAction("rechazar")}
-              >
-                Rechazar
-              </Button>
-            </div>
+              </div>
+            )}
             {accion === "acreditar" && (
               <Input
                 label="Fecha de acreditación"
@@ -497,7 +594,6 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
                 requiredField
               />
             )}
-            
             {accion === "rechazar" && (
               <div className="flex gap-4">
                 <Input
@@ -532,13 +628,7 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
           </div>
         )}
       </form>
-      {data?.status === "endosado" && (
-        <div className="w-fit">
-          <Button variant="outlineRed" type="button" onClick={handleBackToReceived}>
-            Anular endoso
-          </Button>
-        </div>
-      )}
+
     </>
   );
 }

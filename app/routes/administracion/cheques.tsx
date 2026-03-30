@@ -13,6 +13,7 @@ import { BadgeStatusCheque } from "~/components/Badge";
 import { useNavigate } from "react-router";
 import { Subheader } from "~/components/Headers";
 import { Banknote } from "lucide-react";
+import { ToggleCheckbox } from "~/components/Inputs";
 import {
   optionsStatusCheque,
   optionsTipoCheque,
@@ -91,10 +92,12 @@ export default function Cheques() {
   const [chequesEnrichedWithCtaCte, setChequesEnrichedWithCtaCte] = useState<
     ChequesEnrichWithCtaCte[] | null
   >(null);
+  const [showRejectedAndCancelled, setShowRejectedAndCancelled] =
+    useState(false);
   useEffect(() => {
     if (!ctasCtes) getCtasCtes();
   }, []);
-  useEffect(() => {
+  const getChequesEnrichedWithCtaCte = () => {
     if (!ctasCtes) return;
     const allCheques: ChequesEnrichWithCtaCte[] = ctasCtes.flatMap((cta) =>
       cta.movimientos.flatMap((mvto) =>
@@ -103,8 +106,26 @@ export default function Cheques() {
           : [],
       ),
     );
+    return allCheques;
+  };
+  useEffect(() => {
+    const allCheques = getChequesEnrichedWithCtaCte();
+    if (!allCheques) return;
     setChequesEnrichedWithCtaCte(allCheques);
   }, [ctasCtes]);
+  useEffect(() => {
+    if (!chequesEnrichedWithCtaCte) return;
+    if (showRejectedAndCancelled) {
+      const rejectedAndCancelledCheques = chequesEnrichedWithCtaCte.filter(
+        (cheque) => ["rechazado", "anulado"].includes(cheque.status),
+      );
+      setChequesEnrichedWithCtaCte(rejectedAndCancelledCheques);
+    } else {
+      const allCheques = getChequesEnrichedWithCtaCte();
+      if (!allCheques) return;
+      setChequesEnrichedWithCtaCte(allCheques);
+    }
+  }, [showRejectedAndCancelled]);
   const handleRowClick = (row: ChequesEnrichWithCtaCte) => {
     openModalActionCheque(row);
   };
@@ -159,6 +180,15 @@ export default function Cheques() {
             }}
             back_path="/"
           />
+          {/* Toggle para mostrar solo cheques rechazados y anulados */}
+          <div className="flex items-center mb-4">
+            <ToggleCheckbox
+              label="Mostrar solo cheques rechazados y anulados"
+              checked={showRejectedAndCancelled}
+              onChange={(checked) => setShowRejectedAndCancelled(checked)}
+            />
+          </div>
+
           <EntityTable
             data={chequesEnrichedWithCtaCte}
             columns={chequesColumns}
@@ -167,7 +197,7 @@ export default function Cheques() {
             filterFields={[
               {
                 key: "ctaCte.razon_social",
-                label: "Razón Social",
+                label: "Origen (Cliente)",
                 autoFilter: true,
               },
               {
@@ -189,6 +219,11 @@ export default function Cheques() {
                     ))}
                   </>
                 ),
+                autoFilter: true,
+              },
+              {
+                key: "proveedor.razon_social",
+                label: "Destino (Proveedor)",
                 autoFilter: true,
               },
               {

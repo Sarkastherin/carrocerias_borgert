@@ -31,7 +31,6 @@ export const optionsStatusCheque = [
   { value: "endosado", label: "Endosado" },
   { value: "rechazado", label: "Rechazado" },
   { value: "anulado", label: "Anulado" },
-  { value: "vencido", label: "Vencido" },
 ];
 export type MvtosDB = {
   id: string;

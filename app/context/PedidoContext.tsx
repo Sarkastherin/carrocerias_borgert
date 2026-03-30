@@ -169,7 +169,6 @@ export const PedidoProvider = ({ children }: { children: React.ReactNode }) => {
     if (!personal) {
       dataPersonal = await getPersonal();
     }
-
     const pedidosConCliente = (dataPedidos as PedidosBD[]).map((pedido) => {
       const cliente = (dataClientes as ClientesBD[]).find(
         (c) => c.id === pedido.cliente_id,

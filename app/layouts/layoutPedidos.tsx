@@ -8,7 +8,7 @@ import {
   X,
   ArrowLeft,
   FileBox,
-  ShieldCheck
+  ShieldCheck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import LoadingComponent from "~/components/LoadingComponent";
@@ -47,7 +47,7 @@ export default function PedidosLayout() {
         title: "Eliminar Pedido",
         confirmText: "Eliminar",
         cancelText: "Cancelar",
-      }
+      },
     );
   };
 
@@ -80,12 +80,12 @@ export default function PedidosLayout() {
         title: "Trabajo en Chasis",
         href: `/pedidos/trabajo-chasis/${id}`,
         icon: Drill,
-      },
+      } /* 
       {
         title: "Datos de Colocación",
         href: `/pedidos/datos-colocacion/${id}`,
         icon: Truck,
-      },
+      }, */,
       {
         title: "Órdenes de Trabajo",
         href: `/pedidos/ordenes-trabajo/${id}`,
@@ -95,7 +95,7 @@ export default function PedidosLayout() {
         title: "Controles de Calidad",
         href: `/pedidos/controles-calidad/${id}`,
         icon: ShieldCheck,
-      }
+      },
     ];
   };
   const menu = menuItems(pedidoId);
@@ -189,7 +189,7 @@ export default function PedidosLayout() {
                   </span>
                 </span>
                 {/* Zona de peligro */}
-                <div className="mt-6 p-3 border border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-900/20">
+                <div className="mt-6 mb-16 p-3 border border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-900/20">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                     <h4 className="text-sm font-semibold text-red-700 dark:text-red-400">

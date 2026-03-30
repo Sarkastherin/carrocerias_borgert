@@ -32,6 +32,12 @@ const columns: TableColumn<MvtosWithCheques>[] = [
   {
     name: "Fecha",
     selector: (row) => formatDateUStoES(row.fecha_movimiento),
+    sortable: true,
+    sortFunction: (rowA, rowB) => {
+      const dateA = new Date(rowA.fecha_movimiento);
+      const dateB = new Date(rowB.fecha_movimiento);
+      return dateA.getTime() - dateB.getTime();
+    },
   },
   {
     name: "Tipo",

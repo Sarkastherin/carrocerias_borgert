@@ -1,5 +1,32 @@
 import { createCrud } from "./crudFactory";
 import type { ClientesBD } from "~/types/clientes";
+// Selecciona el sheetId de clientes según el entorno
+const sheetIdClientes =
+  import.meta.env.MODE === "development"
+    ? import.meta.env.VITE_SHEET_ID_CLIENTES_DEV
+    : import.meta.env.VITE_SHEET_ID_CLIENTES;
+const sheetIdProveedores =
+  import.meta.env.MODE === "development"
+    ? import.meta.env.VITE_SHEET_ID_PROVEEDORES_DEV
+    : import.meta.env.VITE_SHEET_ID_PROVEEDORES;
+const sheetIdPedidos =
+  import.meta.env.MODE === "development"
+    ? import.meta.env.VITE_SHEET_ID_PEDIDOS_DEV
+    : import.meta.env.VITE_SHEET_ID_PEDIDOS;
+console.log("sheetIdPedidos:", sheetIdPedidos);
+const sheetIdConfiguraciones =
+  import.meta.env.MODE === "development"
+    ? import.meta.env.VITE_SHEET_ID_CONFIGURACIONES_DEV
+    : import.meta.env.VITE_SHEET_ID_CONFIGURACIONES;
+const sheetIdEspeciales =
+  import.meta.env.MODE === "development"
+    ? import.meta.env.VITE_SHEET_ID_ESPECIALES_DEV
+    : import.meta.env.VITE_SHEET_ID_ESPECIALES;
+const sheetIdCtasCtes =
+  import.meta.env.MODE === "development"
+    ? import.meta.env.VITE_SHEET_ID_CTAS_CORRI_DEV
+    : import.meta.env.VITE_SHEET_ID_CTAS_CORRI;
+
 import type { MvtosDB, ChequesDB } from "~/types/ctas_corrientes";
 import type {
   CarroceriaBD,
@@ -7,7 +34,6 @@ import type {
   CamionBD,
   TrabajoChasisBD,
   OrdenesYControlesBD,
-  ControlesBD,
   DocumentosBD,
   DocumentosCtasCtesBD,
 } from "~/types/pedidos";
@@ -24,97 +50,97 @@ import type {
 } from "~/types/settings";
 
 export const clientesAPI = createCrud<ClientesBD>({
-  sheetId: import.meta.env.VITE_SHEET_ID_CLIENTES,
+  sheetId: sheetIdClientes,
   nameSheet: "Datos",
   nameFile: "Clientes",
 });
 export const pedidosAPI = createCrud<PedidosBD>({
-  sheetId: import.meta.env.VITE_SHEET_ID_PEDIDOS,
+  sheetId: sheetIdPedidos,
   nameSheet: "Pedidos",
   nameFile: "Pedidos",
 });
 export const carroceriaAPI = createCrud<CarroceriaBD>({
-  sheetId: import.meta.env.VITE_SHEET_ID_PEDIDOS,
+  sheetId: sheetIdPedidos,
   nameSheet: "Carrocerías",
   nameFile: "Pedidos",
 });
 export const trabajoChasisAPI = createCrud<TrabajoChasisBD>({
-  sheetId: import.meta.env.VITE_SHEET_ID_PEDIDOS,
+  sheetId: sheetIdPedidos,
   nameSheet: "Trabajo Chasis",
   nameFile: "Pedidos",
 });
 export const camionAPI = createCrud<CamionBD>({
-  sheetId: import.meta.env.VITE_SHEET_ID_PEDIDOS,
+  sheetId: sheetIdPedidos,
   nameSheet: "Camiones",
   nameFile: "Pedidos",
 });
 export const coloresAPI = createCrud<ColoresBD>({
-  sheetId: import.meta.env.VITE_SHEET_ID_CONFIGURACIONES,
+  sheetId: sheetIdConfiguraciones,
   nameSheet: "Colores",
   nameFile: "Parámetros y Configuraciones",
 });
 export const carrozadoAPI = createCrud<CarrozadosBD>({
-  sheetId: import.meta.env.VITE_SHEET_ID_CONFIGURACIONES,
+  sheetId: sheetIdConfiguraciones,
   nameSheet: "Carrozados",
   nameFile: "Parámetros y Configuraciones",
 });
 export const puertasTraserasAPI = createCrud<PuertasTraserasBD>({
-  sheetId: import.meta.env.VITE_SHEET_ID_CONFIGURACIONES,
+  sheetId: sheetIdConfiguraciones,
   nameSheet: "Puertas Traseras",
   nameFile: "Parámetros y Configuraciones",
 });
 export const personalAPI = createCrud<PersonalBD>({
-  sheetId: import.meta.env.VITE_SHEET_ID_CONFIGURACIONES,
+  sheetId: sheetIdConfiguraciones,
   nameSheet: "Personal",
   nameFile: "Parámetros y Configuraciones",
 });
 export const configTrabajoChasisAPI = createCrud<ConfigTrabajosChasisBD>({
-  sheetId: import.meta.env.VITE_SHEET_ID_CONFIGURACIONES,
+  sheetId: sheetIdConfiguraciones,
   nameSheet: "Tipos trabajos",
   nameFile: "Parámetros y Configuraciones",
 });
 export const itemsControlAPI = createCrud<ItemsControlBD>({
-  sheetId: import.meta.env.VITE_SHEET_ID_CONFIGURACIONES,
+  sheetId: sheetIdConfiguraciones,
   nameSheet: "Ítems de Control",
   nameFile: "Parámetros y Configuraciones",
 });
 export const defaultAPI = createCrud<DefaultDB>({
-  sheetId: import.meta.env.VITE_SHEET_ID_ESPECIALES,
+  sheetId: sheetIdEspeciales,
   nameSheet: "Valores Predeterminados",
   nameFile: "Parámetros Especiales: carrozados",
 });
 export const controlCarrozadoAPI = createCrud<ControlPorCarrozadoDB>({
-  sheetId: import.meta.env.VITE_SHEET_ID_ESPECIALES,
+  sheetId: sheetIdEspeciales,
   nameSheet: "Controles por carrozado",
   nameFile: "Parámetros Especiales: carrozados",
 });
 export const ordenesyControlesAPI =  createCrud<OrdenesYControlesBD>({
-  sheetId: import.meta.env.VITE_SHEET_ID_PEDIDOS,
+  sheetId: sheetIdPedidos,
   nameSheet: "Ordenes y Controles",
   nameFile: "Pedidos",
 });
 export const mvtosAPI = createCrud<MvtosDB>({
-  sheetId: import.meta.env.VITE_SHEET_ID_CTAS_CORRI,
+  sheetId: sheetIdCtasCtes,
   nameSheet: "movimientos",
   nameFile: "Cuentas Corrientes",
 });
 export const chequesAPI = createCrud<ChequesDB>({
-  sheetId: import.meta.env.VITE_SHEET_ID_CTAS_CORRI,
+  sheetId: sheetIdCtasCtes,
   nameSheet: "cheques",
   nameFile: "Cheques",
 });
 export const proveedoresAPI = createCrud<ProveedoresBD>({
-  sheetId: import.meta.env.VITE_SHEET_ID_PROVEEDORES,
+  sheetId: sheetIdProveedores,
   nameSheet: "Datos",
   nameFile: "Proveedores",
 });
 export const documentosPedidosAPI = createCrud<DocumentosBD>({
-  sheetId: import.meta.env.VITE_SHEET_ID_PEDIDOS,
+  sheetId: sheetIdPedidos,
   nameSheet: "Documentos",
   nameFile: "Pedidos",
 });
 export const documentosCtasCtesAPI = createCrud<DocumentosCtasCtesBD>({
-  sheetId: import.meta.env.VITE_SHEET_ID_CTAS_CORRI,
+  sheetId: sheetIdCtasCtes,
   nameSheet: "documentos",
   nameFile: "Cuentas Corrientes",
 });
