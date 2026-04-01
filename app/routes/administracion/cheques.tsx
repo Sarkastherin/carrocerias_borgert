@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Route } from "../+types/home";
-import { useData } from "~/context/DataContext";
+import { useCtaCte } from "~/context/CtaCteContext";
 import { ButtonLink } from "~/components/Buttons";
 import { PlusIcon } from "lucide-react";
 import { EntityTable } from "~/components/EntityTable";
@@ -88,7 +88,7 @@ const chequesColumns: TableColumn<ChequesEnrichWithCtaCte>[] = [
 
 export default function Cheques() {
   const navigate = useNavigate();
-  const { getCtasCtes, ctasCtes } = useData();
+  const { getCtasCtes, ctasCtes } = useCtaCte();
   const [chequesEnrichedWithCtaCte, setChequesEnrichedWithCtaCte] = useState<
     ChequesEnrichWithCtaCte[] | null
   >(null);

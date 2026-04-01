@@ -14,13 +14,13 @@ import { useState, useEffect } from "react";
 import { mvtosAPI, chequesAPI } from "~/backend/sheetServices";
 import LoadingComponent from "../LoadingComponent";
 import { CheckCircle, AlertCircle, Trash2, DollarSign } from "lucide-react";
-import { useData } from "~/context/DataContext";
 import FilesUploderComponent from "../FileUpladerComponent";
 import { useUIModals } from "~/context/ModalsContext";
 import { useNavigate } from "react-router";
 import type { FileTypeActions } from "../FileUpladerComponent";
 import type { DocumentosCtasCtesBD } from "~/types/pedidos";
 import { capitalize } from "~/config/settingsConfig";
+import { useCtaCte } from "~/context/CtaCteContext";
 type FormState = "form" | "loading" | "success" | "error";
 
 export const TemplateMovimientosForm = ({
@@ -50,13 +50,15 @@ export const TemplateMovimientosForm = ({
   const [errorData, setErrorData] = useState<{ message: string } | null>(null);
   const [totalCheques, setTotalCheques] = useState<number>(0);
   const {
-    refreshCtasCtes,
     bancos,
     getBancos,
     uploadFilesToCtasCtes,
     ctasCtes,
     getCtasCtes,
-  } = useData();
+    getMvtos,
+    getCheques,
+    getDocumentosCtasCtes,
+  } = useCtaCte();
   useEffect(() => {
     if (!ctasCtes) getCtasCtes();
   }, []);
@@ -137,9 +139,6 @@ export const TemplateMovimientosForm = ({
   const onSubmit = async (formData: MvtosWithCheques) => {
     const { cheques, documentos, ...rest } = formData;
     setFormState("loading");
-    let loadMvto = false;
-    let loadCheques = false;
-    let loadFiles = false;
     try {
       // Validación adicional para cheques
       if (medioPago === "cheque") {
@@ -171,7 +170,7 @@ export const TemplateMovimientosForm = ({
       const nuevoMovimiento = await mvtosAPI.create({ ...rest });
       if (!nuevoMovimiento.success)
         throw new Error("Error al registrar movimiento");
-      loadMvto = true;
+      await getMvtos();
       if (nuevoMovimiento.data && nuevoMovimiento.data.id) {
         const ctaCteID = nuevoMovimiento.data.id;
         // 2. Registrar cheques (si corresponde)
@@ -195,31 +194,22 @@ export const TemplateMovimientosForm = ({
             0,
           );
           setSuccessData({ cantidadCheques, importe: importeTotalCheques });
-          loadCheques = true;
+          await getCheques();
         }
         // 3. Registrar documentos (si corresponde)
         if (files) {
           if (files.add) {
             await addFiles({ id: ctaCteID, files: files.add, formData });
-            loadFiles = true;
+            await getDocumentosCtasCtes();
           }
         }
       }
-
-      const refresh = await refreshCtasCtes({
-        refMvto: loadMvto,
-        refCheque: loadCheques,
-        refDocu: loadFiles,
-      });
-      if (!refresh) throw new Error("Error refreshing cuentas corrientes data");
-      if (refresh) {
-        if (redirect && nuevoMovimiento.data && nuevoMovimiento.data.id) {
-          navigate(
-            `/administracion/cuentas-corrientes/${nuevoMovimiento.data.cliente_id}`,
-          );
-        }
-        setFormState("success");
+      if (redirect && nuevoMovimiento.data && nuevoMovimiento.data.id) {
+        navigate(
+          `/administracion/cuentas-corrientes/${nuevoMovimiento.data.cliente_id}`,
+        );
       }
+      setFormState("success");
     } catch (error) {
       console.error("Error submitting form:", error);
       setErrorData({ message: (error as Error).message });

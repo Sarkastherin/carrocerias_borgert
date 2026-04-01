@@ -3,10 +3,10 @@ import { Subheader } from "~/components/Headers";
 import { Banknote } from "lucide-react";
 import { useParams } from "react-router";
 import ChequeForm from "~/components/forms/ChequeForm";
-import { useData } from "~/context/DataContext";
 import { useEffect, useState } from "react";
 import type { ChequesEnrichWithCtaCte } from "~/types/ctas_corrientes";
 import LoadingComponent from "~/components/LoadingComponent";
+import { useCtaCte } from "~/context/CtaCteContext";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Cheque" },
@@ -15,7 +15,7 @@ export function meta({}: Route.MetaArgs) {
 }
 export default function ChequeID() {
   const { chequeId } = useParams();
-  const { ctasCtes, getCtasCtes } = useData();
+  const { ctasCtes, getCtasCtes } = useCtaCte();
   useEffect(() => {
     if (!ctasCtes) getCtasCtes();
   }, []);
@@ -32,7 +32,7 @@ export default function ChequeID() {
     if (foundCheque) {
       setDataCheque(foundCheque);
     }
-  }, []);
+  }, [ctasCtes]);
   const [dataCheque, setDataCheque] = useState<ChequesEnrichWithCtaCte | null>(
     null,
   );

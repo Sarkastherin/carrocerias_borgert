@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import type { Route } from "../+types/home";
-import { useData } from "~/context/DataContext";
 import { ButtonLink, ButtonLinkAdd } from "~/components/Buttons";
 import { PlusIcon } from "lucide-react";
 import { EntityTable } from "~/components/EntityTable";
@@ -11,6 +10,7 @@ import type { CtaCte } from "~/types/ctas_corrientes";
 import { formatCuit } from "~/components/Inputs";
 import { Subheader } from "~/components/Headers";
 import { Wallet } from "lucide-react";
+import { useCtaCte } from "~/context/CtaCteContext";
 // Función para formatear CUIT: "12345678901" -> "12-34567890-1"
 
 export function meta({}: Route.MetaArgs) {
@@ -54,7 +54,7 @@ const ctasCorrientes: TableColumn<CtaCte>[] = [
 ];
 export default function CuentasCorrientes() {
   const { getCtasCtes, ctasCtes, setCtaCte} =
-    useData();
+    useCtaCte();
   const navigate = useNavigate();
   useEffect(() => {
     if (!ctasCtes) getCtasCtes();

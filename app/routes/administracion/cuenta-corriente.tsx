@@ -1,7 +1,6 @@
 import type { Route } from "../+types/home";
 import { GlassCard } from "~/components/GlassCard";
 import LoadingComponent from "~/components/LoadingComponent";
-import { useData } from "~/context/DataContext";
 import { useEffect, useState } from "react";
 import { EntityTable } from "~/components/EntityTable";
 import type { TableColumn } from "react-data-table-component";
@@ -19,6 +18,7 @@ import { useParams } from "react-router";
 import { Banknote, FileArchive } from "lucide-react";
 import { useUIModals } from "~/context/ModalsContext";
 import MovimientoModal from "~/components/modals/customs/MovimientoModal";
+import { useCtaCte } from "~/context/CtaCteContext";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Cuenta Corriente" },
@@ -100,7 +100,7 @@ const columns: TableColumn<MvtosWithCheques>[] = [
   },
 ];
 export default function CuentaCorriente() {
-  const { getCtasCtes, ctasCtes } = useData();
+  const { getCtasCtes, ctasCtes } = useCtaCte();
   const { ctaCteId } = useParams();
 
   const { openModal } = useUIModals();

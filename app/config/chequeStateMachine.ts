@@ -28,7 +28,7 @@ interface ChequeTransition {
 // Definición de la máquina de estados
 export const chequeStateMachine: Record<
   ChequeStatus,
-  Partial<Record<ChequeAction, ChequeTransition>>
+  Partial<Record<ChequeAction, ChequeTransition>> & { isEditable?: boolean }
 > = {
   recibido: {
     endosar: { to: 'endosado', effect: 'ninguno' },

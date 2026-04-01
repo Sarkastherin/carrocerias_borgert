@@ -1,7 +1,14 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 import Auth, { Logout } from "my-auth-google";
-const apiKey = import.meta.env.VITE_API_KEY;
-const clientId = import.meta.env.VITE_CLIENT_ID;
+const apiKey =
+  import.meta.env.MODE === "development"
+    ? import.meta.env.VITE_API_KEY_DEV
+    : import.meta.env.VITE_API_KEY;
+
+const clientId =
+  import.meta.env.MODE === "development"
+    ? import.meta.env.VITE_CLIENT_ID_DEV
+    : import.meta.env.VITE_CLIENT_ID;
 
 type AuthContextType = {
   auth: boolean | null;

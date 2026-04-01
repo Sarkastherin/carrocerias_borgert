@@ -133,7 +133,7 @@ export default function CarroceriaForm() {
         <>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <CardToggle title="Detalle de carrocería">
-              <fieldset className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-end">
+              <fieldset className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 items-end">
                 <div className="col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-2">
                   <Select
                     requiredField
@@ -381,7 +381,7 @@ export default function CarroceriaForm() {
               </fieldset>
             </CardToggle>
             <CardToggle title="Colores">
-              <fieldset className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <fieldset className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                 <Select
                   label="Color carrozado"
                   {...register("color_carrozado_id", {
@@ -440,7 +440,7 @@ export default function CarroceriaForm() {
               </fieldset>
             </CardToggle>
             <CardToggle title="Cuchetín">
-              <fieldset className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+              <fieldset className="grid grid-cols-2 lg:grid-cols-4 gap-2 items-end">
                 <ToggleCheckbox
                   id="cuchetin"
                   label="Cuchetín"
@@ -492,7 +492,7 @@ export default function CarroceriaForm() {
                   requiredField
                   error={errors.alt_techo_cuchetin?.message}
                 />
-                <div className="col-span-4">
+                <div className="col-span-2 lg:col-span-4">
                   <Textarea
                     disabled={!watch("cuchetin")}
                     label="Observaciones cuchetín"

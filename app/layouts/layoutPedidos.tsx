@@ -80,12 +80,12 @@ export default function PedidosLayout() {
         title: "Trabajo en Chasis",
         href: `/pedidos/trabajo-chasis/${id}`,
         icon: Drill,
-      } /* 
+      }, 
       {
         title: "Datos de Colocación",
         href: `/pedidos/datos-colocacion/${id}`,
         icon: Truck,
-      }, */,
+      },
       {
         title: "Órdenes de Trabajo",
         href: `/pedidos/ordenes-trabajo/${id}`,
@@ -107,13 +107,13 @@ export default function PedidosLayout() {
           {/* Sidebar */}
           <div
             className={`${getZIndexClass(Z_INDEX.SIDEBAR)} flex flex-col justify-between border-e border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 transition-all duration-300 ease-in-out relative ${
-              sidebarOpen ? "w-64" : "w-16"
+              sidebarOpen ? "md:w-54 w-16" : "w-16"
             }`}
           >
             {/* Botón toggle integrado en el sidebar */}
             <button
               onClick={toggleSidebar}
-              className={`absolute -right-3 top-4 ${getZIndexClass(Z_INDEX.SIDEBAR_TOGGLE)} p-1.5 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out`}
+              className={`hidden md:block absolute -right-3 top-4 ${getZIndexClass(Z_INDEX.SIDEBAR_TOGGLE)} p-1.5 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out`}
               aria-label={sidebarOpen ? "Contraer sidebar" : "Expandir sidebar"}
             >
               {sidebarOpen ? (

@@ -12,13 +12,11 @@ import { useUIModals } from "~/context/ModalsContext";
 import { useFormNavigationBlock } from "~/hooks/useFormNavigationBlock";
 import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
 import { chequesAPI, mvtosAPI } from "~/backend/sheetServices";
-import { useData } from "~/context/DataContext";
-import { useNavigate } from "react-router";
 import type { MvtosDB } from "~/types/ctas_corrientes";
+import { useCtaCte } from "~/context/CtaCteContext";
 type AccionTypes = "depositar" | "endosar" | "anular" | "acreditar" | "rechazar" | "anularEndoso";
 export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte }) {
-  const navigate = useNavigate();
-  const { refreshCtasCtes, bancos, getBancos } = useData();
+  const { bancos, getBancos, getCheques, getMvtos } = useCtaCte();
   const { showInfo, showLoading, showError, showSuccess, showConfirmation } = useUIModals();
   const [accion, setAccion] = useState<AccionTypes | "">("");
   const {
@@ -93,8 +91,6 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
   // Centraliza efectos secundarios según la máquina de estados
   const onSubmit = async (formData: ChequesEnrichWithCtaCte) => {
     showLoading("Guardando cambios...", "Por favor, espere.");
-    let loadCheques = false;
-    let loadFiles = false;
     const { ctaCte, proveedor, nombre_banco, ...rest } = formData;
     const hasDirtyFields = dirtyFields && Object.keys(dirtyFields).length > 0;
     if (!hasDirtyFields) {
@@ -111,7 +107,8 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
     try {
       const response = await chequesAPI.update(rest.id, updatePayload);
       if (!response.success) throw new Error(response.message);
-      loadCheques = true;
+      // actualizar cheques
+      await getCheques();
       // Si la transición requiere generar deuda, hacerlo automáticamente
       if (transition && transition.effect === "generarDeuda") {
         await createMtoCtaCorriente({
@@ -119,26 +116,11 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
           monto: formData.importe,
           accion: accion === "anular" ? "anular" : "rechazar",
         });
+        // Recargar movimientos para reflejar nueva deuda generada
+        await getMvtos();
       }
-      // Forzar recarga completa de cheques invalidando el caché primero
-      const refresh = await refreshCtasCtes({
-        refMvto: true,
-        refCheque: loadCheques,
-        refDocu: loadFiles,
-      });
-      if (!refresh) throw new Error("Error refreshing cuentas corrientes data");
-      // mostrar modal de exito
-      if (refresh) {
-        showSuccess("Cheque actualizado con éxito.", () => {
-          setTimeout(() => {
-            navigate("/administracion/cheques");
-          }, 200);
-        });
-      } else {
-        showInfo(
-          "Cheque actualizado, pero no se pudieron refrescar los datos. Actualice la página manualmente.",
-        );
-      }
+      setAccion("");
+      showSuccess("Cheque actualizado con éxito.");
     } catch (error) {
       showError(
         "Error al actualizar el cheque. Por favor, intente nuevamente más tarde.",
@@ -211,14 +193,13 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
         proveedor_id: "",
       });
       if (!response.success) throw new Error(response.message);
-      const refresh = await refreshCtasCtes({ refCheque: true });
+      await getCheques();
       // resetear formulario a data actualizada
       data!.status = transition.to;
       data!.fecha_endoso = "";
       data!.proveedor_id = "";
       data!.proveedor = undefined;
       reset(data);
-      if (!refresh) throw new Error("Error refreshing cuentas corrientes data");
       showSuccess("Endoso anulado. El cheque ha vuelto a estado de recibido.");
     } catch (error) {
       showError("Error al anular el endoso. Por favor, intente nuevamente más tarde.");
@@ -231,51 +212,7 @@ export default function ChequeForm({ data }: { data?: ChequesEnrichWithCtaCte })
       cancelText: "No, mantener endosado",
     });
   };
-  // Nueva acción: Rechazar Endoso (transición y efecto)
-  const rechazarEndoso = async () => {
-    const currentStatus = data?.status as any;
-    // Agregamos transición de endosado -> rechazado (como "rechazar")
-    const transition = getChequeTransition(currentStatus, "rechazar");
-    if (!transition) {
-      showError("No se puede rechazar el endoso desde el estado actual.");
-      return;
-    }
-    showLoading("Rechazando endoso...", "Por favor, espere.");
-    try {
-      const response = await chequesAPI.update(data!.id, {
-        status: transition.to,
-        fecha_rechazo: new Date().toISOString().split("T")[0],
-      });
-      if (!response.success) throw new Error(response.message);
-      if (transition.effect === "generarDeuda") {
-        await createMtoCtaCorriente({
-          clienteId: data!.ctaCte.id,
-          monto: data!.importe,
-          accion: "rechazar",
-        });
-      }
-      const refresh = await refreshCtasCtes({ refCheque: true });
-      data!.status = transition.to;
-      data!.fecha_rechazo = new Date().toISOString().split("T")[0];
-      reset(data);
-      if (!refresh) throw new Error("Error refreshing cuentas corrientes data");
-      showSuccess("Endoso rechazado. Se generó deuda en la cuenta corriente.");
-    } catch (error) {
-      showError("Error al rechazar el endoso. Por favor, intente nuevamente más tarde.");
-    }
-  };
-
-  const handleRechazarEndoso = () => {
-    showConfirmation(
-      "El cheque será rechazado, generando una deuda en la cuenta corriente del cliente. ¿Desea continuar?",
-      rechazarEndoso,
-      {
-        title: "¿Rechazar endoso?",
-        confirmText: "Sí, rechazar endoso",
-        cancelText: "No, mantener endosado",
-      }
-    );
-  };
+  
   // Type guard para ChequeStatus
   const chequeStatuses = [
     'recibido',

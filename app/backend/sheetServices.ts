@@ -13,7 +13,6 @@ const sheetIdPedidos =
   import.meta.env.MODE === "development"
     ? import.meta.env.VITE_SHEET_ID_PEDIDOS_DEV
     : import.meta.env.VITE_SHEET_ID_PEDIDOS;
-console.log("sheetIdPedidos:", sheetIdPedidos);
 const sheetIdConfiguraciones =
   import.meta.env.MODE === "development"
     ? import.meta.env.VITE_SHEET_ID_CONFIGURACIONES_DEV

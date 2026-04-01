@@ -47,8 +47,9 @@ export default function OrdenesPedidos() {
       isCreated: ordenes_controles
         ? ordenes_controles.some((orden) => orden.tipo_orden === "pintura")
         : false,
-      urlFile: ordenes_controles?.find((order) => order.tipo_orden === "pintura")
-        ?.url_archivo,
+      urlFile: ordenes_controles?.find(
+        (order) => order.tipo_orden === "pintura",
+      )?.url_archivo,
       order: ordenes_controles?.find((order) => order.tipo_orden === "pintura"),
       disabled: false,
     },
@@ -61,8 +62,9 @@ export default function OrdenesPedidos() {
       isCreated: ordenes_controles
         ? ordenes_controles.some((orden) => orden.tipo_orden === "montaje")
         : false,
-      urlFile: ordenes_controles?.find((order) => order.tipo_orden === "montaje")
-        ?.url_archivo,
+      urlFile: ordenes_controles?.find(
+        (order) => order.tipo_orden === "montaje",
+      )?.url_archivo,
       order: ordenes_controles?.find((order) => order.tipo_orden === "montaje"),
       disabled:
         ordenes_controles?.find((order) => order.tipo_orden === "pintura")
@@ -79,7 +81,7 @@ export default function OrdenesPedidos() {
         }}
       />
       {pedido?.carroceria ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {tipoOrdenes.map((orden) => {
             const IconComponent = getIcon({
               icon: orden.icon as any,
@@ -93,7 +95,7 @@ export default function OrdenesPedidos() {
                 blur="lg"
                 opacity="low"
                 padding="md"
-                className={`!border-gray-300/80 dark:!border-white/20 hover:bg-gray-100/50 dark:hover:bg-white/20 transition-all duration-300  hover:shadow-2xl overflow-hidden ${orden.disabled ? "opacity-50 cursor-not-allowed" : "hover:scale-105 cursor-pointer"}`}
+                className={`!border-gray-300/80 dark:!border-white/20 hover:bg-gray-100/50 mx-auto dark:hover:bg-white/20 transition-all duration-300  hover:shadow-2xl overflow-hidden ${orden.disabled ? "opacity-50 cursor-not-allowed" : "hover:scale-105 cursor-pointer"}`}
               >
                 <button
                   className="flex flex-col items-start h-full text-start"

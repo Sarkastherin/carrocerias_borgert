@@ -50,8 +50,8 @@ export default function PedidosForm() {
         <>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <CardToggle title="Información del Pedido">
-              <fieldset className="flex flex-col gap-4">
-                <div className="flex flex-col md:flex-row gap-4">
+              <fieldset className="flex flex-col gap-2">
+                <div className="flex flex-col md:flex-row gap-2">
                   <Input
                     label="Fecha de pedido"
                     type="date"
@@ -68,7 +68,17 @@ export default function PedidosForm() {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <Select hidden
+                    label="Tipo de pedido"
+                    {...register("tipo_pedido", {
+                      required: "Este campo es requerido",})}
+                    error={errors.tipo_pedido?.message}
+                    requiredField={true}>
+                    <option value="">Seleccione un tipo de pedido</option>
+                    <option value="nueva">Carrocería nueva</option>
+                    <option value="usada">Carrocería usada</option>
+                  </Select>
                   <Select
                     label="Vendedor"
                     {...register("vendedor_id", {
@@ -107,7 +117,7 @@ export default function PedidosForm() {
               </fieldset>
             </CardToggle>
             <CardToggle title="Condiciones de Pago">
-              <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <Input
                   label="Fecha prevista"
                   type="date"
@@ -135,7 +145,7 @@ export default function PedidosForm() {
                 />
 
                 <CurrencyInput
-                  label="Valor de tasación (aplica a carrocería usada)"
+                  label="Tasación (carrocería usada)"
                   value={watch("valor_tasacion")}
                   placeholder="Ingrese el valor de tasación"
                   onChange={(value) => {
@@ -167,7 +177,7 @@ export default function PedidosForm() {
                     valueAsNumber: true,
                   })}
                 />
-                <div className="col-span-2">
+                <div className="col-span-1 md:col-span-2">
                   <Input
                     label="Especifique la forma de pago"
                     placeholder="Ejemp.: Entre 40% + 4 Cheques + Carroceria usada"

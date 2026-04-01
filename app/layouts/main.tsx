@@ -4,6 +4,7 @@ import { Header } from "~/components/Headers";
 import { Outlet, useNavigate } from "react-router";
 import { ModalManager } from "~/components/modals/ModalManager";
 import { PedidoProvider } from "~/context/PedidoContext";
+import { CtaCteProvider } from "~/context/CtaCteContext";
 
 export default function LayoutMain() {
   const { auth, getAuth } = useAuth();
@@ -28,10 +29,12 @@ export default function LayoutMain() {
     <>
       <Header />
       {auth && (
-        <PedidoProvider>
-        <Outlet />
-        <ModalManager />
-      </PedidoProvider>
+        <CtaCteProvider>
+          <PedidoProvider>
+            <Outlet />
+            <ModalManager />
+          </PedidoProvider>
+        </CtaCteProvider>
       )}
     </>
   );

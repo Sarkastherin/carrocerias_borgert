@@ -26,7 +26,7 @@ export default function CamionForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <CardToggle title="Datos del camión">
-        <fieldset className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <fieldset className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
           <Select
             label="Marca"
             {...register("marca", {
@@ -69,7 +69,7 @@ export default function CamionForm() {
           <InputWithIcon
             type="text"
             placeholder="Ingrese un valor"
-            label="Medida Larguero (mm)"
+            label="Med Larguero (mm)"
             {...register("med_larguero", {
               required: "Este campo es obligatorio",
             })}
