@@ -1,7 +1,7 @@
 import type { Route } from "../+types/home";
 import { Settings, Wrench } from "lucide-react";
 import { NavGlassCard } from "~/components/GlassCard";
-import pkg from "package.json";
+import pkg from "../../../package.json";
 
 const appVersion = pkg.version;
 
