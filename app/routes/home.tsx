@@ -1,6 +1,6 @@
 import type { Route } from "./+types/home";
 import { ReceiptText, NotebookTabs, FileCog, Wallet, Banknote } from "lucide-react";
-import pkg from "package.json";
+import pkg from "../../package.json";
 import type { CardLinkProps } from "~/components/GlassCard";
 import { LogoComponent } from "~/components/LogoComponent";
 import { NavGlassCard } from "~/components/GlassCard";
