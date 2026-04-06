@@ -22,6 +22,7 @@ import FilesUploderComponent, {
   type FileTypeActions,
 } from "../FileUpladerComponent";
 import { formatDateUStoES } from "~/utils/formatDate";
+import { useCtaCte } from "~/context/CtaCteContext";
 import type { DocumentosBD, DocumentosCtasCtesBD } from "~/types/pedidos";
 
 type FormState = "form" | "loading" | "success" | "error" | "info";
@@ -38,10 +39,10 @@ export default function TemplateMovtoEdit({
   const {
     bancos,
     getBancos,
-    refreshCtasCtes,
     uploadFilesToCtasCtes,
     deleteDocumentoCtasCtes,
-  } = useData();
+    getMvtos,
+  } = useCtaCte();
   const { closeModal } = useUIModals();
   const [files, setFiles] = useState<FileTypeActions<DocumentosCtasCtesBD>>({
     add: null,
@@ -136,12 +137,7 @@ export default function TemplateMovtoEdit({
         }
         loadFiles = true;
       }
-      const refresh = await refreshCtasCtes({
-        refMvto: true,
-        refCheque: loadCheques,
-        refDocu: loadFiles,
-      });
-      if (!refresh) throw new Error("Error refreshing cuentas corrientes data");
+      await getMvtos();
       setFormState("success");
     } catch (error) {
       console.error("Error submitting form:", error);

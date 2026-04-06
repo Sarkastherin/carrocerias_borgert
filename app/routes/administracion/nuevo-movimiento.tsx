@@ -10,6 +10,7 @@ import ButtonsActionsCtaCte from "~/components/ButtonsActionsCtaCte";
 import { useEffect, useState } from "react";
 import { useData } from "~/context/DataContext";
 import { useNavigate } from "react-router";
+import { useCtaCte } from "~/context/CtaCteContext";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Nuevo movimiento" },
@@ -24,7 +25,7 @@ type MovimientoFormProps = MvtosDB & {
   cliente: ClientesBD;
 };
 export default function NuevoMovimiento() {
-  const { ctasCtes, getCtasCtes } = useData();
+  const { ctasCtes, getCtasCtes } = useCtaCte();
   const [ctaCte, setCtaCte] = useState<CtaCte | null>(null);
   const [isNew, setIsNew] = useState<boolean | null>(null);
   const navigate = useNavigate();
