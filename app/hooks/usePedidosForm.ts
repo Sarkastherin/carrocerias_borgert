@@ -9,13 +9,14 @@ import { prepareUpdatePayload } from "~/utils/prepareUpdatePayload";
 import { useFormNavigationBlock } from "./useFormNavigationBlock";
 import type { MvtosDB } from "~/types/ctas_corrientes";
 import { usePedido } from "~/context/PedidoContext";
+import { useCtaCte } from "~/context/CtaCteContext";
 export function usePedidosForm() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const { showLoading, showSuccess, showError, showInfo } = useUIModals();
   const { pedido, getPedidos } = usePedido();
-  const { refreshCtasCtes } = useData();
+  const { mvtos, getMvtos } = useCtaCte();
   const isEditMode = Boolean(pedido);
   const existingPedido: PedidosUI | null = pedido;
 
@@ -93,7 +94,7 @@ export function usePedidosForm() {
               "Error desconocido al crear movimiento de cta corriente por tasación",
           );
       }
-      await refreshCtasCtes({ refMvto: true });
+      await getMvtos()
       return true;
     } catch (error) {
       throw new Error(
@@ -179,6 +180,7 @@ export function usePedidosForm() {
       }
     } catch (error) {
       setIsLoading(false);
+      console.error("Error en handleSubmit de usePedidosForm:", error);
       showError(
         typeof error === "string" ? error : "Error al guardar el pedido",
       );

@@ -69,16 +69,6 @@ export default function PedidosForm() {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <Select hidden
-                    label="Tipo de pedido"
-                    {...register("tipo_pedido", {
-                      required: "Este campo es requerido",})}
-                    error={errors.tipo_pedido?.message}
-                    requiredField={true}>
-                    <option value="">Seleccione un tipo de pedido</option>
-                    <option value="nueva">Carrocería nueva</option>
-                    <option value="usada">Carrocería usada</option>
-                  </Select>
                   <Select
                     label="Vendedor"
                     {...register("vendedor_id", {

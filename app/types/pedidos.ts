@@ -64,7 +64,6 @@ export type PedidosBD = {
   fecha_creacion: string;
   fecha_pedido: string;
   fecha_fabricacion: string;
-  tipo_pedido: "nueva" | "usada";
   numero_pedido: string;
   cliente_id: string;
   precio_total: number;
