@@ -4,8 +4,9 @@
 
 [[redirects]]
   from = "/*"
-  to = "/index.html"
-  status = 200
+  to = "https://truck-flow.netlify.app/:splat"
+  status = 301
+  force = true
 
 [build.environment]
   NODE_VERSION = "20"
