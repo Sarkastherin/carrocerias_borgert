@@ -8,6 +8,7 @@ import type { FilterField } from "~/components/EntityTable";
 import { FileCode, PencilRuler } from "lucide-react";
 import { capitalize } from "./settingsConfig";
 import { defaultAPI, controlCarrozadoAPI } from "~/backend/sheetServices";
+import { useData } from "~/context/DataContext";
 import {
   getAtributoMetadata,
   getAtributoMetadataWithOptions,
@@ -270,7 +271,6 @@ export const useSettingsData = (carrozadoId?: string) => {
     getColores,
     getControlCarrozado,
   } = usePedido();
-
   // Usar el hook useDataLoader para cargar todos los datos
   const { isLoading } = useDataLoader({
     loaders: [

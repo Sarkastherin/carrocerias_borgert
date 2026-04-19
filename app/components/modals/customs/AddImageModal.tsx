@@ -64,7 +64,7 @@ export function AddImageModal({ onClose, carrozadoId }: AddImageModalProps) {
       open={true}
       title={"Agregar imagen"}
       onClose={onClose}
-      zIndex={50}
+      zIndex={60}
       width="max-w-md"
     >
       <div className="space-y-4">

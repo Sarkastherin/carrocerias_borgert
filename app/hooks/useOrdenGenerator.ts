@@ -20,7 +20,6 @@ interface PDFGenerationOptions {
 
 export const useOrdenGenerator = () => {
   const { personal, getPersonal } = useData();
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +40,6 @@ export const useOrdenGenerator = () => {
     const responsable = dataResponsable
       ? `${dataResponsable.nombre} ${dataResponsable.apellido}`
       : "No asignado";
-    setIsGenerating(true);
     setError(null);
 
     try {
@@ -52,7 +50,6 @@ export const useOrdenGenerator = () => {
         case "fabricacion":
           pdfDocument = React.createElement(OrdenFabricacionTemplate, {
             pedidoData,
-            formData,
             responsable,
           });
           break;
@@ -97,9 +94,7 @@ export const useOrdenGenerator = () => {
         err instanceof Error ? err.message : "Error generando PDF";
       setError(errorMessage);
       throw new Error(errorMessage);
-    } finally {
-      setIsGenerating(false);
-    }
+    } 
   };
 
   const savePDFToDrive = async (
@@ -275,7 +270,6 @@ export const useOrdenGenerator = () => {
 
   const resetState = () => {
     setError(null);
-    setIsGenerating(false);
     setIsSaving(false);
   };
 
@@ -287,7 +281,6 @@ export const useOrdenGenerator = () => {
     createRegisterAndUpdatePedido,
     closeOrder,
     deleteOrden,
-    isGenerating,
     isSaving,
     error,
     resetState,

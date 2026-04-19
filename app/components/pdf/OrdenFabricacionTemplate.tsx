@@ -1,6 +1,6 @@
 import React from "react";
 import { Document, View } from "@react-pdf/renderer";
-import type { OrdenesYControlesBD, PedidosUI } from "~/types/pedidos";
+import type { PedidosUI } from "~/types/pedidos";
 import {
   Subtitle,
   Box,
@@ -15,12 +15,10 @@ import { DatosPedido, DatosCamion, DatosColor } from "./DatosComunesTemplate";
 
 interface OrdenFabricacionProps {
   pedidoData?: PedidosUI;
-  formData: Partial<OrdenesYControlesBD>;
   responsable: string;
 }
 export const OrdenFabricacionTemplate: React.FC<OrdenFabricacionProps> = ({
   pedidoData,
-  formData,
   responsable
 }) => (
   <Document>

@@ -160,7 +160,7 @@ export default function SettingsFormModal({
       open={true}
       title={title}
       onClose={onClose}
-      zIndex={50} // Z-index intermedio para permitir que loading/success se muestren encima
+      zIndex={40} // Z-index intermedio para permitir que loading/success se muestren encima
       width="max-w-md"
     >
       <div className="py-4">

@@ -56,9 +56,3 @@ export function getChequeTransition(
 ): ChequeTransition | undefined {
   return chequeStateMachine[from]?.[action];
 }
-
-// Ejemplo de uso:
-// const t = getChequeTransition('recibido', 'endosar');
-// if (t) { ... }
-
-// Puedes extender esta máquina agregando más efectos o validaciones según sea necesario.

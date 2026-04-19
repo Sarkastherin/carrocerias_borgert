@@ -7,7 +7,7 @@ import type {
   Path,
 } from "react-hook-form";
 import type { ChequesDB, ChequesWithTerceros } from "~/types/ctas_corrientes";
-import { useData } from "~/context/DataContext";
+import { useCtaCte } from "~/context/CtaCteContext";
 export  function BancosComponentArray<T extends { cheques: ChequesDB[] }>({
   register,
   errors,
@@ -19,7 +19,7 @@ export  function BancosComponentArray<T extends { cheques: ChequesDB[] }>({
   watch: UseFormWatch<T>;
   index: number;
 }) {
-  const { bancos, getBancos } = useData();
+  const { bancos, getBancos } = useCtaCte();
 
   useEffect(() => {
     if (!bancos) getBancos();
@@ -58,7 +58,7 @@ export  function BancosComponent({
   errors: FieldErrors<ChequesWithTerceros>;
   watch: UseFormWatch<ChequesWithTerceros>;
 }) {
-  const { bancos, getBancos } = useData();
+  const { bancos, getBancos } = useCtaCte();
 
   useEffect(() => {
     if (!bancos) getBancos();
