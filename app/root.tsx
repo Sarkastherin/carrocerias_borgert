@@ -89,6 +89,7 @@ export default function App() {
           <DataProvider>
               <main className="min-h-screen flex flex-col bg-background text-text-primary transition-colors duration-500">
                 <Outlet />
+                <p>nueva version</p>
               </main>
           </DataProvider>
         </UIProvider>
