@@ -19,7 +19,7 @@ export default function LayoutMain() {
   }, []);
   useEffect(() => {
     if (!auth) {
-      navigate("/login");
+      navigate("/");
       return;
     }
     navigate("/");
